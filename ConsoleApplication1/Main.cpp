@@ -11,7 +11,7 @@ using namespace std;
 using namespace sf;
 
 
-sf::RenderWindow window(sf::VideoMode(1680, 1050), "SFML works!");
+sf::RenderWindow window(sf::VideoMode(1280, 800), "Vampire Survivors Olympus");
 sf::CircleShape shape(100.f);
 void Update();
 void Start();
@@ -29,6 +29,9 @@ int main()
         {
             if (event.type == sf::Event::Closed)
                 window.close();
+            if (Keyboard::isKeyPressed(Keyboard::Escape)) {
+                window.close();
+            }
         }
         Update();
         Draw();
@@ -38,8 +41,7 @@ int main()
 void Start()
 {
     // code here is only executed at the start of the program
-
-    shape.setFillColor(sf::Color::Green);
+    window.setFramerateLimit(60);
 }
 void Update()
 {
