@@ -10,13 +10,42 @@
 using namespace std;
 using namespace sf;
 
-
 sf::RenderWindow window(sf::VideoMode(1280, 800), "Vampire Survivors Olympus");
-sf::CircleShape shape(100.f);
+sf::CircleShape circle(100.f);
 void Update();
 void Start();
 void Draw();
 float deltaTime;
+struct player
+{
+    RectangleShape realCollision ;// real sprite Bounds
+    Sprite shape;
+    Texture walk;
+    Texture idle;
+    int health,xp;
+    float speed;    
+    Vector2f velocity;
+    bool isDead;
+    void update() {
+        if (health <= 0)
+            isDead = true;
+        realCollision.setPosition(shape.getPosition());
+        realCollision.setOrigin(shape.getOrigin());
+    }
+}player1;
+struct enemy {
+    RectangleShape attackBox;
+    Vector2f velocity;
+    Sprite shape;
+    Texture walk, attack, dead;
+    float speed;
+    int health;
+    bool isAttacking, isDead;
+    void update() {
+        if (health <= 0)
+            isDead = true;
+    }
+}enemy1;
 int main()
 {
     Start();
@@ -46,7 +75,6 @@ void Start()
 void Update()
 {
     // code here is executed every frame since the start of the program
-
 }
 void Draw()
 {
@@ -56,7 +84,7 @@ void Draw()
 
     //Draw your sprites here
 
-    window.draw(shape);
+    window.draw(circle);
 
     
     window.display(); //Display sprites on screen
