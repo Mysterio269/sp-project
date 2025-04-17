@@ -9,16 +9,23 @@
 #include <iomanip>
 using namespace std;
 using namespace sf;
-enum Gamestate{mainmenu,gameloop,settings,gameover,leaderboard};
+enum Gamestate
+{
+    mainmenu,
+    gameloop,
+    settings,
+    gameover,
+    leaderboard
+};
 Gamestate gamestate = mainmenu;
 Text StartGameText, SettingsText, ExitText;
-Font defgamefont;//default game font
+Font defgamefont; // default game font
 Texture MainMenuBackground_Texture;
 Sprite MainMenuBackGround;
 View view;
 Vector2i mouseScreenpos;
 Vector2f mouseWorldpos;
-RectangleShape StartButton(Vector2f(490,110));
+RectangleShape StartButton(Vector2f(490, 110));
 FloatRect StartButtonBounds;
 
 RenderWindow window(VideoMode(1280, 800), "Vampire Survivors Olympus");
@@ -26,12 +33,47 @@ RenderWindow window(VideoMode(1280, 800), "Vampire Survivors Olympus");
 void Update();
 void Start();
 void Draw();
-void MainMenuButtonCheck() {
-    if (Mouse::isButtonPressed(Mouse::Left) and StartButtonBounds.contains(mouseWorldpos)) {
+void MainMenuButtonCheck()
+{
+    if (Mouse::isButtonPressed(Mouse::Left) && StartButtonBounds.contains(mouseWorldpos))
+    {
         gamestate = gameloop;
     }
 }
 float deltaTime;
+struct player
+{
+    RectangleShape realCollision; // real sprite Bounds
+    Sprite shape;
+    Texture walk;
+    Texture idle;
+    int health, xp;
+    float speed;
+    Vector2f velocity;
+    bool isDead;
+    void update()
+    {
+        if (health <= 0)
+            isDead = true;
+        realCollision.setPosition(shape.getPosition());
+        realCollision.setOrigin(shape.getOrigin());
+    }
+} player1;
+struct enemy
+{
+    RectangleShape attackBox;
+    Vector2f velocity;
+    Sprite shape;
+    Texture walk, attack, dead;
+    float speed;
+    int health;
+    bool isAttacking, isDead;
+    void update()
+    {
+        if (health <= 0)
+            isDead = true;
+    }
+} enemy1;
 int main()
 {
     Start();
@@ -44,7 +86,8 @@ int main()
         {
             if (event.type == sf::Event::Closed)
                 window.close();
-            if (Keyboard::isKeyPressed(Keyboard::Escape)) {
+            if (Keyboard::isKeyPressed(Keyboard::Escape))
+            {
                 window.close();
             }
         }
@@ -75,70 +118,64 @@ void Start()
 
     view.setCenter(10000, 10000);
     window.setView(view);
-
-
 }
-
 
 void Update()
 {
     // code here is executed every frame since the start of the program
     mouseScreenpos = Mouse::getPosition(window);
     mouseWorldpos = window.mapPixelToCoords(mouseScreenpos);
-    if (gamestate == mainmenu) {
-        //main menu update
+    if (gamestate == mainmenu)
+    {
+        // main menu update
 
         MainMenuButtonCheck();
     }
-    if (gamestate == gameloop) {
-        //gameloop update
+    if (gamestate == gameloop)
+    {
+        // gameloop update
         cout << "we are in game phase";
-        if (Keyboard::isKeyPressed(Keyboard::R)) {
+        if (Keyboard::isKeyPressed(Keyboard::R))
+        {
             gamestate = mainmenu;
         }
-
     }
-    if (gamestate == settings) {
-        //settings menu update
-
-
+    if (gamestate == settings)
+    {
+        // settings menu update
     }
-    if (gamestate == gameover) {
-        //gameover screen update
-
-
+    if (gamestate == gameover)
+    {
+        // gameover screen update
     }
 }
 void Draw()
 {
     // code here is executed every frame since the start of the program
 
-    window.clear(); //clear every pixel on the screen
+    window.clear(); // clear every pixel on the screen
 
-    //Draw your sprites here
+    // Draw your sprites here
 
-    if (gamestate == mainmenu) {
-        //main menu draw
+    if (gamestate == mainmenu)
+    {
+        // main menu draw
         window.draw(MainMenuBackGround);
-        //window.draw(StartButton);
+        // window.draw(StartButton);
         window.draw(StartGameText);
-
     }
-    if (gamestate == gameloop) {
-        //gameloop draw
-
+    if (gamestate == gameloop)
+    {
+        // gameloop draw
     }
-    if (gamestate == settings) {
-        //settings menu draw
-
-
+    if (gamestate == settings)
+    {
+        // settings menu draw
     }
-    if (gamestate == gameover) {
-        //gameover screen draw
-
-
+    if (gamestate == gameover)
+    {
+        // gameover screen draw
     }
 
-    
-    window.display(); //Display sprites on screen
+    window.display(); // Display sprites on screen
 }
