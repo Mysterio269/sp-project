@@ -43,10 +43,9 @@ void MainMenuButtonCheck()
 float deltaTime;
 struct player
 {
-    RectangleShape realCollision; // real sprite Bounds
+    RectangleShape collider; // Sprite collider
     Sprite shape;
-    Texture walk;
-    Texture idle;
+    Texture playerspreadsheet;
     int health, xp;
     float speed;
     Vector2f velocity;
@@ -55,18 +54,18 @@ struct player
     {
         if (health <= 0)
             isDead = true;
-        realCollision.setPosition(shape.getPosition());
-        realCollision.setOrigin(shape.getOrigin());
+        collider.setPosition(shape.getPosition());
+        collider.setOrigin(shape.getOrigin());
     }
 } player1;
 struct enemy
 {
-    RectangleShape attackBox;
+    RectangleShape attackBox,collider;
     Vector2f velocity;
     Sprite shape;
-    Texture walk, attack, dead;
+    Texture enemyspreadsheet;
     float speed;
-    int health;
+    int health,damage;
     bool isAttacking, isDead;
     void update()
     {
@@ -99,6 +98,7 @@ int main()
 void Start()
 {
     // code here is only executed at the start of the program
+    // initializations of everything
     window.setFramerateLimit(60);
 
     defgamefont.loadFromFile("VampireZone.ttf");
