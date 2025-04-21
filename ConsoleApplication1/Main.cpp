@@ -17,11 +17,15 @@ enum Gamestate
     gameover,
     leaderboard
 };
+enum animationstate
+{
+    attacking, walking, idle, ultimate
+};
 Gamestate gamestate = mainmenu;
 Text StartGameText, SettingsText, ExitText,LeaderboardText;
 Font defgamefont; // default game font
-Texture MainMenuButtons_Texture,MainMenuBackground_Texture;
-Sprite MainMenuButtons, MainMenuBackground;
+Texture MainMenuButtons_Texture,MainMenuBackground_Texture,Map_Texture;
+Sprite MainMenuButtons, MainMenuBackground,Map,maparray[15][15];
 View view;
 Vector2i mouseScreenpos;
 Vector2f mouseWorldpos;
@@ -31,7 +35,7 @@ FloatRect StartButtonBounds,SettingsButtonBounds,LeaderboardButtonBounds,ExitBut
 Sound MainMenuMusic;
 SoundBuffer MainMenuMusic_source;
 
-RenderWindow window(VideoMode(1280, 800), "Vampire Survivors Olympus");
+RenderWindow window(VideoMode(1280, 800), "Vampire Survivors :The path to the legendary formula");
 
 void Update();
 void Start();
@@ -41,6 +45,7 @@ void MainMenuButtonCheck()
     if (Mouse::isButtonPressed(Mouse::Left) && StartButtonBounds.contains(mouseWorldpos))
     {
         gamestate = gameloop;
+        view.setCenter(0, 0);
         MainMenuMusic.stop();
     }
     if (Mouse::isButtonPressed(Mouse::Left) && LeaderboardButtonBounds.contains(mouseWorldpos))
@@ -60,23 +65,85 @@ void MainMenuButtonCheck()
     }
 }
 float deltaTime;
-struct player
+struct character
 {
     RectangleShape collider; // Sprite collider
-    Sprite shape;
+    Sprite sprite;
+    Texture texture;
     Texture playerspreadsheet;
     int health, xp;
     float speed;
     Vector2f velocity;
     bool isDead;
+    animationstate AnimationState;
+    int columnIndex = 0;
+    int rowIndex = 0;
+    int animationdelaytimer = 0;
     void update()
     {
+        AnimationState = idle;
+        animationdelaytimer++;
+        if (animationdelaytimer > 3) {
+            columnIndex++;
+            animationdelaytimer = 0;
+        }
+
         if (health <= 0)
             isDead = true;
-        collider.setPosition(shape.getPosition());
-        collider.setOrigin(shape.getOrigin());
+
+        //movement
+        {
+            if (Keyboard::isKeyPressed(Keyboard::A)) {
+                sprite.move(-speed *deltaTime, 0);
+                sprite.setScale(-1, 1.5);
+                AnimationState = walking;
+            }
+            if (Keyboard::isKeyPressed(Keyboard::D)) {
+                sprite.move(speed * deltaTime, 0);
+                sprite.setScale(1, 1.5);
+                AnimationState = walking;
+
+            }
+            if (Keyboard::isKeyPressed(Keyboard::S)) {
+                sprite.move(0, speed * deltaTime);
+                AnimationState = walking;
+
+            }
+            if (Keyboard::isKeyPressed(Keyboard::W)) {
+                sprite.move(0, -speed * deltaTime);
+                AnimationState = walking;
+
+            }
+            if (Keyboard::isKeyPressed(Keyboard::E)) {
+                AnimationState = attacking;
+            }
+        }
+
+        //animation
+        {
+            switch (AnimationState) {
+            case attacking:
+                rowIndex = 2;
+                columnIndex %= 6;
+                if (columnIndex < 4)
+                    sprite.setTextureRect(IntRect(columnIndex * 132, rowIndex * 143, 125, 148));
+                else
+                    sprite.setTextureRect(IntRect(columnIndex * 132 + 25, rowIndex * 143, 125, 148));
+                break;
+            case walking:
+                rowIndex = 1;
+                columnIndex %= 8;
+                sprite.setTextureRect(IntRect(columnIndex * 98 + 30, rowIndex * 130, 120, 148));
+                break;
+            case idle:
+                rowIndex = 0;
+                columnIndex = columnIndex % 4;
+                sprite.setTextureRect(IntRect(columnIndex * 111 + 30, rowIndex * 130, 120, 148));
+                break;
+            }
+        }
     }
-} player1;
+} shanoa;
 struct enemy
 {
     RectangleShape attackBox,collider;
@@ -114,6 +181,7 @@ int main()
     }
     return 0;
 }
+
 void MainmenuInit() {
     //Main menu initializations
     //please avoid editing this section
@@ -164,17 +232,45 @@ void MainmenuInit() {
     MainMenuMusic.play();
     MainMenuMusic.setLoop(true);
 }
+
+void CharacterInit() {
+    shanoa.texture.loadFromFile("Assets\\shanoa.png");
+    shanoa.sprite.setTexture(shanoa.texture);
+    shanoa.speed = 200;
+    shanoa.sprite.setPosition(0, 0);
+    shanoa.collider.setPosition(shanoa.sprite.getPosition());
+    shanoa.collider.setOrigin(shanoa.sprite.getOrigin());
+    shanoa.sprite.setOrigin(66, 74);
+    shanoa.sprite.setScale(1, 1.5);
+    shanoa.AnimationState = idle;
+}
+
+//void MapInit() {
+//    Map_Texture.loadFromFile("Assets\\ma.png");
+//    Map.setTexture(Map_Texture);
+//    Map.setPosition(-10000, -10000);
+//}
+
 void Start()
 {
     // code here is only executed at the start of the program
     // initializations of everything
-    window.setFramerateLimit(60);
+    window.setFramerateLimit(30);
 
     //Game font initialization
     defgamefont.loadFromFile("VampireZone.ttf");
 
     MainmenuInit();
-   
+    CharacterInit();
+    //MapInit();
+    /*Texture maparrT;
+    maparrT.loadFromFile("Assets\\ma.png");
+    for (int i = 0;i < 15;i++) {
+        for (int j = 0;i < 15;j++) {
+            maparray[i][j].setTexture(maparrT);
+            maparray[i][j].setPosition(i * 320, i * 320);
+        }
+    }*/
 
     view.setCenter(10000, 9800);
     window.setView(view);
@@ -198,12 +294,14 @@ void Update()
         if (Keyboard::isKeyPressed(Keyboard::R))
         {
             gamestate = mainmenu;
+            view.setCenter(10000, 9800);
             MainMenuMusic.play();
         }
         if (Keyboard::isKeyPressed(Keyboard::Q))
         {
             gamestate = gameover;
         }
+        shanoa.update();
     }
     if (gamestate == settings)
     {
@@ -235,7 +333,9 @@ void Update()
             MainMenuMusic.play();
         }
     }
+        window.setView(view);
 }
+
 void Draw()
 {
     // code here is executed every frame since the start of the program
@@ -265,8 +365,14 @@ void Draw()
     if (gamestate == gameloop)
     {
         // gameloop draw
+        /*for (int i = 0;i < 15;i++) {
+            for (int j = 0;j < 15;j++) {
+                window.draw(maparray[i][j]);
+            }
+        }*/
+        //window.draw(Map);
 
-
+        window.draw(shanoa.sprite);
     }
     if (gamestate == settings)
     {
