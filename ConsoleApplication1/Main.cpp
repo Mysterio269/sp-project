@@ -25,7 +25,7 @@ Gamestate gamestate = mainmenu;
 Text StartGameText, SettingsText, ExitText,LeaderboardText;
 Font defgamefont; // default game font
 Texture MainMenuButtons_Texture,MainMenuBackground_Texture,Map_Texture;
-Sprite MainMenuButtons, MainMenuBackground,Map,maparray[15][15];
+Sprite MainMenuButtons, MainMenuBackground,Map;
 View view;
 Vector2i mouseScreenpos;
 Vector2f mouseWorldpos;
@@ -245,11 +245,14 @@ void CharacterInit() {
     shanoa.AnimationState = idle;
 }
 
-//void MapInit() {
-//    Map_Texture.loadFromFile("Assets\\ma.png");
-//    Map.setTexture(Map_Texture);
-//    Map.setPosition(-10000, -10000);
-//}
+void MapInit() {
+    Map_Texture.loadFromFile("Assets\\mapfinal.png");
+    Map_Texture.setRepeated(true);
+    Map.setTextureRect(IntRect(0,0,20000,20000));
+    Map.setTexture(Map_Texture);
+    Map.setPosition(-10000, -10000);
+}
+
 
 void Start()
 {
@@ -258,19 +261,13 @@ void Start()
     window.setFramerateLimit(30);
 
     //Game font initialization
+    MapInit();
     defgamefont.loadFromFile("VampireZone.ttf");
+
 
     MainmenuInit();
     CharacterInit();
-    //MapInit();
-    /*Texture maparrT;
-    maparrT.loadFromFile("Assets\\ma.png");
-    for (int i = 0;i < 15;i++) {
-        for (int j = 0;i < 15;j++) {
-            maparray[i][j].setTexture(maparrT);
-            maparray[i][j].setPosition(i * 320, i * 320);
-        }
-    }*/
+    MapInit();
 
     view.setCenter(10000, 9800);
     window.setView(view);
@@ -290,7 +287,7 @@ void Update()
     if (gamestate == gameloop)
     {
         // gameloop update
-        cout << "we are in game phase ";
+        //cout << "we are in game phase ";
         if (Keyboard::isKeyPressed(Keyboard::R))
         {
             gamestate = mainmenu;
@@ -365,12 +362,7 @@ void Draw()
     if (gamestate == gameloop)
     {
         // gameloop draw
-        /*for (int i = 0;i < 15;i++) {
-            for (int j = 0;j < 15;j++) {
-                window.draw(maparray[i][j]);
-            }
-        }*/
-        //window.draw(Map);
+        window.draw(Map);
 
         window.draw(shanoa.sprite);
     }
