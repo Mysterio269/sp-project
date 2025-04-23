@@ -43,35 +43,11 @@ SoundBuffer MainMenuMusic_source;
 RenderWindow window(VideoMode(1280, 800), "Vampire Survivors :The path to the legendary formula");
 float shootingtime = 0;
 float shootingrate = 3;
+float deltaTime;
 
 void Update();
 void Start();
 void Draw();
-void MainMenuButtonCheck()
-{
-    if (Mouse::isButtonPressed(Mouse::Left) && StartButtonBounds.contains(mouseWorldpos))
-    {
-        gamestate = gameloop;
-        view.setCenter(0, 0);
-        MainMenuMusic.stop();
-    }
-    if (Mouse::isButtonPressed(Mouse::Left) && LeaderboardButtonBounds.contains(mouseWorldpos))
-    {
-        gamestate = leaderboard;
-        MainMenuMusic.stop();
-    }
-    if (Mouse::isButtonPressed(Mouse::Left) && SettingsButtonBounds.contains(mouseWorldpos))
-    {
-        gamestate = settings;
-        MainMenuMusic.stop();
-    }
-    if (Mouse::isButtonPressed(Mouse::Left) && ExitButtonBounds.contains(mouseWorldpos))
-    {
-        window.close();
-        MainMenuMusic.stop();
-    }
-}
-float deltaTime;
 struct character
 {
     RectangleShape collider; // Sprite collider
@@ -155,6 +131,30 @@ struct character
         }
     }
 } shanoa;
+void MainMenuButtonCheck()
+{
+    if (Mouse::isButtonPressed(Mouse::Left) && StartButtonBounds.contains(mouseWorldpos))
+    {
+        gamestate = gameloop;
+        shanoa.sprite.setPosition(0, 0);
+        MainMenuMusic.stop();
+    }
+    if (Mouse::isButtonPressed(Mouse::Left) && LeaderboardButtonBounds.contains(mouseWorldpos))
+    {
+        gamestate = leaderboard;
+        MainMenuMusic.stop();
+    }
+    if (Mouse::isButtonPressed(Mouse::Left) && SettingsButtonBounds.contains(mouseWorldpos))
+    {
+        gamestate = settings;
+        MainMenuMusic.stop();
+    }
+    if (Mouse::isButtonPressed(Mouse::Left) && ExitButtonBounds.contains(mouseWorldpos))
+    {
+        window.close();
+        MainMenuMusic.stop();
+    }
+}
 struct enemy
 {
     RectangleShape attackBox,collider;
@@ -218,10 +218,12 @@ void shooting()
     if (shootingtime>=shootingrate)
     {
         shootingtime = 0;
+        float erasuretimer = 0;
         sword newSword;
-        newSword.speed = 500;
+        newSword.speed = 2500 * deltaTime;
         newSword.shape.setTexture(swordspritesheet);
         newSword.shape.setTextureRect(IntRect(1 * 32, 2 * 32, 32, 32));
+        newSword.shape.setScale(2, 2);
         newSword.shape.setPosition(shanoa.sprite.getPosition());// init
         newSword.collider.setSize(Vector2f(30, 15));// init
 
@@ -238,6 +240,11 @@ void shooting()
             newSword.shape.setRotation(45);
         }
         swords.push_back(newSword);
+        /*erasuretimer += deltaTime; //failed algorithm :'(
+        if (erasuretimer > 5) {
+            swords.erase(swords.begin() +1);
+            erasuretimer = 0;
+        }*/
     }
 
 }
@@ -316,65 +323,7 @@ void MapInit() {
 
 void gameStateHandle()
 {
-    if (gamestate == mainmenu)
-    {
-        // main menu update
-
-        MainMenuButtonCheck();
-        view.setCenter(10000, 9800);
-
-    }
-    if (gamestate == gameloop)
-    {
-        // gameloop update
-        //cout << "we are in game phase ";
-        if (Keyboard::isKeyPressed(Keyboard::R))
-        {
-            gamestate = mainmenu;
-            view.setCenter(10000, 9800);
-            MainMenuMusic.play();
-            CharacterInit();
-        }
-        if (Keyboard::isKeyPressed(Keyboard::Q))
-        {
-            gamestate = gameover;
-        }
-        view.setCenter(shanoa.sprite.getPosition());
-        shanoa.update();
-    }
-    if (gamestate == settings)
-    {
-        // settings menu update
-        cout << "we are in settings menu ";
-        if (Keyboard::isKeyPressed(Keyboard::R))
-        {
-            gamestate = mainmenu;
-            MainMenuMusic.play();
-            /*CharacterInit();*/ //not sure delete it or leave it
-        }
-    }
-    if (gamestate == leaderboard)
-    {
-        // settings menu update
-        cout << "we are in leaderboard menu ";
-        if (Keyboard::isKeyPressed(Keyboard::R))
-        {
-            gamestate = mainmenu;
-            MainMenuMusic.play();
-            /*CharacterInit();*/ //not sure delete it or leave it
-        }
-    }
-    if (gamestate == gameover)
-    {
-        // gameover screen update
-        cout << "The player is dead ";
-        if (Keyboard::isKeyPressed(Keyboard::R))
-        {
-            gamestate = mainmenu;
-            MainMenuMusic.play();
-            CharacterInit();
-        }
-    }
+    
 }
 
 
@@ -405,17 +354,68 @@ void Update()
     // code here is executed every frame since the start of the program
     mouseScreenpos = Mouse::getPosition(window);
     mouseWorldpos = window.mapPixelToCoords(mouseScreenpos);
-    gameStateHandle();
-    window.setView(view);
+    if (gamestate == mainmenu)
+    {
+        // main menu update
+
+        MainMenuButtonCheck();
+        view.setCenter(10000, 9800);
+
+    }
     if (gamestate == gameloop)
     {
+        // gameloop update
+        //cout << "we are in game phase ";
         shooting();
         for (int i = 0; i < swords.size(); i++)
         {
             swords[i].update(deltaTime);
         }
+        if (Keyboard::isKeyPressed(Keyboard::R))
+        {
+            gamestate = mainmenu;
+            view.setCenter(10000, 9800);
+            MainMenuMusic.play();
+        }
+        if (Keyboard::isKeyPressed(Keyboard::Q))
+        {
+            gamestate = gameover;
+        }
+        view.setCenter(shanoa.sprite.getPosition());
+        shanoa.update();
+    }
+    if (gamestate == settings)
+    {
+        // settings menu update
+        cout << "we are in settings menu ";
+        if (Keyboard::isKeyPressed(Keyboard::R))
+        {
+            gamestate = mainmenu;
+            MainMenuMusic.play();
+        }
+    }
+    if (gamestate == leaderboard)
+    {
+        // settings menu update
+        cout << "we are in leaderboard menu ";
+        if (Keyboard::isKeyPressed(Keyboard::R))
+        {
+            gamestate = mainmenu;
+            MainMenuMusic.play();
+        }
+    }
+    if (gamestate == gameover)
+    {
+        // gameover screen update
+        cout << "The player is dead ";
+        if (Keyboard::isKeyPressed(Keyboard::R))
+        {
+            gamestate = mainmenu;
+            MainMenuMusic.play();
+        }
     }
 
+    window.setView(view);
 }
 
 void Draw()
