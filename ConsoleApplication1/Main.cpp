@@ -21,10 +21,15 @@ enum animationstate
 {
     attacking, walking, idle, ultimate
 };
+enum playerDirection
+{
+    toright,toleft
+};
 Gamestate gamestate = mainmenu;
 Text StartGameText, SettingsText, ExitText,LeaderboardText;
 Font defgamefont; // default game font
 Texture MainMenuButtons_Texture,MainMenuBackground_Texture,Map_Texture;
+Texture swordspritesheet;
 Sprite MainMenuButtons, MainMenuBackground,Map;
 View view;
 Vector2i mouseScreenpos;
@@ -36,6 +41,8 @@ Sound MainMenuMusic;
 SoundBuffer MainMenuMusic_source;
 
 RenderWindow window(VideoMode(1280, 800), "Vampire Survivors :The path to the legendary formula");
+float shootingtime = 0;
+float shootingrate = 3;
 
 void Update();
 void Start();
@@ -75,12 +82,14 @@ struct character
     float speed;
     Vector2f velocity;
     bool isDead;
-    animationstate AnimationState;
+    animationstate AnimationState ;
+    playerDirection spriteDirection;
     int columnIndex = 0;
     int rowIndex = 0;
     int animationdelaytimer = 0;
     void update()
     {
+        //spriteDirection = toright;
         AnimationState = idle;
         animationdelaytimer++;
         if (animationdelaytimer > 3) {
@@ -96,11 +105,13 @@ struct character
             if (Keyboard::isKeyPressed(Keyboard::A)) {
                 sprite.move(-speed *deltaTime, 0);
                 sprite.setScale(-1, 1.5);
+                spriteDirection = toleft;
                 AnimationState = walking;
             }
             if (Keyboard::isKeyPressed(Keyboard::D)) {
                 sprite.move(speed * deltaTime, 0);
                 sprite.setScale(1, 1.5);
+                spriteDirection = toright;
                 AnimationState = walking;
 
             }
@@ -159,6 +170,24 @@ struct enemy
             isDead = true;
     }
 } enemy1;
+struct sword {
+    Sprite shape;
+    RectangleShape collider;
+    Vector2f velocity;
+    float speed;
+
+    void update(float deltaTime)
+    {
+        shape.move(velocity * deltaTime);
+        collider.setPosition(shape.getPosition());
+        collider.setOrigin(shape.getOrigin());
+        shape.setOrigin(16, 16);
+        collider.setOrigin(15, 7.5);
+    }
+    
+};
+    vector<sword> swords;
+
 int main()
 {
     Start();
@@ -180,6 +209,37 @@ int main()
         Draw();
     }
     return 0;
+}
+
+void shooting()
+{
+    shootingtime += deltaTime;
+    
+    if (shootingtime>=shootingrate)
+    {
+        shootingtime = 0;
+        sword newSword;
+        newSword.speed = 500;
+        newSword.shape.setTexture(swordspritesheet);
+        newSword.shape.setTextureRect(IntRect(1 * 32, 2 * 32, 32, 32));
+        newSword.shape.setPosition(shanoa.sprite.getPosition());// init
+        newSword.collider.setSize(Vector2f(30, 15));// init
+
+   
+
+        if (shanoa.spriteDirection == toleft)
+        {
+            newSword.velocity = Vector2f(-1.f, 0.f) * newSword.speed;
+            newSword.shape.setRotation(225);
+        }
+        else  
+        {
+            newSword.velocity = Vector2f(1.f, 0.f) * newSword.speed;
+            newSword.shape.setRotation(45);
+        }
+        swords.push_back(newSword);
+    }
+
 }
 
 void MainmenuInit() {
@@ -243,6 +303,7 @@ void CharacterInit() {
     shanoa.sprite.setOrigin(66, 74);
     shanoa.sprite.setScale(1, 1.5);
     shanoa.AnimationState = idle;
+   
 }
 
 void MapInit() {
@@ -253,36 +314,15 @@ void MapInit() {
     Map.setPosition(-10000, -10000);
 }
 
-
-void Start()
+void gameStateHandle()
 {
-    // code here is only executed at the start of the program
-    // initializations of everything
-    window.setFramerateLimit(30);
-
-    //Game font initialization
-    MapInit();
-    defgamefont.loadFromFile("VampireZone.ttf");
-
-
-    MainmenuInit();
-    CharacterInit();
-    MapInit();
-
-    view.setCenter(10000, 9800);
-    window.setView(view);
-}
-
-void Update()
-{
-    // code here is executed every frame since the start of the program
-    mouseScreenpos = Mouse::getPosition(window);
-    mouseWorldpos = window.mapPixelToCoords(mouseScreenpos);
     if (gamestate == mainmenu)
     {
         // main menu update
 
         MainMenuButtonCheck();
+        view.setCenter(10000, 9800);
+
     }
     if (gamestate == gameloop)
     {
@@ -293,11 +333,13 @@ void Update()
             gamestate = mainmenu;
             view.setCenter(10000, 9800);
             MainMenuMusic.play();
+            CharacterInit();
         }
         if (Keyboard::isKeyPressed(Keyboard::Q))
         {
             gamestate = gameover;
         }
+        view.setCenter(shanoa.sprite.getPosition());
         shanoa.update();
     }
     if (gamestate == settings)
@@ -308,6 +350,7 @@ void Update()
         {
             gamestate = mainmenu;
             MainMenuMusic.play();
+            /*CharacterInit();*/ //not sure delete it or leave it
         }
     }
     if (gamestate == leaderboard)
@@ -318,6 +361,7 @@ void Update()
         {
             gamestate = mainmenu;
             MainMenuMusic.play();
+            /*CharacterInit();*/ //not sure delete it or leave it
         }
     }
     if (gamestate == gameover)
@@ -328,9 +372,50 @@ void Update()
         {
             gamestate = mainmenu;
             MainMenuMusic.play();
+            CharacterInit();
         }
     }
-        window.setView(view);
+}
+
+
+void Start()
+{
+    // code here is only executed at the start of the program
+    // initializations of everything
+
+    window.setFramerateLimit(30);
+
+    //Game font initialization
+    MapInit();
+    defgamefont.loadFromFile("VampireZone.ttf");
+    swordspritesheet.loadFromFile("Assets\\SWORDS.png");
+
+    MainmenuInit();
+    CharacterInit();
+    MapInit();
+
+    view.setCenter(10000, 9800);
+    window.setView(view);
+
+    
+}
+
+void Update()
+{
+    // code here is executed every frame since the start of the program
+    mouseScreenpos = Mouse::getPosition(window);
+    mouseWorldpos = window.mapPixelToCoords(mouseScreenpos);
+    gameStateHandle();
+    window.setView(view);
+    if (gamestate == gameloop)
+    {
+        shooting();
+        for (int i = 0; i < swords.size(); i++)
+        {
+            swords[i].update(deltaTime);
+        }
+    }
+
 }
 
 void Draw()
@@ -364,6 +449,11 @@ void Draw()
         // gameloop draw
         window.draw(Map);
 
+        for (int i = 0; i < swords.size(); i++)
+        {
+          /*  window.draw(swords[i].collider);*/
+            window.draw(swords[i].shape);
+        }
         window.draw(shanoa.sprite);
     }
     if (gamestate == settings)
