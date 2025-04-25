@@ -28,9 +28,9 @@ enum playerDirection
 Gamestate gamestate = mainmenu;
 Text StartGameText, SettingsText, ExitText,LeaderboardText;
 Font defgamefont; // default game font
-Texture MainMenuButtons_Texture,MainMenuBackground_Texture,Map_Texture;
+Texture MainMenuButtons_Texture,MainMenuBackground_Texture,Map_Texture,healthbar_Texture;
 Texture swordspritesheet;
-Sprite MainMenuButtons, MainMenuBackground,Map;
+Sprite MainMenuButtons, MainMenuBackground,Map,healthbar;
 View view;
 Vector2i mouseScreenpos;
 Vector2f mouseWorldpos;
@@ -40,10 +40,11 @@ FloatRect StartButtonBounds,SettingsButtonBounds,LeaderboardButtonBounds,ExitBut
 Sound MainMenuMusic;
 SoundBuffer MainMenuMusic_source;
 
-RenderWindow window(VideoMode(1280, 800), "Vampire Survivors :The path to the legendary formula");
+RenderWindow window(VideoMode(1280, 800), "Vampire Survivors :The path to the legendary formula",Style::Close | Style::Titlebar);
 float shootingtime = 0;
 float shootingrate = 3;
 float deltaTime;
+float healthRatio;
 
 void Update();
 void Start();
@@ -54,7 +55,8 @@ struct character
     Sprite sprite;
     Texture texture;
     Texture playerspreadsheet;
-    int health, xp;
+    float health = 120, xp;
+    float Maxhp = 120;
     float speed;
     Vector2f velocity;
     bool isDead;
@@ -112,10 +114,18 @@ struct character
             case attacking:
                 rowIndex = 2;
                 columnIndex %= 6;
-                if (columnIndex < 4)
-                    sprite.setTextureRect(IntRect(columnIndex * 132, rowIndex * 143, 125, 148));
-                else
-                    sprite.setTextureRect(IntRect(columnIndex * 132 + 25, rowIndex * 143, 125, 148));
+                if(columnIndex == 0)
+                    sprite.setTextureRect(IntRect(columnIndex * 98 + 30, rowIndex * 130 +13, 120, 148));
+                else if(columnIndex == 1)
+                    sprite.setTextureRect(IntRect(columnIndex * 98 + 30, rowIndex * 130 +18, 120, 148));
+                else if (columnIndex == 2)
+                    sprite.setTextureRect(IntRect(columnIndex * 98 + 30, rowIndex * 130 + 18, 160, 148));
+                else if (columnIndex == 3)
+                    sprite.setTextureRect(IntRect(columnIndex * 98 + 90, rowIndex * 130 + 18, 160, 148));
+                else if (columnIndex == 4)
+                    sprite.setTextureRect(IntRect(columnIndex * 98 + 135, rowIndex * 130 + 11, 160, 148));
+                else if (columnIndex == 5)
+                    sprite.setTextureRect(IntRect(columnIndex * 98 + 195, rowIndex * 130  + 8, 160, 140));
                 break;
             case walking:
                 rowIndex = 1;
@@ -125,7 +135,7 @@ struct character
             case idle:
                 rowIndex = 0;
                 columnIndex = columnIndex % 4;
-                sprite.setTextureRect(IntRect(columnIndex * 111 + 30, rowIndex * 130, 120, 148));
+                sprite.setTextureRect(IntRect(columnIndex * 111 + 30, rowIndex * 130 - 5, 120, 148));
                 break;
             }
         }
@@ -310,7 +320,8 @@ void CharacterInit() {
     shanoa.sprite.setOrigin(66, 74);
     shanoa.sprite.setScale(1, 1.5);
     shanoa.AnimationState = idle;
-   
+    healthbar.setTexture(healthbar_Texture);
+    healthbar.setScale(0.84, 1.2);
 }
 
 void MapInit() {
@@ -321,10 +332,41 @@ void MapInit() {
     Map.setPosition(-10000, -10000);
 }
 
-void gameStateHandle()
-{
-    
+void healthbarhandling() {
+    healthRatio = shanoa.health / shanoa.Maxhp;
+    if (healthRatio > 0.9) {
+        healthbar.setTextureRect(IntRect(0, 0, 445, 177));
+    }
+    else if (healthRatio > 0.8) {
+        healthbar.setTextureRect(IntRect(444.4+ 5, 0, 445, 177));
+    }
+    else if (healthRatio > 0.7) {
+        healthbar.setTextureRect(IntRect(888.8 + 10, 0, 445, 177));
+    }
+    else if (healthRatio > 0.6) {
+        healthbar.setTextureRect(IntRect(1333.2 + 22, 0, 445, 177));
+    }
+    else if (healthRatio > 0.5) {
+        healthbar.setTextureRect(IntRect(1777.6 + 27, 0, 445, 177));
+    }
+    else if (healthRatio > 0.4) {
+        healthbar.setTextureRect(IntRect(2222 + 32, 0, 445, 177));
+    }
+    else if (healthRatio > 0.3) {
+        healthbar.setTextureRect(IntRect(2666.4 + 30, 0, 445, 177));
+    }
+    else if (healthRatio > 0.2) {
+        healthbar.setTextureRect(IntRect(3110.8 + 35, 0, 445, 177));
+    }
+    else if (healthRatio > 0.1) {
+        healthbar.setTextureRect(IntRect(3552.2 + 42, 0, 445, 177));
+    }
+    else if(shanoa.health <= 0){
+        gamestate = gameover;
+    }
+    healthbar.setPosition(shanoa.sprite.getPosition().x - 500, shanoa.sprite.getPosition().y - 500);
 }
+
 
 
 void Start()
@@ -338,6 +380,7 @@ void Start()
     MapInit();
     defgamefont.loadFromFile("VampireZone.ttf");
     swordspritesheet.loadFromFile("Assets\\SWORDS.png");
+    healthbar_Texture.loadFromFile("Assets\\shanoahealthbar.png");
 
     MainmenuInit();
     CharacterInit();
@@ -365,7 +408,6 @@ void Update()
     if (gamestate == gameloop)
     {
         // gameloop update
-        //cout << "we are in game phase ";
         shooting();
         for (int i = 0; i < swords.size(); i++)
         {
@@ -381,8 +423,9 @@ void Update()
         {
             gamestate = gameover;
         }
-        view.setCenter(shanoa.sprite.getPosition());
         shanoa.update();
+        healthbarhandling();
+        view.setCenter(shanoa.sprite.getPosition());
     }
     if (gamestate == settings)
     {
@@ -448,7 +491,7 @@ void Draw()
     {
         // gameloop draw
         window.draw(Map);
-
+        window.draw(healthbar);
         for (int i = 0; i < swords.size(); i++)
         {
           /*  window.draw(swords[i].collider);*/
