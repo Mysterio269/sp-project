@@ -55,6 +55,7 @@ sf::VideoMode desktopMode = sf::VideoMode::getDesktopMode();
 RenderWindow window(desktopMode, "Vampire Survivors :The path to the legendary formula", sf::Style::Fullscreen);
 //fullscreen fix
 
+float healthRatio;
 float shootingtime = 0.f;
 float shootingrate = 3;
 float deltaTime;
@@ -661,12 +662,12 @@ void Draw()
     {
         // gameloop draw
         window.draw(Map);
-        window.draw(healthbar);
         for (int i = 0; i < swords.size(); i++)
         {
           /*  window.draw(swords[i].collider);*/
             window.draw(swords[i].shape);
         }
+        window.draw(healthbar);
         window.draw(shanoa.sprite);
     }
     if (gamestate == settings)
