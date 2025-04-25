@@ -199,6 +199,7 @@ struct sword {
         collider.setOrigin(shape.getOrigin());
         shape.setOrigin(16, 16);
         collider.setOrigin(15, 7.5);
+        deletiontimer += deltaTime;
     }
     
 };
@@ -673,6 +674,9 @@ void Update()
         for (int i = 0; i < swords.size(); i++)
         {
             swords[i].update();
+            if (swords[i].deletiontimer > 3) {
+                swords.erase(swords.begin() + i);
+            }
         }
         if (Keyboard::isKeyPressed(Keyboard::R))
         {
