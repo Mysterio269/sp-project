@@ -415,6 +415,30 @@ void GameOverInit()
 
 }
 
+void MainMenuButtonCheck()
+{
+    if (Mouse::isButtonPressed(Mouse::Left) && StartButtonBounds.contains(mouseWorldpos))
+    {
+        gamestate = gameloop;
+        MainMenuMusic.stop();
+    }
+    if (Mouse::isButtonPressed(Mouse::Left) && LeaderboardButtonBounds.contains(mouseWorldpos))
+    {
+        gamestate = leaderboard;
+        MainMenuMusic.stop();
+    }
+    if (Mouse::isButtonPressed(Mouse::Left) && SettingsButtonBounds.contains(mouseWorldpos))
+    {
+        gamestate = settings;
+        MainMenuMusic.stop();
+    }
+    if (Mouse::isButtonPressed(Mouse::Left) && ExitButtonBounds.contains(mouseWorldpos))
+    {
+        window.close();
+        MainMenuMusic.stop();
+    }
+}
+
 void MainMenuInput()
 {
     menuInputDelay += deltaTime; //input delay
@@ -488,7 +512,7 @@ void Start()
 
     window.setFramerateLimit(30);
 
-    window.setMouseCursorVisible(false); // get rid of the mouse
+    
 
     //Game font initialization
     MapInit();
@@ -515,9 +539,10 @@ void Update()
     if (gamestate == mainmenu)
     {
         // main menu update
-
+        window.setMouseCursorVisible(true);
 
         MainMenuInput();
+        MainMenuButtonCheck();
         
         // changing cursor based on button it's on
         Vector2f selectedButtonPosition;
@@ -550,7 +575,7 @@ void Update()
     {
         // gameloop update
 
-
+        window.setMouseCursorVisible(false); // get rid of the mouse
         //cout << "we are in game phase ";
 
         totalGameTime += deltaTime; // measure survival time
@@ -591,6 +616,7 @@ void Update()
     if (gamestate == settings)
     {
         // settings menu update
+        window.setMouseCursorVisible(true);
         cout << "we are in settings menu ";
         if (Keyboard::isKeyPressed(Keyboard::R))
         {
@@ -602,6 +628,7 @@ void Update()
     if (gamestate == leaderboard)
     {
         // settings menu update
+        window.setMouseCursorVisible(true);
         cout << "we are in leaderboard menu ";
         if (Keyboard::isKeyPressed(Keyboard::R))
         {
@@ -613,6 +640,7 @@ void Update()
     if (gamestate == gameover)
     {
         // gameover screen update
+        window.setMouseCursorVisible(true);
  
         if (Keyboard::isKeyPressed(Keyboard::R))
         {
