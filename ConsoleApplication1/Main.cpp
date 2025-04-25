@@ -50,8 +50,8 @@ Text nametext;
 int selectedMenuButtonIndex = 0; // 0 for Start, 1 for Settings, 2 for Leaderboard, 3 for Exit
 
 
-Sound MainMenuMusic, GameOverSound;
-SoundBuffer MainMenuMusic_source, GameOverSound_source;
+Sound MainMenuMusic, GameOverSound,GameloopMusic;
+SoundBuffer MainMenuMusic_source, GameOverSound_source,GameloopMusic_source;
 bool gameOverSoundPlayed = false;
 
 sf::VideoMode desktopMode = sf::VideoMode::getDesktopMode();
@@ -65,6 +65,7 @@ float deltaTime;
 float totalGameTime = 0.f;
 float menuInputDelay = 0.f;
 const float MENU_INPUT_COOLDOWN = 0.2f; // Time in seconds between allowed inputs
+float soundcontroller = 100;
 
 void creditsInit();
 void MainMenuInput();
@@ -359,6 +360,7 @@ void MainmenuInit() {
     creditback.setTexture(credits_background);
     creditback.setScale(0.84, 1.12);
     creditback.setPosition(9340, 9300);
+
 }
 
 void creditsInit()
@@ -483,6 +485,7 @@ void MainMenuButtonCheck()
         {
             gamestate = gameloop;
             MainMenuMusic.stop();
+            GameloopMusic.play();
         }
     }
     if (LeaderboardButtonBounds.contains(mouseWorldpos)) {
@@ -490,7 +493,6 @@ void MainMenuButtonCheck()
         if (Mouse::isButtonPressed(Mouse::Left))
         {
             gamestate = leaderboard;
-            MainMenuMusic.stop();
         }
     }
     if (SettingsButtonBounds.contains(mouseWorldpos)) {
@@ -498,7 +500,6 @@ void MainMenuButtonCheck()
         if (Mouse::isButtonPressed(Mouse::Left))
         {
             gamestate = settings;
-            MainMenuMusic.stop();
         }
     }
     if (ExitButtonBounds.contains(mouseWorldpos))
@@ -507,7 +508,6 @@ void MainMenuButtonCheck()
         if (Mouse::isButtonPressed(Mouse::Left))
         {
             window.close();
-            MainMenuMusic.stop();
         }
     }
     if (creditsButtonBounds.contains(mouseWorldpos))
@@ -516,7 +516,6 @@ void MainMenuButtonCheck()
         if (Mouse::isButtonPressed(Mouse::Left))
         {
             gamestate = credits;
-            MainMenuMusic.stop();
         }
         
     }
@@ -559,6 +558,7 @@ void MainMenuInput()
                 gamestate = gameloop;
                 shanoa.sprite.setPosition(0, 0);
                 MainMenuMusic.stop();
+                GameloopMusic.play();
 
                 //RESETTING after death for next game
                 shanoa.health = 120; // <--replace 100 with your actual starting health
@@ -571,24 +571,24 @@ void MainMenuInput()
             }
             else if (selectedMenuButtonIndex == 1) { // settings
                 gamestate = settings;
-                MainMenuMusic.stop();
             }
             else if (selectedMenuButtonIndex == 2) { // leaderboard
                 gamestate = leaderboard;
-                MainMenuMusic.stop();
             }
             else if (selectedMenuButtonIndex == 3) { // credits
                 gamestate = credits;
-                MainMenuMusic.stop();
             }
             else if (selectedMenuButtonIndex == 4) { // exit
                 window.close();
-                MainMenuMusic.stop();
             }
 
             menuInputDelay = 0.f;
         }
     }
+}
+
+void SettingsMenu() {
+
 }
 
 void Start()
@@ -605,7 +605,11 @@ void Start()
     defgamefont.loadFromFile("VampireZone.ttf");
     swordspritesheet.loadFromFile("Assets\\SWORDS.png");
     healthbar_Texture.loadFromFile("Assets\\shanoahealthbar.png");
-
+    GameloopMusic_source.loadFromFile("Assets\\gameloopost.ogg");
+    MainMenuMusic.setVolume(50);
+    GameloopMusic.setBuffer(GameloopMusic_source);
+    GameloopMusic.setVolume(10);
+    GameloopMusic.setLoop(true);
     MainmenuInit();
     GameOverInit();
     CharacterInit();
@@ -662,6 +666,7 @@ void Update()
         view.setCenter(10000, 9800);
 
     }
+
     if (gamestate == gameloop)
     {
         // gameloop update
@@ -682,7 +687,9 @@ void Update()
         {
             gamestate = mainmenu;
             view.setCenter(10000, 9800);
+            GameloopMusic.stop();
             MainMenuMusic.play();
+            
         }
         if (Keyboard::isKeyPressed(Keyboard::Q) || shanoa.isDead)
         {
@@ -700,6 +707,7 @@ void Update()
                 gameOverSoundPlayed = true; //set the flag so it doesn't play again immediately
             }
 
+            GameloopMusic.stop();
             gamestate = gameover;
             selectedMenuButtonIndex = 0;
         }
@@ -712,10 +720,10 @@ void Update()
         // settings menu update
         window.setMouseCursorVisible(true);
         cout << "we are in settings menu ";
+        creditback.setColor(Color(70, 70, 70));
         if (Keyboard::isKeyPressed(Keyboard::R))
         {
             gamestate = mainmenu;
-            MainMenuMusic.play();
             selectedMenuButtonIndex = 0;
         }
     }
@@ -727,7 +735,6 @@ void Update()
         if (Keyboard::isKeyPressed(Keyboard::R))
         {
             gamestate = mainmenu;
-            MainMenuMusic.play();
             selectedMenuButtonIndex = 0;
         }
     }
@@ -742,7 +749,6 @@ void Update()
 
             gamestate = mainmenu;
             view.setCenter(10000, 9800); // Center view back on main menu
-            MainMenuMusic.play();
             //reset gameover sound so it works next time
             gameOverSoundPlayed = false;
             selectedMenuButtonIndex = 0;
@@ -754,7 +760,6 @@ void Update()
         if (Keyboard::isKeyPressed(Keyboard::R))
         {
             gamestate = mainmenu;
-            MainMenuMusic.play();
         }
     }
 
@@ -805,7 +810,7 @@ void Draw()
     if (gamestate == settings)
     {
         // settings menu draw
-
+        window.draw(creditback);
 
     }
     if (gamestate == gameover)
