@@ -15,7 +15,8 @@ enum Gamestate
     gameloop,
     settings,
     gameover,
-    leaderboard
+    leaderboard,
+    credits
 };
 enum animationstate
 {
@@ -27,22 +28,24 @@ enum playerDirection
 };
 Gamestate gamestate = mainmenu;
 
-Text StartGameText, SettingsText, ExitText,LeaderboardText;
+Text StartGameText, SettingsText, ExitText,LeaderboardText, CreditsText;
+Text DEV_T, TEAMNAME, NAMES, prof, teamname;
 Text GameOverText, ScoreText, RestartText;
 Font defgamefont; // default game font
 
-Texture MainMenuButtons_Texture,MainMenuBackground_Texture,Map_Texture,healthbar_Texture;
+Texture MainMenuButtons_Texture,MainMenuBackground_Texture,Map_Texture,healthbar_Texture, credits_Texture, credits_background;
 Texture swordspritesheet;
-Sprite MainMenuButtons, MainMenuBackground,Map,healthbar;
+Sprite MainMenuButtons, MainMenuBackground,Map,healthbar, creditsbutton, creditback;
 View view;
 Vector2i mouseScreenpos;
 Vector2f mouseWorldpos;
 
 RectangleShape StartButton(Vector2f(490, 110)),SettingsButton(Vector2f(490, 110)),LeaderboardButton(Vector2f(490, 110)),
-               ExitButton(Vector2f(490, 110));
+               ExitButton(Vector2f(490, 110)), creditsButton(Vector2f(490, 110));
 RectangleShape gameOverOverlay; // red color in gameover background
-FloatRect StartButtonBounds,SettingsButtonBounds,LeaderboardButtonBounds,ExitButtonBounds;
+FloatRect StartButtonBounds,SettingsButtonBounds,LeaderboardButtonBounds,ExitButtonBounds, creditsButtonBounds;
 RectangleShape menuCursor;
+Text nametext;
 
 int selectedMenuButtonIndex = 0; // 0 for Start, 1 for Settings, 2 for Leaderboard, 3 for Exit
 
@@ -63,7 +66,7 @@ float totalGameTime = 0.f;
 float menuInputDelay = 0.f;
 const float MENU_INPUT_COOLDOWN = 0.2f; // Time in seconds between allowed inputs
 
-
+void creditsInit();
 void MainMenuInput();
 void Update();
 void Start();
@@ -187,8 +190,9 @@ struct sword {
     RectangleShape collider;
     Vector2f velocity;
     float speed;
+    float deletiontimer = 0;
 
-    void update(float deltaTime)
+    void update()
     {
         shape.move(velocity * deltaTime);
         collider.setPosition(shape.getPosition());
@@ -200,6 +204,19 @@ struct sword {
 };
     vector<sword> swords; 
 
+string names[11] = {
+    "Developers :",
+    "Mahmoud Abd Elmegeed",
+    "Ahmed Hossam",
+    "Fares Mohamed",
+    "Youssef Mahmoud",
+    "Youssef Wael",
+    "Youssef Tamer",
+    "Amr Sameh",
+    " ",
+    "Voice Actor (Math Revival) :",
+    "Prof : Mohamed Ibrahem"
+};
 
 
 int main()
@@ -291,19 +308,33 @@ void MainmenuInit() {
     LeaderboardText.setString("Leaderboard");
     LeaderboardText.setPosition(9900, 10015);
 
-    ExitButton.setPosition(9853, 10094);
+    ExitButton.setPosition(9853, 10186);
     ExitButton.setFillColor(Color::Red);
     ExitButton.setScale(0.6, 0.65);
     ExitButtonBounds = ExitButton.getGlobalBounds();
     ExitText.setFont(defgamefont);
     ExitText.setString("Exit");
-    ExitText.setPosition(9963, 10107);
+    ExitText.setPosition(9970, 10199);
+
+    creditsButton.setPosition(9853, 10094); 
+    creditsButton.setFillColor(Color::Red);
+    creditsButton.setScale(0.6, 0.65);
+    CreditsText.setPosition(9940, 10107);
+    creditsButtonBounds = creditsButton.getGlobalBounds();
+    CreditsText.setFont(defgamefont);
+    CreditsText.setString("Credits");
 
     MainMenuButtons_Texture.loadFromFile("Assets\\mainmenu.png");
     MainMenuButtons.setTexture(MainMenuButtons_Texture);
     MainMenuButtons.setOrigin(281, 325);
     MainMenuButtons.setPosition(10000, 10000);
     MainMenuButtons.setScale(0.6, 0.65);
+
+    credits_Texture.loadFromFile("Assets\\creditsbutton.png");
+    creditsbutton.setTexture(credits_Texture);
+    creditsButton.setOrigin(490 / 2, 110 / 2);
+    creditsbutton.setPosition(9832, 10165);
+    creditsbutton.setScale(0.6, 0.65);
 
     MainMenuBackground_Texture.loadFromFile("Assets\\MainBackground.png");
     MainMenuBackground.setTexture(MainMenuBackground_Texture);
@@ -322,6 +353,34 @@ void MainmenuInit() {
     MainMenuMusic.setBuffer(MainMenuMusic_source);
     MainMenuMusic.play();
     MainMenuMusic.setLoop(true);
+
+    credits_background.loadFromFile("Assets\\MainBackground2.png");
+    creditback.setTexture(credits_background);
+    creditback.setScale(0.84, 1.12);
+    creditback.setPosition(9340, 9300);
+}
+
+void creditsInit()
+{
+    DEV_T.setPosition(9800, 9330);
+    DEV_T.setCharacterSize(50);
+    DEV_T.setFillColor(Color::White);
+    DEV_T.setFont(defgamefont);
+    DEV_T.setString("Development_Team");
+
+    TEAMNAME.setPosition(9530, 9450);
+    TEAMNAME.setCharacterSize(50);
+    TEAMNAME.setFillColor(Color::White);
+    TEAMNAME.setFont(defgamefont);
+    TEAMNAME.setString("Team Name :");
+
+    teamname.setPosition(9850, 9450);
+    teamname.setCharacterSize(50);
+    teamname.setFillColor(Color::Red);
+    teamname.setFont(defgamefont);
+    teamname.setString("Runtime Horror");
+
+
 }
 
 void CharacterInit() {
@@ -345,7 +404,6 @@ void MapInit() {
     Map.setTexture(Map_Texture);
     Map.setPosition(-10000, -10000);
 }
-
 
 void healthbarhandling() {
     healthRatio = shanoa.health / shanoa.Maxhp;
@@ -417,25 +475,49 @@ void GameOverInit()
 
 void MainMenuButtonCheck()
 {
-    if (Mouse::isButtonPressed(Mouse::Left) && StartButtonBounds.contains(mouseWorldpos))
+    if (StartButtonBounds.contains(mouseWorldpos))
     {
-        gamestate = gameloop;
-        MainMenuMusic.stop();
+        selectedMenuButtonIndex = 0;
+        if(Mouse::isButtonPressed(Mouse::Left))
+        {
+            gamestate = gameloop;
+            MainMenuMusic.stop();
+        }
     }
-    if (Mouse::isButtonPressed(Mouse::Left) && LeaderboardButtonBounds.contains(mouseWorldpos))
-    {
-        gamestate = leaderboard;
-        MainMenuMusic.stop();
+    if (LeaderboardButtonBounds.contains(mouseWorldpos)) {
+        selectedMenuButtonIndex = 2;
+        if (Mouse::isButtonPressed(Mouse::Left))
+        {
+            gamestate = leaderboard;
+            MainMenuMusic.stop();
+        }
     }
-    if (Mouse::isButtonPressed(Mouse::Left) && SettingsButtonBounds.contains(mouseWorldpos))
-    {
-        gamestate = settings;
-        MainMenuMusic.stop();
+    if (SettingsButtonBounds.contains(mouseWorldpos)) {
+        selectedMenuButtonIndex = 1;
+        if (Mouse::isButtonPressed(Mouse::Left))
+        {
+            gamestate = settings;
+            MainMenuMusic.stop();
+        }
     }
-    if (Mouse::isButtonPressed(Mouse::Left) && ExitButtonBounds.contains(mouseWorldpos))
+    if (ExitButtonBounds.contains(mouseWorldpos))
     {
-        window.close();
-        MainMenuMusic.stop();
+        selectedMenuButtonIndex = 4;
+        if (Mouse::isButtonPressed(Mouse::Left))
+        {
+            window.close();
+            MainMenuMusic.stop();
+        }
+    }
+    if (creditsButtonBounds.contains(mouseWorldpos))
+    {
+        selectedMenuButtonIndex = 3;
+        if (Mouse::isButtonPressed(Mouse::Left))
+        {
+            gamestate = credits;
+            MainMenuMusic.stop();
+        }
+        
     }
 }
 
@@ -460,9 +542,9 @@ void MainMenuInput()
         {
             // handling out of bounds
             if (selectedMenuButtonIndex < 0) {
-                selectedMenuButtonIndex = 3; 
+                selectedMenuButtonIndex = 4; 
             }
-            else if (selectedMenuButtonIndex > 3) { 
+            else if (selectedMenuButtonIndex > 4) { 
                 selectedMenuButtonIndex = 0;
             }
 
@@ -478,7 +560,7 @@ void MainMenuInput()
                 MainMenuMusic.stop();
 
                 //RESETTING after death for next game
-                shanoa.health = 100; // <--replace 100 with your actual starting health
+                shanoa.health = 120; // <--replace 100 with your actual starting health
                 shanoa.isDead = false;
                 totalGameTime = 0.f;
                 swords.clear(); // Clear any old swords when starting a NEW game
@@ -494,7 +576,11 @@ void MainMenuInput()
                 gamestate = leaderboard;
                 MainMenuMusic.stop();
             }
-            else if (selectedMenuButtonIndex == 3) { // exit
+            else if (selectedMenuButtonIndex == 3) { // credits
+                gamestate = credits;
+                MainMenuMusic.stop();
+            }
+            else if (selectedMenuButtonIndex == 4) { // exit
                 window.close();
                 MainMenuMusic.stop();
             }
@@ -503,7 +589,6 @@ void MainMenuInput()
         }
     }
 }
-
 
 void Start()
 {
@@ -524,6 +609,7 @@ void Start()
     GameOverInit();
     CharacterInit();
     MapInit();
+    creditsInit();
 
     view.setCenter(10000, 9800);
     window.setView(view);
@@ -561,6 +647,10 @@ void Update()
             selectedButtonSize = LeaderboardButton.getSize();
         }
         else if (selectedMenuButtonIndex == 3) {
+            selectedButtonPosition = creditsButton.getPosition();
+            selectedButtonSize = creditsButton.getSize();
+        }
+        else if (selectedMenuButtonIndex == 4) {
             selectedButtonPosition = ExitButton.getPosition();
             selectedButtonSize = ExitButton.getSize();
         }
@@ -582,7 +672,7 @@ void Update()
         shooting();
         for (int i = 0; i < swords.size(); i++)
         {
-            swords[i].update(deltaTime);
+            swords[i].update();
         }
         if (Keyboard::isKeyPressed(Keyboard::R))
         {
@@ -654,6 +744,15 @@ void Update()
             selectedMenuButtonIndex = 0;
         }
     }
+    if (gamestate == credits) {
+        creditback.setColor(Color(70, 70, 70));
+        view.setCenter(10000, 9800);
+        if (Keyboard::isKeyPressed(Keyboard::R))
+        {
+            gamestate = mainmenu;
+            MainMenuMusic.play();
+        }
+    }
 
     window.setView(view);
 }
@@ -678,11 +777,12 @@ void Draw()
         // main menu draw
         window.draw(MainMenuBackground);
         window.draw(MainMenuButtons);
-
+        window.draw(creditsbutton);
         window.draw(menuCursor);
         window.draw(StartGameText);
         window.draw(SettingsText);
         window.draw(LeaderboardText);
+        window.draw(CreditsText);
         window.draw(ExitText);
 
     }
@@ -729,6 +829,26 @@ void Draw()
         window.draw(GameOverText);
         window.draw(ScoreText);
         window.draw(RestartText);
+
+    }
+    if (gamestate == credits)
+    {
+        window.draw(creditback);
+        window.draw(DEV_T);
+        window.draw(TEAMNAME);
+        window.draw(teamname);
+
+        for (int i = 0; i < 11; ++i) {
+            Text nameText;
+            nameText.setFont(defgamefont);
+            nameText.setString(names[i]);
+            nameText.setCharacterSize(50);
+            nameText.setFillColor(Color::White);
+            nameText.setPosition(9530, 9530 + i * 60);
+
+            window.draw(nameText);
+
+        }
 
     }
 
