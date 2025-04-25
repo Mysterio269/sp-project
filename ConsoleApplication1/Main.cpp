@@ -26,29 +26,50 @@ enum playerDirection
     toright,toleft
 };
 Gamestate gamestate = mainmenu;
+
 Text StartGameText, SettingsText, ExitText,LeaderboardText;
+Text GameOverText, ScoreText, RestartText;
 Font defgamefont; // default game font
+
 Texture MainMenuButtons_Texture,MainMenuBackground_Texture,Map_Texture,healthbar_Texture;
 Texture swordspritesheet;
 Sprite MainMenuButtons, MainMenuBackground,Map,healthbar;
 View view;
 Vector2i mouseScreenpos;
 Vector2f mouseWorldpos;
+
 RectangleShape StartButton(Vector2f(490, 110)),SettingsButton(Vector2f(490, 110)),LeaderboardButton(Vector2f(490, 110)),
                ExitButton(Vector2f(490, 110));
+RectangleShape gameOverOverlay; // red color in gameover background
 FloatRect StartButtonBounds,SettingsButtonBounds,LeaderboardButtonBounds,ExitButtonBounds;
-Sound MainMenuMusic;
-SoundBuffer MainMenuMusic_source;
+RectangleShape menuCursor;
 
-RenderWindow window(VideoMode(1280, 800), "Vampire Survivors :The path to the legendary formula",Style::Close | Style::Titlebar);
-float shootingtime = 0;
+int selectedMenuButtonIndex = 0; // 0 for Start, 1 for Settings, 2 for Leaderboard, 3 for Exit
+
+
+Sound MainMenuMusic, GameOverSound;
+SoundBuffer MainMenuMusic_source, GameOverSound_source;
+bool gameOverSoundPlayed = false;
+
+sf::VideoMode desktopMode = sf::VideoMode::getDesktopMode();
+RenderWindow window(desktopMode, "Vampire Survivors :The path to the legendary formula", sf::Style::Fullscreen);
+//fullscreen fix
+
+float shootingtime = 0.f;
 float shootingrate = 3;
 float deltaTime;
-float healthRatio;
+float totalGameTime = 0.f;
+float menuInputDelay = 0.f;
+const float MENU_INPUT_COOLDOWN = 0.2f; // Time in seconds between allowed inputs
 
+
+void MainMenuInput();
 void Update();
 void Start();
 void Draw();
+
+
+
 struct character
 {
     RectangleShape collider; // Sprite collider
@@ -65,6 +86,8 @@ struct character
     int columnIndex = 0;
     int rowIndex = 0;
     int animationdelaytimer = 0;
+
+
     void update()
     {
         //spriteDirection = toright;
@@ -80,25 +103,25 @@ struct character
 
         //movement
         {
-            if (Keyboard::isKeyPressed(Keyboard::A)) {
+            if (Keyboard::isKeyPressed(Keyboard::A) || Keyboard::isKeyPressed(Keyboard::Left)) {
                 sprite.move(-speed *deltaTime, 0);
                 sprite.setScale(-1, 1.5);
                 spriteDirection = toleft;
                 AnimationState = walking;
             }
-            if (Keyboard::isKeyPressed(Keyboard::D)) {
+            if (Keyboard::isKeyPressed(Keyboard::D) || Keyboard::isKeyPressed(Keyboard::Right)) {
                 sprite.move(speed * deltaTime, 0);
                 sprite.setScale(1, 1.5);
                 spriteDirection = toright;
                 AnimationState = walking;
 
             }
-            if (Keyboard::isKeyPressed(Keyboard::S)) {
+            if (Keyboard::isKeyPressed(Keyboard::S) || Keyboard::isKeyPressed(Keyboard::Down)) {
                 sprite.move(0, speed * deltaTime);
                 AnimationState = walking;
 
             }
-            if (Keyboard::isKeyPressed(Keyboard::W)) {
+            if (Keyboard::isKeyPressed(Keyboard::W) || Keyboard::isKeyPressed(Keyboard::Up)) {
                 sprite.move(0, -speed * deltaTime);
                 AnimationState = walking;
 
@@ -141,30 +164,7 @@ struct character
         }
     }
 } shanoa;
-void MainMenuButtonCheck()
-{
-    if (Mouse::isButtonPressed(Mouse::Left) && StartButtonBounds.contains(mouseWorldpos))
-    {
-        gamestate = gameloop;
-        shanoa.sprite.setPosition(0, 0);
-        MainMenuMusic.stop();
-    }
-    if (Mouse::isButtonPressed(Mouse::Left) && LeaderboardButtonBounds.contains(mouseWorldpos))
-    {
-        gamestate = leaderboard;
-        MainMenuMusic.stop();
-    }
-    if (Mouse::isButtonPressed(Mouse::Left) && SettingsButtonBounds.contains(mouseWorldpos))
-    {
-        gamestate = settings;
-        MainMenuMusic.stop();
-    }
-    if (Mouse::isButtonPressed(Mouse::Left) && ExitButtonBounds.contains(mouseWorldpos))
-    {
-        window.close();
-        MainMenuMusic.stop();
-    }
-}
+
 struct enemy
 {
     RectangleShape attackBox,collider;
@@ -180,6 +180,7 @@ struct enemy
             isDead = true;
     }
 } enemy1;
+
 struct sword {
     Sprite shape;
     RectangleShape collider;
@@ -196,7 +197,9 @@ struct sword {
     }
     
 };
-    vector<sword> swords;
+    vector<sword> swords; 
+
+
 
 int main()
 {
@@ -214,6 +217,8 @@ int main()
             {
                 window.close();
             }
+
+
         }
         Update();
         Draw();
@@ -304,6 +309,14 @@ void MainmenuInit() {
     MainMenuBackground.setScale(0.84, 1.12);
     MainMenuBackground.setPosition(9340, 9300);
 
+    menuCursor.setFillColor(Color::Transparent);
+    menuCursor.setOutlineColor(Color::Yellow);
+    menuCursor.setOutlineThickness(4);
+
+
+    selectedMenuButtonIndex = 0; 
+
+
     MainMenuMusic_source.loadFromFile("Assets\\MainMenuMusic.ogg");
     MainMenuMusic.setBuffer(MainMenuMusic_source);
     MainMenuMusic.play();
@@ -331,6 +344,7 @@ void MapInit() {
     Map.setTexture(Map_Texture);
     Map.setPosition(-10000, -10000);
 }
+
 
 void healthbarhandling() {
     healthRatio = shanoa.health / shanoa.Maxhp;
@@ -365,8 +379,105 @@ void healthbarhandling() {
         gamestate = gameover;
     }
     healthbar.setPosition(shanoa.sprite.getPosition().x - 500, shanoa.sprite.getPosition().y - 500);
+  }
+
+void GameOverInit()
+{
+    GameOverText.setFont(defgamefont);
+    GameOverText.setString("GAME OVER");
+    GameOverText.setCharacterSize(80);
+    GameOverText.setFillColor(Color::Red);
+
+    ScoreText.setFont(defgamefont);
+    ScoreText.setString("Time: 00:00");
+    ScoreText.setCharacterSize(40); 
+    ScoreText.setFillColor(Color::White);
+
+    RestartText.setFont(defgamefont);
+    RestartText.setString("Press R to return to Main Menu");
+    RestartText.setCharacterSize(30);
+    RestartText.setFillColor(Color::White);
+
+
+    gameOverOverlay.setSize(view.getSize()); // Set size based on the view's size
+    // Set its origin to the center, so position(view.getCenter()) works correctly
+    gameOverOverlay.setOrigin(view.getSize().x / 2.f, view.getSize().y / 2.f);
+
+    // The fourth parameter (100) is the alpha channel (transparency), from 0 (fully transparent) to 255 (fully opaque)
+    gameOverOverlay.setFillColor(Color(100, 0, 0, 120));
+
+    // REMEMBER TO REPLACE GAMEOVER SOUND WITH NEW ONE
+    GameOverSound_source.loadFromFile("Assets\\MainMenuMusic.ogg");
+    GameOverSound.setBuffer(GameOverSound_source);
+
+    gameOverSoundPlayed = false;
+
 }
 
+void MainMenuInput()
+{
+    menuInputDelay += deltaTime; //input delay
+    if (menuInputDelay >= MENU_INPUT_COOLDOWN)
+    {
+        bool moved = false;
+        if (Keyboard::isKeyPressed(Keyboard::S) || Keyboard::isKeyPressed(Keyboard::Down))
+        {
+            selectedMenuButtonIndex++;
+            moved = true;
+        }
+        else if (Keyboard::isKeyPressed(Keyboard::W) || Keyboard::isKeyPressed(Keyboard::Up))
+        {
+            selectedMenuButtonIndex--;
+            moved = true;
+        }
+
+        if (moved)
+        {
+            // handling out of bounds
+            if (selectedMenuButtonIndex < 0) {
+                selectedMenuButtonIndex = 3; 
+            }
+            else if (selectedMenuButtonIndex > 3) { 
+                selectedMenuButtonIndex = 0;
+            }
+
+            // delay for next move
+            menuInputDelay = 0.f;
+        }
+
+        if (Keyboard::isKeyPressed(Keyboard::Enter))
+        {
+            if (selectedMenuButtonIndex == 0) { // start Game
+                gamestate = gameloop;
+                shanoa.sprite.setPosition(0, 0);
+                MainMenuMusic.stop();
+
+                //RESETTING after death for next game
+                shanoa.health = 100; // <--replace 100 with your actual starting health
+                shanoa.isDead = false;
+                totalGameTime = 0.f;
+                swords.clear(); // Clear any old swords when starting a NEW game
+
+                //RESET MONSTERS HERE WHEN IMPLEMENTED
+
+            }
+            else if (selectedMenuButtonIndex == 1) { // settings
+                gamestate = settings;
+                MainMenuMusic.stop();
+            }
+            else if (selectedMenuButtonIndex == 2) { // leaderboard
+                gamestate = leaderboard;
+                MainMenuMusic.stop();
+            }
+            else if (selectedMenuButtonIndex == 3) { // exit
+                window.close();
+                MainMenuMusic.stop();
+            }
+
+            menuInputDelay = 0.f;
+        }
+    }
+}
 
 
 void Start()
@@ -376,6 +487,8 @@ void Start()
 
     window.setFramerateLimit(30);
 
+    window.setMouseCursorVisible(false); // get rid of the mouse
+
     //Game font initialization
     MapInit();
     defgamefont.loadFromFile("VampireZone.ttf");
@@ -383,6 +496,7 @@ void Start()
     healthbar_Texture.loadFromFile("Assets\\shanoahealthbar.png");
 
     MainmenuInit();
+    GameOverInit();
     CharacterInit();
     MapInit();
 
@@ -401,13 +515,44 @@ void Update()
     {
         // main menu update
 
-        MainMenuButtonCheck();
+
+        MainMenuInput();
+        
+        // changing cursor based on button it's on
+        Vector2f selectedButtonPosition;
+        Vector2f selectedButtonSize;
+
+        if (selectedMenuButtonIndex == 0) {
+            selectedButtonPosition = StartButton.getPosition();
+            selectedButtonSize = StartButton.getSize();
+        }
+        else if (selectedMenuButtonIndex == 1) {
+            selectedButtonPosition = SettingsButton.getPosition();
+            selectedButtonSize = SettingsButton.getSize();
+        }
+        else if (selectedMenuButtonIndex == 2) {
+            selectedButtonPosition = LeaderboardButton.getPosition();
+            selectedButtonSize = LeaderboardButton.getSize();
+        }
+        else if (selectedMenuButtonIndex == 3) {
+            selectedButtonPosition = ExitButton.getPosition();
+            selectedButtonSize = ExitButton.getSize();
+        }
+
+        menuCursor.setPosition(selectedButtonPosition.x, selectedButtonPosition.y);
+        menuCursor.setSize(Vector2f(selectedButtonSize.x-200, selectedButtonSize.y-45));
+
         view.setCenter(10000, 9800);
 
     }
     if (gamestate == gameloop)
     {
         // gameloop update
+
+
+        //cout << "we are in game phase ";
+
+        totalGameTime += deltaTime; // measure survival time
         shooting();
         for (int i = 0; i < swords.size(); i++)
         {
@@ -419,9 +564,24 @@ void Update()
             view.setCenter(10000, 9800);
             MainMenuMusic.play();
         }
-        if (Keyboard::isKeyPressed(Keyboard::Q))
+        if (Keyboard::isKeyPressed(Keyboard::Q) || shanoa.isDead)
         {
+            int minutes = static_cast<int>(totalGameTime) / 60; // time calculations for final score
+            int seconds = static_cast<int>(totalGameTime) % 60;
+
+            stringstream ss; // time formatting
+            ss << "Time: " << setw(2) << setfill('0') << minutes << ":" << setw(2) << setfill('0') << seconds;
+            ScoreText.setString(ss.str());
+
+            if (!gameOverSoundPlayed)
+            {
+                //only play if it hasn't been played since the last reset
+                GameOverSound.play();
+                gameOverSoundPlayed = true; //set the flag so it doesn't play again immediately
+            }
+
             gamestate = gameover;
+            selectedMenuButtonIndex = 0;
         }
         shanoa.update();
         healthbarhandling();
@@ -435,6 +595,7 @@ void Update()
         {
             gamestate = mainmenu;
             MainMenuMusic.play();
+            selectedMenuButtonIndex = 0;
         }
     }
     if (gamestate == leaderboard)
@@ -445,16 +606,23 @@ void Update()
         {
             gamestate = mainmenu;
             MainMenuMusic.play();
+            selectedMenuButtonIndex = 0;
         }
     }
     if (gamestate == gameover)
     {
         // gameover screen update
-        cout << "The player is dead ";
+ 
         if (Keyboard::isKeyPressed(Keyboard::R))
         {
+            GameOverSound.stop();
+
             gamestate = mainmenu;
+            view.setCenter(10000, 9800); // Center view back on main menu
             MainMenuMusic.play();
+            //reset gameover sound so it works next time
+            gameOverSoundPlayed = false;
+            selectedMenuButtonIndex = 0;
         }
     }
 
@@ -481,6 +649,8 @@ void Draw()
         // main menu draw
         window.draw(MainMenuBackground);
         window.draw(MainMenuButtons);
+
+        window.draw(menuCursor);
         window.draw(StartGameText);
         window.draw(SettingsText);
         window.draw(LeaderboardText);
@@ -508,7 +678,28 @@ void Draw()
     if (gamestate == gameover)
     {
         // gameover screen draw
+        window.draw(Map);
 
+        for (int i = 0; i < swords.size(); i++)
+        {
+            window.draw(swords[i].shape);
+        }
+        window.draw(shanoa.sprite);
+
+        //DRAW ENEMIES HERE AFTER IMPLEMENTING
+
+        gameOverOverlay.setPosition(view.getCenter());
+        window.draw(gameOverOverlay);
+
+        Vector2f viewCenter = view.getCenter();
+        // Center horizontally by subtracting half of the text's width
+        GameOverText.setPosition(viewCenter.x - GameOverText.getGlobalBounds().width / 2.f, viewCenter.y - 100.f);
+        ScoreText.setPosition(viewCenter.x - ScoreText.getGlobalBounds().width / 2.f, viewCenter.y - 10.f);
+        RestartText.setPosition(viewCenter.x - RestartText.getGlobalBounds().width / 2.f, viewCenter.y + 50.f);
+
+        window.draw(GameOverText);
+        window.draw(ScoreText);
+        window.draw(RestartText);
 
     }
 
