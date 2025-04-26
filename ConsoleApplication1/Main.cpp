@@ -28,14 +28,15 @@ enum playerDirection
 };
 Gamestate gamestate = mainmenu;
 
-Text StartGameText, SettingsText, ExitText,LeaderboardText, CreditsText;
+Text StartGameText, SettingsText, ExitText,LeaderboardText, CreditsText,volumeText,settingsmenuText;
 Text DEV_T, TEAMNAME, NAMES, prof, teamname;
 Text GameOverText, ScoreText, RestartText;
 Font defgamefont; // default game font
 
-Texture MainMenuButtons_Texture,MainMenuBackground_Texture,Map_Texture,healthbar_Texture, credits_Texture, credits_background;
+Texture MainMenuButtons_Texture,MainMenuBackground_Texture,Map_Texture,healthbar_Texture, credits_Texture, credits_background
+        ,volume_up_Texture,volume_down_Texture;
 Texture swordspritesheet;
-Sprite MainMenuButtons, MainMenuBackground,Map,healthbar, creditsbutton, creditback;
+Sprite MainMenuButtons, MainMenuBackground,Map,healthbar, creditsbutton, creditback, volume_up, volume_down,settingsBackground;
 View view;
 Vector2i mouseScreenpos;
 Vector2f mouseWorldpos;
@@ -43,12 +44,13 @@ Vector2f mouseWorldpos;
 RectangleShape StartButton(Vector2f(490, 110)),SettingsButton(Vector2f(490, 110)),LeaderboardButton(Vector2f(490, 110)),
                ExitButton(Vector2f(490, 110)), creditsButton(Vector2f(490, 110));
 RectangleShape gameOverOverlay; // red color in gameover background
-FloatRect StartButtonBounds,SettingsButtonBounds,LeaderboardButtonBounds,ExitButtonBounds, creditsButtonBounds;
+FloatRect StartButtonBounds,SettingsButtonBounds,LeaderboardButtonBounds,ExitButtonBounds, creditsButtonBounds,volumeUpBounds,
+          volumeDownBounds;
 RectangleShape menuCursor;
 Text nametext;
-
+Listener GameVolume;
 int selectedMenuButtonIndex = 0; // 0 for Start, 1 for Settings, 2 for Leaderboard, 3 for Exit
-
+float volumebarcontroller;
 
 Sound MainMenuMusic, GameOverSound,GameloopMusic;
 SoundBuffer MainMenuMusic_source, GameOverSound_source,GameloopMusic_source;
@@ -66,7 +68,7 @@ float totalGameTime = 0.f;
 float menuInputDelay = 0.f;
 const float MENU_INPUT_COOLDOWN = 0.2f; // Time in seconds between allowed inputs
 float soundcontroller = 100;
-
+RectangleShape volumebar[10];
 void creditsInit();
 void MainMenuInput();
 void Update();
@@ -91,6 +93,7 @@ struct character
     int columnIndex = 0;
     int rowIndex = 0;
     int animationdelaytimer = 0;
+    bool startattack = false;
 
 
     void update()
@@ -119,7 +122,7 @@ struct character
                 sprite.setScale(1, 1.5);
                 spriteDirection = toright;
                 AnimationState = walking;
-
+                
             }
             if (Keyboard::isKeyPressed(Keyboard::S) || Keyboard::isKeyPressed(Keyboard::Down)) {
                 sprite.move(0, speed * deltaTime);
@@ -131,8 +134,12 @@ struct character
                 AnimationState = walking;
 
             }
-            if (Keyboard::isKeyPressed(Keyboard::E)) {
+            if (Keyboard::isKeyPressed(Keyboard::E)){
                 AnimationState = attacking;
+                if (startattack == false) {
+                    columnIndex = 0;
+                    startattack =  true;
+                }
             }
         }
 
@@ -159,11 +166,13 @@ struct character
                 rowIndex = 1;
                 columnIndex %= 8;
                 sprite.setTextureRect(IntRect(columnIndex * 98 + 30, rowIndex * 130, 120, 148));
+                startattack = false;
                 break;
             case idle:
                 rowIndex = 0;
                 columnIndex = columnIndex % 4;
                 sprite.setTextureRect(IntRect(columnIndex * 111 + 30, rowIndex * 130 - 5, 120, 148));
+                startattack = false;
                 break;
             }
         }
@@ -255,7 +264,7 @@ void shooting()
         shootingtime = 0;
         float erasuretimer = 0;
         sword newSword;
-        newSword.speed = 2500 * deltaTime;
+        newSword.speed = 10000 * deltaTime;
         newSword.shape.setTexture(swordspritesheet);
         newSword.shape.setTextureRect(IntRect(1 * 32, 2 * 32, 32, 32));
         newSword.shape.setScale(2, 2);
@@ -275,11 +284,6 @@ void shooting()
             newSword.shape.setRotation(45);
         }
         swords.push_back(newSword);
-        /*erasuretimer += deltaTime; //failed algorithm :'(
-        if (erasuretimer > 5) {
-            swords.erase(swords.begin() +1);
-            erasuretimer = 0;
-        }*/
     }
 
 }
@@ -287,6 +291,9 @@ void shooting()
 void MainmenuInit() {
     //Main menu initializations
     //please avoid editing this section
+    GameVolume.setGlobalVolume(soundcontroller);
+    MainMenuMusic.setVolume(30);
+
     StartButton.setPosition(9853, 9818);
     StartButton.setScale(0.6, 0.65);
     StartButtonBounds = StartButton.getGlobalBounds();
@@ -361,6 +368,15 @@ void MainmenuInit() {
     creditback.setScale(0.84, 1.12);
     creditback.setPosition(9340, 9300);
 
+
+    GameloopMusic_source.loadFromFile("Assets\\gameloopost.ogg");
+    GameloopMusic.setBuffer(GameloopMusic_source);
+    GameloopMusic.setVolume(5);
+    GameloopMusic.setLoop(true);
+
+    defgamefont.loadFromFile("VampireZone.ttf");
+    swordspritesheet.loadFromFile("Assets\\SWORDS.png");
+    healthbar_Texture.loadFromFile("Assets\\shanoahealthbar.png");
 }
 
 void creditsInit()
@@ -587,8 +603,40 @@ void MainMenuInput()
     }
 }
 
-void SettingsMenu() {
+void SettingsMenuInit() {
+    volume_up_Texture.loadFromFile("Assets\\volume_up.png");
+    volume_up.setTexture(volume_up_Texture);
+    volume_up.setPosition(1100, 20280);
+    volume_up.setScale(-0.63, 0.7);
+    volumeUpBounds = volume_up.getGlobalBounds();
 
+    volume_down_Texture.loadFromFile("Assets\\volume_down.png");
+    volume_down.setTexture(volume_down_Texture);
+    volume_down.setPosition(1000, 20280);
+    volume_down.setScale(-0.63, 0.7);
+    volumeDownBounds = volume_down.getGlobalBounds();
+
+    settingsBackground.setTexture(credits_background);
+    settingsBackground.setColor(Color(60, 60, 60));
+    settingsBackground.setPosition(0, 20000);
+
+    volumeText.setString("Volume");
+    volumeText.setFont(defgamefont);
+    volumeText.setPosition(520, 20300);
+    volumeText.setScale(1.2, 1.2);
+
+    settingsmenuText.setFont(defgamefont);
+    settingsmenuText.setString("Settings");
+    settingsmenuText.setPosition(680, 20100);
+    settingsmenuText.setScale(1.8, 1.8);
+
+    {//volume bar init
+        for (int i = 0;i < 10;i++) {
+            volumebar[i].setSize(Vector2f(15, 30));
+            volumebar[i].setFillColor(Color::White);
+            volumebar[i].setPosition(690 + (i * 20), 20307);
+       }
+    }
 }
 
 void Start()
@@ -602,19 +650,12 @@ void Start()
 
     //Game font initialization
     MapInit();
-    defgamefont.loadFromFile("VampireZone.ttf");
-    swordspritesheet.loadFromFile("Assets\\SWORDS.png");
-    healthbar_Texture.loadFromFile("Assets\\shanoahealthbar.png");
-    GameloopMusic_source.loadFromFile("Assets\\gameloopost.ogg");
-    MainMenuMusic.setVolume(50);
-    GameloopMusic.setBuffer(GameloopMusic_source);
-    GameloopMusic.setVolume(10);
-    GameloopMusic.setLoop(true);
     MainmenuInit();
     GameOverInit();
     CharacterInit();
     MapInit();
     creditsInit();
+    SettingsMenuInit();
 
     view.setCenter(10000, 9800);
     window.setView(view);
@@ -646,6 +687,7 @@ void Update()
         else if (selectedMenuButtonIndex == 1) {
             selectedButtonPosition = SettingsButton.getPosition();
             selectedButtonSize = SettingsButton.getSize();
+            view.setCenter(0, 20000);
         }
         else if (selectedMenuButtonIndex == 2) {
             selectedButtonPosition = LeaderboardButton.getPosition();
@@ -679,7 +721,7 @@ void Update()
         for (int i = 0; i < swords.size(); i++)
         {
             swords[i].update();
-            if (swords[i].deletiontimer > 3) {
+            if (swords[i].deletiontimer > 10) {
                 swords.erase(swords.begin() + i);
             }
         }
@@ -715,18 +757,39 @@ void Update()
         healthbarhandling();
         view.setCenter(shanoa.sprite.getPosition());
     }
+
     if (gamestate == settings)
     {
         // settings menu update
         window.setMouseCursorVisible(true);
-        cout << "we are in settings menu ";
-        creditback.setColor(Color(70, 70, 70));
+        volumebarcontroller = soundcontroller / 100;
+        view.setCenter(800, 20500);
+        volume_down.setColor(Color::White);
+        volume_up.setColor(Color::White);
+        if (volumeUpBounds.contains(mouseWorldpos)) {
+            volume_up.setColor(Color::Yellow);
+            if (Mouse::isButtonPressed(Mouse::Left)) {
+                soundcontroller += 5;
+            }
+        }
+        if (volumeDownBounds.contains(mouseWorldpos)) {
+            volume_down.setColor(Color::Yellow);
+            if (Mouse::isButtonPressed(Mouse::Left)) {
+                soundcontroller -= 5;
+            }
+        }
+        if (soundcontroller > 100)
+            soundcontroller = 100;
+        else if (soundcontroller < 0)
+            soundcontroller = 0;
+
         if (Keyboard::isKeyPressed(Keyboard::R))
         {
             gamestate = mainmenu;
             selectedMenuButtonIndex = 0;
         }
     }
+
     if (gamestate == leaderboard)
     {
         // settings menu update
@@ -738,6 +801,7 @@ void Update()
             selectedMenuButtonIndex = 0;
         }
     }
+
     if (gamestate == gameover)
     {
         // gameover screen update
@@ -754,6 +818,7 @@ void Update()
             selectedMenuButtonIndex = 0;
         }
     }
+
     if (gamestate == credits) {
         creditback.setColor(Color(70, 70, 70));
         view.setCenter(10000, 9800);
@@ -763,6 +828,7 @@ void Update()
         }
     }
 
+    GameVolume.setGlobalVolume(soundcontroller);
     window.setView(view);
 }
 
@@ -795,6 +861,7 @@ void Draw()
         window.draw(ExitText);
 
     }
+
     if (gamestate == gameloop)
     {
         // gameloop draw
@@ -807,11 +874,18 @@ void Draw()
         window.draw(healthbar);
         window.draw(shanoa.sprite);
     }
+
     if (gamestate == settings)
     {
         // settings menu draw
-        window.draw(creditback);
-
+        window.draw(settingsBackground);
+        window.draw(volume_down);
+        window.draw(volume_up);
+        window.draw(settingsmenuText);
+        window.draw(volumeText);
+        for (int i = 0;i < (volumebarcontroller * 10);i++) {
+            window.draw(volumebar[i]);
+        }
     }
     if (gamestate == gameover)
     {
@@ -840,6 +914,7 @@ void Draw()
         window.draw(RestartText);
 
     }
+
     if (gamestate == credits)
     {
         window.draw(creditback);
