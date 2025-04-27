@@ -141,6 +141,7 @@ struct character
                     startattack =  true;
                 }
             }
+            collider.setPosition(sprite.getPosition());
         }
 
         //animation
@@ -185,7 +186,9 @@ struct enemy
     Vector2f velocity;
     Sprite shape;
     Texture enemyspreadsheet;
+    animationstate AnimationState;
     float speed;
+    int columnindex, rowindex;
     int health,damage;
     bool isAttacking, isDead;
     void update()
@@ -193,7 +196,7 @@ struct enemy
         if (health <= 0)
             isDead = true;
     }
-} enemy1;
+} beast;
 
 struct sword {
     Sprite shape;
@@ -407,8 +410,9 @@ void CharacterInit() {
     shanoa.sprite.setTexture(shanoa.texture);
     shanoa.speed = 200;
     shanoa.sprite.setPosition(0, 0);
-    shanoa.collider.setPosition(shanoa.sprite.getPosition());
-    shanoa.collider.setOrigin(shanoa.sprite.getOrigin());
+    shanoa.collider.setSize(Vector2f(60, 125));
+    shanoa.collider.setOrigin(shanoa.collider.getLocalBounds().width/2,shanoa.collider.getLocalBounds().height/2);
+    shanoa.collider.setFillColor(Color::Blue);
     shanoa.sprite.setOrigin(66, 74);
     shanoa.sprite.setScale(1, 1.5);
     shanoa.AnimationState = idle;
@@ -639,6 +643,37 @@ void SettingsMenuInit() {
     }
 }
 
+void BeastInit() {
+    beast.enemyspreadsheet.loadFromFile("Assets\\beastTexture.png");
+    beast.shape.setTexture(beast.enemyspreadsheet);
+    beast.shape.setScale(1.8,2.5);
+    beast.health = 200;
+    beast.speed = 150 * deltaTime;
+    beast.damage = 15;
+    beast.attackBox.setSize(Vector2f(150, 150));
+    beast.shape.setPosition(50, 50);
+    beast.shape.setOrigin(64,32);
+    beast.AnimationState = walking;
+    beast.collider.setFillColor(Color::Yellow);
+    beast.collider.setSize(Vector2f(60, 120));
+    beast.collider.setOrigin(beast.collider.getLocalBounds().width / 2, beast.collider.getLocalBounds().height / 2);
+    beast.attackBox.setFillColor(Color::Red);
+    beast.attackBox.setOrigin(beast.attackBox.getLocalBounds().width / 2, beast.attackBox.getLocalBounds().height / 2);
+}
+void beastUpdate() {
+    beast.collider.setPosition(beast.shape.getPosition());
+    beast.attackBox.setPosition(beast.shape.getPosition());
+    if (beast.AnimationState == walking) {
+        beast.rowindex = 1;
+        beast.columnindex =(beast.columnindex + 1) % 4;
+    }
+    else if (beast.AnimationState == attacking) {
+        beast.rowindex = 2;
+        beast.columnindex = (beast.columnindex + 1) % 8;
+    }
+    beast.shape.setTextureRect(IntRect(128 * beast.columnindex, 64 * beast.rowindex, 128, 64));
+}
+
 void Start()
 {
     // code here is only executed at the start of the program
@@ -656,6 +691,7 @@ void Start()
     MapInit();
     creditsInit();
     SettingsMenuInit();
+    BeastInit();
 
     view.setCenter(10000, 9800);
     window.setView(view);
@@ -754,6 +790,7 @@ void Update()
             selectedMenuButtonIndex = 0;
         }
         shanoa.update();
+        beastUpdate();
         healthbarhandling();
         view.setCenter(shanoa.sprite.getPosition());
     }
@@ -866,11 +903,15 @@ void Draw()
     {
         // gameloop draw
         window.draw(Map);
+        window.draw(shanoa.collider);
         for (int i = 0; i < swords.size(); i++)
         {
           /*  window.draw(swords[i].collider);*/
             window.draw(swords[i].shape);
         }
+        window.draw(beast.attackBox);
+        window.draw(beast.collider);
+        window.draw(beast.shape);
         window.draw(healthbar);
         window.draw(shanoa.sprite);
     }
@@ -887,6 +928,7 @@ void Draw()
             window.draw(volumebar[i]);
         }
     }
+
     if (gamestate == gameover)
     {
         // gameover screen draw
