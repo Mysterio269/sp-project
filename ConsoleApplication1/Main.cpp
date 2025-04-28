@@ -34,8 +34,6 @@ enum monstertype
     Werewolf
 };
 Gamestate gamestate = mainmenu;
-
-<<<<<<< HEAD
 Text StartGameText, SettingsText, ExitText,LeaderboardText, CreditsText,volumeText,settingsmenuText;
 Text DEV_T, TEAMNAME, NAMES, prof, teamname;
 Text GameOverText, ScoreText, RestartText;
@@ -43,16 +41,9 @@ Font defgamefont; // default game font
 
 Texture MainMenuButtons_Texture,MainMenuBackground_Texture,Map_Texture,healthbar_Texture, credits_Texture, credits_background
         ,volume_up_Texture,volume_down_Texture;
-=======
 
 Text mathRevivalText;
-Text StartGameText, SettingsText, ExitText,LeaderboardText;
-Text GameOverText, ScoreText, RestartText;
-Font defgamefont; // default game font
-
 Texture equationSpriteSheet;
-Texture MainMenuButtons_Texture,MainMenuBackground_Texture,Map_Texture;
->>>>>>> 24c47602a31d6744932c6d10f44af2c7713cef7f
 Texture swordspritesheet;
 Sprite MainMenuButtons, MainMenuBackground,Map,healthbar, creditsbutton, creditback, volume_up, volume_down,settingsBackground;
 View view;
@@ -60,12 +51,8 @@ Vector2i mouseScreenpos;
 Vector2f mouseWorldpos;
 
 RectangleShape StartButton(Vector2f(490, 110)),SettingsButton(Vector2f(490, 110)),LeaderboardButton(Vector2f(490, 110)),
-<<<<<<< HEAD
-               ExitButton(Vector2f(490, 110)), creditsButton(Vector2f(490, 110));
-=======
-               ExitButton(Vector2f(490, 110)), MathRevivlaButton(Vector2f(250, 50)) ,restartButton(Vector2f(250, 50));
+               ExitButton(Vector2f(490, 110)), creditsButton(Vector2f(490, 110)),MathRevivlaButton(Vector2f(250, 50)) ,restartButton(Vector2f(250, 50));
 RectangleShape equationAnsCellBox;
->>>>>>> 24c47602a31d6744932c6d10f44af2c7713cef7f
 RectangleShape gameOverOverlay; // red color in gameover background
 FloatRect StartButtonBounds,SettingsButtonBounds,LeaderboardButtonBounds,ExitButtonBounds, creditsButtonBounds,volumeUpBounds,
           volumeDownBounds;
@@ -73,11 +60,8 @@ RectangleShape menuCursor;
 Text nametext;
 Listener GameVolume;
 int selectedMenuButtonIndex = 0; // 0 for Start, 1 for Settings, 2 for Leaderboard, 3 for Exit
-<<<<<<< HEAD
 float volumebarcontroller;
-=======
 int randIndex;// equations elements random index
->>>>>>> 24c47602a31d6744932c6d10f44af2c7713cef7f
 
 Sound MainMenuMusic, GameOverSound,GameloopMusic;
 SoundBuffer MainMenuMusic_source, GameOverSound_source,GameloopMusic_source;
@@ -94,14 +78,11 @@ float deltaTime;
 float totalGameTime = 0.f;
 float menuInputDelay = 0.f;
 const float MENU_INPUT_COOLDOWN = 0.2f; // Time in seconds between allowed inputs
-<<<<<<< HEAD
 float soundcontroller = 100;
 RectangleShape volumebar[10];
 void creditsInit();
-=======
 
 void GetRandIndex(int &randomIndex);
->>>>>>> 24c47602a31d6744932c6d10f44af2c7713cef7f
 void MainMenuInput();
 void Update();
 void Start();
@@ -251,7 +232,6 @@ struct sword {
     
 };
     vector<sword> swords; 
-<<<<<<< HEAD
 
 string names[11] = {
     "Developers :",
@@ -266,8 +246,6 @@ string names[11] = {
     "Voice Actor (Math Revival) :",
     "Prof : Mohamed Ibrahem"
 };
-
-=======
 struct MathEquation {
         Sprite sprite;
     Text userAnsText;
@@ -276,7 +254,6 @@ MathEquation SuvivalEquation;
 int EquationsAns[8] = {3,4,4,2,7,4,1,6};
     string userInput = "";
     bool MathRevivalON;
->>>>>>> 24c47602a31d6744932c6d10f44af2c7713cef7f
 
 int main()
 {
@@ -728,7 +705,6 @@ void MainMenuInput()
     }
 }
 
-<<<<<<< HEAD
 void SettingsMenuInit() {
     volume_up_Texture.loadFromFile("Assets\\volume_up.png");
     volume_up.setTexture(volume_up_Texture);
@@ -841,11 +817,10 @@ void werewolfupdate()
     werewolf.attackBox.setPosition(werewolf.shape.getPosition());
     werewolf.collider.setPosition(werewolf.shape.getPosition());
 }
-=======
+
 void GetRandIndex(int &randomIndex)
 {randomIndex = rand() % 6;}
 
->>>>>>> 24c47602a31d6744932c6d10f44af2c7713cef7f
 
 void Start()
 {
@@ -858,14 +833,8 @@ void Start()
 
     //Game font initialization
     MapInit();
-<<<<<<< HEAD
-=======
     defgamefont.loadFromFile("VampireZone.ttf");
     swordspritesheet.loadFromFile("Assets\\SWORDS.png");
-
-    
-
->>>>>>> 24c47602a31d6744932c6d10f44af2c7713cef7f
     MainmenuInit();
     GameOverInit();
     CharacterInit();
@@ -889,14 +858,12 @@ void Update()
     if (gamestate == mainmenu)
     {
         // main menu update
-<<<<<<< HEAD
         window.setMouseCursorVisible(true);
 
         MainMenuInput();
         MainMenuButtonCheck();
-=======
 
->>>>>>> 24c47602a31d6744932c6d10f44af2c7713cef7f
+
         
         MainMenuInput();
         // changing cursor based on button it's on
@@ -940,12 +907,9 @@ void Update()
         //cout << "we are in game phase ";
 
         totalGameTime += deltaTime; // measure survival time
-<<<<<<< HEAD
-=======
 
         GameOverSound.stop();
         MainMenuMusic.stop();
->>>>>>> 24c47602a31d6744932c6d10f44af2c7713cef7f
         shooting();
         for (int i = 0; i < swords.size(); i++)
         {
@@ -1041,15 +1005,12 @@ void Update()
 
     if (gamestate == gameover)
     {
-<<<<<<< HEAD
         // gameover screen update
         window.setMouseCursorVisible(true);
  
         if (Keyboard::isKeyPressed(Keyboard::R))
-=======
         
         if (Mouse::isButtonPressed(Mouse::Left) && restartButton.getGlobalBounds().contains(mouseScreenpos.x,mouseScreenpos.y))/// change to keyboard
->>>>>>> 24c47602a31d6744932c6d10f44af2c7713cef7f
         {
             GameOverSound.stop();
             gamestate = mainmenu;
@@ -1072,7 +1033,6 @@ void Update()
          GameOverSound.stop();
         }
     }
-<<<<<<< HEAD
 
     if (gamestate == credits) {
         creditback.setColor(Color(70, 70, 70));
@@ -1084,8 +1044,6 @@ void Update()
     }
 
     GameVolume.setGlobalVolume(soundcontroller);
-=======
->>>>>>> 24c47602a31d6744932c6d10f44af2c7713cef7f
     window.setView(view);
 }
 

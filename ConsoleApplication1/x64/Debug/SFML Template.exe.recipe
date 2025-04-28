@@ -2,11 +2,7 @@
 <Project>
   <ProjectOutputs>
     <ProjectOutput>
-<<<<<<< HEAD
-      <FullPath>E:\Odootec\Staging\15\self_makkaa\sp-project\x64\Debug\SFML Template.exe</FullPath>
-=======
-      <FullPath>C:\Users\745 G3\Downloads\My-Github\sp-project\x64\Debug\SFML Template.exe</FullPath>
->>>>>>> 24c47602a31d6744932c6d10f44af2c7713cef7f
+      <FullPath>C:\Users\Future\Downloads\MyGit\sp-project\x64\Debug\SFML Template.exe</FullPath>
     </ProjectOutput>
   </ProjectOutputs>
   <ContentFiles />
