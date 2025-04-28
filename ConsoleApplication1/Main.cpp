@@ -7,6 +7,8 @@
 #include <SFML/Audio.hpp>
 #include <sstream>
 #include <iomanip>
+#include <cstdlib>
+#include <ctime>
 using namespace std;
 using namespace sf;
 enum Gamestate
@@ -27,10 +29,13 @@ enum playerDirection
 };
 Gamestate gamestate = mainmenu;
 
+
+Text mathRevivalText;
 Text StartGameText, SettingsText, ExitText,LeaderboardText;
 Text GameOverText, ScoreText, RestartText;
 Font defgamefont; // default game font
 
+Texture equationSpriteSheet;
 Texture MainMenuButtons_Texture,MainMenuBackground_Texture,Map_Texture;
 Texture swordspritesheet;
 Sprite MainMenuButtons, MainMenuBackground,Map;
@@ -40,12 +45,14 @@ Vector2i mouseScreenpos;
 Vector2f mouseWorldpos;
 
 RectangleShape StartButton(Vector2f(490, 110)),SettingsButton(Vector2f(490, 110)),LeaderboardButton(Vector2f(490, 110)),
-               ExitButton(Vector2f(490, 110));
+               ExitButton(Vector2f(490, 110)), MathRevivlaButton(Vector2f(250, 50)) ,restartButton(Vector2f(250, 50));
+RectangleShape equationAnsCellBox;
 RectangleShape gameOverOverlay; // red color in gameover background
 FloatRect StartButtonBounds,SettingsButtonBounds,LeaderboardButtonBounds,ExitButtonBounds;
 RectangleShape menuCursor;
 
 int selectedMenuButtonIndex = 0; // 0 for Start, 1 for Settings, 2 for Leaderboard, 3 for Exit
+int randIndex;// equations elements random index
 
 
 Sound MainMenuMusic, GameOverSound;
@@ -64,11 +71,11 @@ float totalGameTime = 0.f;
 float menuInputDelay = 0.f;
 const float MENU_INPUT_COOLDOWN = 0.2f; // Time in seconds between allowed inputs
 
+void GetRandIndex(int &randomIndex);
 void MainMenuInput();
 void Update();
 void Start();
 void Draw();
-
 
 
 struct character
@@ -190,11 +197,21 @@ struct sword {
     
 };
     vector<sword> swords; 
-
-
+struct MathEquation {
+        Sprite sprite;
+    Text userAnsText;
+};
+MathEquation SuvivalEquation;
+int EquationsAns[8] = {3,4,4,2,7,4,1,6};
+    string userInput = "";
+    bool MathRevivalON;
 
 int main()
 {
+    SuvivalEquation.userAnsText.setFont(defgamefont);
+    SuvivalEquation.userAnsText.setCharacterSize(30);
+    SuvivalEquation.userAnsText.setFillColor(sf::Color::White);
+    srand(time(nullptr));
     Start();
     Clock clock;
     while (window.isOpen())
@@ -209,8 +226,47 @@ int main()
             {
                 window.close();
             }
+            //
+            if (event.type == sf::Event::TextEntered)
+            {
+                if (gamestate == gameover)
+                {
+                    
+                    if (event.text.unicode == 8)// isKeyPressed::Backspace
+                    {
+                        if (!userInput.empty())
+                            userInput.pop_back(); 
+                    }
+                    else if (event.text.unicode >= '0' && event.text.unicode <= '9')
+                    {
+                        if (userInput.size() < 9) 
+                        {
+                            userInput += static_cast<char>(event.text.unicode);
+                        }
+                    }
+                    else if (event.text.unicode == 13)// iskeypressed::Enter
+                    {
+                        if (!userInput.empty())
+                        { 
+                            if (stoi(userInput) == EquationsAns[randIndex]) // correct answer
+                            {
+                                gamestate = gameloop;
+                                GameOverSound.stop();
+                                MathRevivalON = false;
+                            }
+                            else
+                            {
+                                gamestate = mainmenu;
+                                MainMenuMusic.play();
+                                MathRevivalON = false;
 
-
+                            }
+                            userInput = "";
+                        }
+                    }
+                }
+            }
+            SuvivalEquation.userAnsText.setString(userInput);
         }
         Update();
         Draw();
@@ -349,9 +405,33 @@ void GameOverInit()
     ScoreText.setFillColor(Color::White);
 
     RestartText.setFont(defgamefont);
-    RestartText.setString("Press R to return to Main Menu");
-    RestartText.setCharacterSize(30);
+    RestartText.setString("return to Main Menu");
+    RestartText.setCharacterSize(20);
     RestartText.setFillColor(Color::White);
+
+    mathRevivalText.setFont(defgamefont);
+    mathRevivalText.setString("Math Revival?");
+    mathRevivalText.setCharacterSize(25);
+    mathRevivalText.setFillColor(Color::White);
+
+    equationSpriteSheet.loadFromFile("Assets\\equationSpriteSheet.png");
+    SuvivalEquation.sprite.setTexture(equationSpriteSheet);
+    SuvivalEquation.sprite.setTextureRect(IntRect(0, 156 * randIndex, 600, 156));
+    SuvivalEquation.sprite.setScale(0.3/1.5, 0.45/1.5);
+
+    equationAnsCellBox.setFillColor(Color::Black);
+    equationAnsCellBox.setSize(Vector2f(200, 50));
+    equationAnsCellBox.setOutlineColor(Color::Red);
+    equationAnsCellBox.setOutlineThickness(5);
+
+    restartButton.setFillColor(Color(100, 0, 0));
+    restartButton.setOutlineColor(Color::Yellow);
+    restartButton.setOutlineThickness(5);
+
+    MathRevivlaButton.setFillColor(Color(100, 0, 0));
+    MathRevivlaButton.setOutlineColor(Color::Yellow);
+    MathRevivlaButton.setOutlineThickness(5);
+
 
 
     gameOverOverlay.setSize(view.getSize()); // Set size based on the view's size
@@ -366,6 +446,7 @@ void GameOverInit()
     GameOverSound.setBuffer(GameOverSound_source);
 
     gameOverSoundPlayed = false;
+    
 
 }
 
@@ -434,6 +515,10 @@ void MainMenuInput()
     }
 }
 
+void GetRandIndex(int &randomIndex)
+{randomIndex = rand() % 6;}
+
+
 void Start()
 {
     // code here is only executed at the start of the program
@@ -447,6 +532,8 @@ void Start()
     MapInit();
     defgamefont.loadFromFile("VampireZone.ttf");
     swordspritesheet.loadFromFile("Assets\\SWORDS.png");
+
+    
 
     MainmenuInit();
     GameOverInit();
@@ -468,9 +555,8 @@ void Update()
     {
         // main menu update
 
-
-        MainMenuInput();
         
+        MainMenuInput();
         // changing cursor based on button it's on
         Vector2f selectedButtonPosition;
         Vector2f selectedButtonSize;
@@ -505,7 +591,8 @@ void Update()
 
         totalGameTime += deltaTime; // measure survival time
 
-
+        GameOverSound.stop();
+        MainMenuMusic.stop();
         shooting();
         for (int i = 0; i < swords.size(); i++)
         {
@@ -519,6 +606,10 @@ void Update()
         }
         if (Keyboard::isKeyPressed(Keyboard::Q) || shanoa.isDead)
         {
+
+            GetRandIndex(randIndex);
+            SuvivalEquation.sprite.setTextureRect(IntRect(0, 156 * randIndex, 600, 156));
+
             int minutes = static_cast<int>(totalGameTime) / 60; // time calculations for final score
             int seconds = static_cast<int>(totalGameTime) % 60;
 
@@ -563,12 +654,10 @@ void Update()
     }
     if (gamestate == gameover)
     {
-        // gameover screen update
- 
-        if (Keyboard::isKeyPressed(Keyboard::R))
+        
+        if (Mouse::isButtonPressed(Mouse::Left) && restartButton.getGlobalBounds().contains(mouseScreenpos.x,mouseScreenpos.y))/// change to keyboard
         {
             GameOverSound.stop();
-
             gamestate = mainmenu;
             view.setCenter(10000, 9800); // Center view back on main menu
             MainMenuMusic.play();
@@ -576,8 +665,20 @@ void Update()
             gameOverSoundPlayed = false;
             selectedMenuButtonIndex = 0;
         }
+        if (Mouse::isButtonPressed(Mouse::Left) /*&& MathRevivlaButton.getGlobalBounds().contains(mouseScreenpos.x, mouseScreenpos.y)*/) //// change to keyboard
+        {
+            MathRevivalON = true;
+        }
     }
-
+    if (gamestate != gameover)
+    {
+        userInput = ""; // delete the last user input   
+        SuvivalEquation.userAnsText.setString("");
+        if(gameOverSoundPlayed)
+        {
+         GameOverSound.stop();
+        }
+    }
     window.setView(view);
 }
 
@@ -646,12 +747,36 @@ void Draw()
         Vector2f viewCenter = view.getCenter();
         // Center horizontally by subtracting half of the text's width
         GameOverText.setPosition(viewCenter.x - GameOverText.getGlobalBounds().width / 2.f, viewCenter.y - 100.f);
-        ScoreText.setPosition(viewCenter.x - ScoreText.getGlobalBounds().width / 2.f, viewCenter.y - 10.f);
-        RestartText.setPosition(viewCenter.x - RestartText.getGlobalBounds().width / 2.f, viewCenter.y + 50.f);
+        ScoreText.setPosition(viewCenter.x - ScoreText.getGlobalBounds().width / 2.f, viewCenter.y+10);
+
+        RestartText.setPosition(viewCenter.x - RestartText.getGlobalBounds().width / 2.f, viewCenter.y + 100.f);
+        restartButton.setPosition(viewCenter.x - restartButton.getGlobalBounds().width / 2.f, viewCenter.y + 90);//
+
+        MathRevivlaButton.setPosition(viewCenter.x - MathRevivlaButton.getGlobalBounds().width / 2.f, viewCenter.y + 175.f);//
+        mathRevivalText.setPosition(viewCenter.x - mathRevivalText.getGlobalBounds().width / 2.f, viewCenter.y + 185.f);//
+
+        SuvivalEquation.sprite.setPosition(viewCenter.x - SuvivalEquation.sprite.getGlobalBounds().width / 2.f , viewCenter.y + 100.f);
+        equationAnsCellBox.setPosition(viewCenter.x - equationAnsCellBox.getGlobalBounds().width / 2.f , viewCenter.y + 160.f);
+        SuvivalEquation.userAnsText.setPosition(viewCenter.x - equationAnsCellBox.getGlobalBounds().width / 2.f +5, viewCenter.y + 163.f);//
 
         window.draw(GameOverText);
         window.draw(ScoreText);
-        window.draw(RestartText);
+
+        if (MathRevivalON)
+        {
+             window.draw(SuvivalEquation.sprite);
+             window.draw(equationAnsCellBox);  
+             window.draw(SuvivalEquation.userAnsText);
+        } 
+        else
+        {
+            window.draw(restartButton);
+            window.draw(RestartText);
+            window.draw(MathRevivlaButton);
+            window.draw(mathRevivalText);
+        }
+
+       
 
     }
 

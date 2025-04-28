@@ -1,15 +1,36 @@
-﻿C:\Program Files\Microsoft Visual Studio\2022\Community\MSBuild\Microsoft\VC\v170\Microsoft.CppBuild.targets(534,5): warning MSB8028: The intermediate directory (x64\Debug\) contains files shared from another project (ConsoleApplication1.vcxproj).  This can lead to incorrect clean and rebuild behavior.
+﻿C:\Program Files\Microsoft Visual Studio\2022\Community\MSBuild\Microsoft\VC\v170\Microsoft.CppBuild.targets(531,5): warning MSB8028: The intermediate directory (x64\Debug\) contains files shared from another project (ConsoleApplication1.vcxproj).  This can lead to incorrect clean and rebuild behavior.
   Main.cpp
-C:\Users\Future\Downloads\MyGit\sp-project\ConsoleApplication1\Main.cpp(256,31): warning C4305: 'argument': truncation from 'double' to 'float'
-C:\Users\Future\Downloads\MyGit\sp-project\ConsoleApplication1\Main.cpp(256,26): warning C4305: 'argument': truncation from 'double' to 'float'
-C:\Users\Future\Downloads\MyGit\sp-project\ConsoleApplication1\Main.cpp(264,34): warning C4305: 'argument': truncation from 'double' to 'float'
-C:\Users\Future\Downloads\MyGit\sp-project\ConsoleApplication1\Main.cpp(264,29): warning C4305: 'argument': truncation from 'double' to 'float'
-C:\Users\Future\Downloads\MyGit\sp-project\ConsoleApplication1\Main.cpp(272,37): warning C4305: 'argument': truncation from 'double' to 'float'
-C:\Users\Future\Downloads\MyGit\sp-project\ConsoleApplication1\Main.cpp(272,32): warning C4305: 'argument': truncation from 'double' to 'float'
-C:\Users\Future\Downloads\MyGit\sp-project\ConsoleApplication1\Main.cpp(280,30): warning C4305: 'argument': truncation from 'double' to 'float'
-C:\Users\Future\Downloads\MyGit\sp-project\ConsoleApplication1\Main.cpp(280,25): warning C4305: 'argument': truncation from 'double' to 'float'
-C:\Users\Future\Downloads\MyGit\sp-project\ConsoleApplication1\Main.cpp(290,35): warning C4305: 'argument': truncation from 'double' to 'float'
-C:\Users\Future\Downloads\MyGit\sp-project\ConsoleApplication1\Main.cpp(290,30): warning C4305: 'argument': truncation from 'double' to 'float'
-C:\Users\Future\Downloads\MyGit\sp-project\ConsoleApplication1\Main.cpp(294,39): warning C4305: 'argument': truncation from 'double' to 'float'
-C:\Users\Future\Downloads\MyGit\sp-project\ConsoleApplication1\Main.cpp(294,33): warning C4305: 'argument': truncation from 'double' to 'float'
-  ConsoleApplication1.vcxproj -> C:\Users\Future\Downloads\MyGit\sp-project\x64\Debug\SFML Template.exe
+C:\Users\745 G3\Downloads\My-Github\sp-project\ConsoleApplication1\Main.cpp(214,15): warning C4244: 'argument': conversion from 'time_t' to 'unsigned int', possible loss of data
+C:\Users\745 G3\Downloads\My-Github\sp-project\ConsoleApplication1\Main.cpp(319,31): warning C4305: 'argument': truncation from 'double' to 'float'
+C:\Users\745 G3\Downloads\My-Github\sp-project\ConsoleApplication1\Main.cpp(319,26): warning C4305: 'argument': truncation from 'double' to 'float'
+C:\Users\745 G3\Downloads\My-Github\sp-project\ConsoleApplication1\Main.cpp(327,34): warning C4305: 'argument': truncation from 'double' to 'float'
+C:\Users\745 G3\Downloads\My-Github\sp-project\ConsoleApplication1\Main.cpp(327,29): warning C4305: 'argument': truncation from 'double' to 'float'
+C:\Users\745 G3\Downloads\My-Github\sp-project\ConsoleApplication1\Main.cpp(335,37): warning C4305: 'argument': truncation from 'double' to 'float'
+C:\Users\745 G3\Downloads\My-Github\sp-project\ConsoleApplication1\Main.cpp(335,32): warning C4305: 'argument': truncation from 'double' to 'float'
+C:\Users\745 G3\Downloads\My-Github\sp-project\ConsoleApplication1\Main.cpp(343,30): warning C4305: 'argument': truncation from 'double' to 'float'
+C:\Users\745 G3\Downloads\My-Github\sp-project\ConsoleApplication1\Main.cpp(343,25): warning C4305: 'argument': truncation from 'double' to 'float'
+C:\Users\745 G3\Downloads\My-Github\sp-project\ConsoleApplication1\Main.cpp(353,35): warning C4305: 'argument': truncation from 'double' to 'float'
+C:\Users\745 G3\Downloads\My-Github\sp-project\ConsoleApplication1\Main.cpp(353,30): warning C4305: 'argument': truncation from 'double' to 'float'
+C:\Users\745 G3\Downloads\My-Github\sp-project\ConsoleApplication1\Main.cpp(357,39): warning C4305: 'argument': truncation from 'double' to 'float'
+C:\Users\745 G3\Downloads\My-Github\sp-project\ConsoleApplication1\Main.cpp(357,33): warning C4305: 'argument': truncation from 'double' to 'float'
+C:\Users\745 G3\Downloads\My-Github\sp-project\ConsoleApplication1\Main.cpp(420,50): warning C4305: 'argument': truncation from 'double' to 'float'
+C:\Users\745 G3\Downloads\My-Github\sp-project\ConsoleApplication1\Main.cpp(420,40): warning C4305: 'argument': truncation from 'double' to 'float'
+C:\Users\745 G3\Downloads\My-Github\sp-project\ConsoleApplication1\Main.cpp(658,124): warning C4244: 'argument': conversion from 'T' to 'T', possible loss of data
+C:\Users\745 G3\Downloads\My-Github\sp-project\ConsoleApplication1\Main.cpp(658,124): warning C4244:         with
+C:\Users\745 G3\Downloads\My-Github\sp-project\ConsoleApplication1\Main.cpp(658,124): warning C4244:         [
+C:\Users\745 G3\Downloads\My-Github\sp-project\ConsoleApplication1\Main.cpp(658,124): warning C4244:             T=int
+C:\Users\745 G3\Downloads\My-Github\sp-project\ConsoleApplication1\Main.cpp(658,124): warning C4244:         ]
+C:\Users\745 G3\Downloads\My-Github\sp-project\ConsoleApplication1\Main.cpp(658,124): warning C4244:         and
+C:\Users\745 G3\Downloads\My-Github\sp-project\ConsoleApplication1\Main.cpp(658,124): warning C4244:         [
+C:\Users\745 G3\Downloads\My-Github\sp-project\ConsoleApplication1\Main.cpp(658,124): warning C4244:             T=float
+C:\Users\745 G3\Downloads\My-Github\sp-project\ConsoleApplication1\Main.cpp(658,124): warning C4244:         ]
+C:\Users\745 G3\Downloads\My-Github\sp-project\ConsoleApplication1\Main.cpp(658,107): warning C4244: 'argument': conversion from 'T' to 'T', possible loss of data
+C:\Users\745 G3\Downloads\My-Github\sp-project\ConsoleApplication1\Main.cpp(658,107): warning C4244:         with
+C:\Users\745 G3\Downloads\My-Github\sp-project\ConsoleApplication1\Main.cpp(658,107): warning C4244:         [
+C:\Users\745 G3\Downloads\My-Github\sp-project\ConsoleApplication1\Main.cpp(658,107): warning C4244:             T=int
+C:\Users\745 G3\Downloads\My-Github\sp-project\ConsoleApplication1\Main.cpp(658,107): warning C4244:         ]
+C:\Users\745 G3\Downloads\My-Github\sp-project\ConsoleApplication1\Main.cpp(658,107): warning C4244:         and
+C:\Users\745 G3\Downloads\My-Github\sp-project\ConsoleApplication1\Main.cpp(658,107): warning C4244:         [
+C:\Users\745 G3\Downloads\My-Github\sp-project\ConsoleApplication1\Main.cpp(658,107): warning C4244:             T=float
+C:\Users\745 G3\Downloads\My-Github\sp-project\ConsoleApplication1\Main.cpp(658,107): warning C4244:         ]
+  ConsoleApplication1.vcxproj -> C:\Users\745 G3\Downloads\My-Github\sp-project\x64\Debug\SFML Template.exe
