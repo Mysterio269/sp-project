@@ -1,69 +1,80 @@
-﻿C:\Program Files\Microsoft Visual Studio\2022\Community\MSBuild\Microsoft\VC\v170\Microsoft.CppBuild.targets(534,5): warning MSB8028: The intermediate directory (x64\Debug\) contains files shared from another project (ConsoleApplication1.vcxproj).  This can lead to incorrect clean and rebuild behavior.
+﻿C:\Program Files\Microsoft Visual Studio\2022\Community\MSBuild\Microsoft\VC\v170\Microsoft.CppBuild.targets(531,5): warning MSB8028: The intermediate directory (x64\Debug\) contains files shared from another project (ConsoleApplication1.vcxproj).  This can lead to incorrect clean and rebuild behavior.
   Main.cpp
-C:\Users\Future\Downloads\MyGit\sp-project\ConsoleApplication1\Main.cpp(301,31): warning C4305: 'argument': truncation from 'double' to 'float'
-C:\Users\Future\Downloads\MyGit\sp-project\ConsoleApplication1\Main.cpp(301,26): warning C4305: 'argument': truncation from 'double' to 'float'
-C:\Users\Future\Downloads\MyGit\sp-project\ConsoleApplication1\Main.cpp(309,34): warning C4305: 'argument': truncation from 'double' to 'float'
-C:\Users\Future\Downloads\MyGit\sp-project\ConsoleApplication1\Main.cpp(309,29): warning C4305: 'argument': truncation from 'double' to 'float'
-C:\Users\Future\Downloads\MyGit\sp-project\ConsoleApplication1\Main.cpp(317,37): warning C4305: 'argument': truncation from 'double' to 'float'
-C:\Users\Future\Downloads\MyGit\sp-project\ConsoleApplication1\Main.cpp(317,32): warning C4305: 'argument': truncation from 'double' to 'float'
-C:\Users\Future\Downloads\MyGit\sp-project\ConsoleApplication1\Main.cpp(325,30): warning C4305: 'argument': truncation from 'double' to 'float'
-C:\Users\Future\Downloads\MyGit\sp-project\ConsoleApplication1\Main.cpp(325,25): warning C4305: 'argument': truncation from 'double' to 'float'
-C:\Users\Future\Downloads\MyGit\sp-project\ConsoleApplication1\Main.cpp(333,33): warning C4305: 'argument': truncation from 'double' to 'float'
-C:\Users\Future\Downloads\MyGit\sp-project\ConsoleApplication1\Main.cpp(333,28): warning C4305: 'argument': truncation from 'double' to 'float'
-C:\Users\Future\Downloads\MyGit\sp-project\ConsoleApplication1\Main.cpp(343,35): warning C4305: 'argument': truncation from 'double' to 'float'
-C:\Users\Future\Downloads\MyGit\sp-project\ConsoleApplication1\Main.cpp(343,30): warning C4305: 'argument': truncation from 'double' to 'float'
-C:\Users\Future\Downloads\MyGit\sp-project\ConsoleApplication1\Main.cpp(349,33): warning C4305: 'argument': truncation from 'double' to 'float'
-C:\Users\Future\Downloads\MyGit\sp-project\ConsoleApplication1\Main.cpp(349,28): warning C4305: 'argument': truncation from 'double' to 'float'
-C:\Users\Future\Downloads\MyGit\sp-project\ConsoleApplication1\Main.cpp(353,39): warning C4305: 'argument': truncation from 'double' to 'float'
-C:\Users\Future\Downloads\MyGit\sp-project\ConsoleApplication1\Main.cpp(353,33): warning C4305: 'argument': truncation from 'double' to 'float'
-C:\Users\Future\Downloads\MyGit\sp-project\ConsoleApplication1\Main.cpp(371,31): warning C4305: 'argument': truncation from 'double' to 'float'
-C:\Users\Future\Downloads\MyGit\sp-project\ConsoleApplication1\Main.cpp(371,25): warning C4305: 'argument': truncation from 'double' to 'float'
-C:\Users\Future\Downloads\MyGit\sp-project\ConsoleApplication1\Main.cpp(420,30): warning C4305: 'argument': truncation from 'double' to 'float'
-C:\Users\Future\Downloads\MyGit\sp-project\ConsoleApplication1\Main.cpp(420,24): warning C4305: 'argument': truncation from 'double' to 'float'
-C:\Users\Future\Downloads\MyGit\sp-project\ConsoleApplication1\Main.cpp(437,47): warning C4244: 'argument': conversion from 'double' to 'T', possible loss of data
-C:\Users\Future\Downloads\MyGit\sp-project\ConsoleApplication1\Main.cpp(437,47): warning C4244:         with
-C:\Users\Future\Downloads\MyGit\sp-project\ConsoleApplication1\Main.cpp(437,47): warning C4244:         [
-C:\Users\Future\Downloads\MyGit\sp-project\ConsoleApplication1\Main.cpp(437,47): warning C4244:             T=int
-C:\Users\Future\Downloads\MyGit\sp-project\ConsoleApplication1\Main.cpp(437,47): warning C4244:         ]
-C:\Users\Future\Downloads\MyGit\sp-project\ConsoleApplication1\Main.cpp(440,48): warning C4244: 'argument': conversion from 'double' to 'T', possible loss of data
-C:\Users\Future\Downloads\MyGit\sp-project\ConsoleApplication1\Main.cpp(440,48): warning C4244:         with
-C:\Users\Future\Downloads\MyGit\sp-project\ConsoleApplication1\Main.cpp(440,48): warning C4244:         [
-C:\Users\Future\Downloads\MyGit\sp-project\ConsoleApplication1\Main.cpp(440,48): warning C4244:             T=int
-C:\Users\Future\Downloads\MyGit\sp-project\ConsoleApplication1\Main.cpp(440,48): warning C4244:         ]
-C:\Users\Future\Downloads\MyGit\sp-project\ConsoleApplication1\Main.cpp(443,49): warning C4244: 'argument': conversion from 'double' to 'T', possible loss of data
-C:\Users\Future\Downloads\MyGit\sp-project\ConsoleApplication1\Main.cpp(443,49): warning C4244:         with
-C:\Users\Future\Downloads\MyGit\sp-project\ConsoleApplication1\Main.cpp(443,49): warning C4244:         [
-C:\Users\Future\Downloads\MyGit\sp-project\ConsoleApplication1\Main.cpp(443,49): warning C4244:             T=int
-C:\Users\Future\Downloads\MyGit\sp-project\ConsoleApplication1\Main.cpp(443,49): warning C4244:         ]
-C:\Users\Future\Downloads\MyGit\sp-project\ConsoleApplication1\Main.cpp(446,49): warning C4244: 'argument': conversion from 'double' to 'T', possible loss of data
-C:\Users\Future\Downloads\MyGit\sp-project\ConsoleApplication1\Main.cpp(446,49): warning C4244:         with
-C:\Users\Future\Downloads\MyGit\sp-project\ConsoleApplication1\Main.cpp(446,49): warning C4244:         [
-C:\Users\Future\Downloads\MyGit\sp-project\ConsoleApplication1\Main.cpp(446,49): warning C4244:             T=int
-C:\Users\Future\Downloads\MyGit\sp-project\ConsoleApplication1\Main.cpp(446,49): warning C4244:         ]
-C:\Users\Future\Downloads\MyGit\sp-project\ConsoleApplication1\Main.cpp(452,49): warning C4244: 'argument': conversion from 'double' to 'T', possible loss of data
-C:\Users\Future\Downloads\MyGit\sp-project\ConsoleApplication1\Main.cpp(452,49): warning C4244:         with
-C:\Users\Future\Downloads\MyGit\sp-project\ConsoleApplication1\Main.cpp(452,49): warning C4244:         [
-C:\Users\Future\Downloads\MyGit\sp-project\ConsoleApplication1\Main.cpp(452,49): warning C4244:             T=int
-C:\Users\Future\Downloads\MyGit\sp-project\ConsoleApplication1\Main.cpp(452,49): warning C4244:         ]
-C:\Users\Future\Downloads\MyGit\sp-project\ConsoleApplication1\Main.cpp(455,49): warning C4244: 'argument': conversion from 'double' to 'T', possible loss of data
-C:\Users\Future\Downloads\MyGit\sp-project\ConsoleApplication1\Main.cpp(455,49): warning C4244:         with
-C:\Users\Future\Downloads\MyGit\sp-project\ConsoleApplication1\Main.cpp(455,49): warning C4244:         [
-C:\Users\Future\Downloads\MyGit\sp-project\ConsoleApplication1\Main.cpp(455,49): warning C4244:             T=int
-C:\Users\Future\Downloads\MyGit\sp-project\ConsoleApplication1\Main.cpp(455,49): warning C4244:         ]
-C:\Users\Future\Downloads\MyGit\sp-project\ConsoleApplication1\Main.cpp(458,49): warning C4244: 'argument': conversion from 'double' to 'T', possible loss of data
-C:\Users\Future\Downloads\MyGit\sp-project\ConsoleApplication1\Main.cpp(458,49): warning C4244:         with
-C:\Users\Future\Downloads\MyGit\sp-project\ConsoleApplication1\Main.cpp(458,49): warning C4244:         [
-C:\Users\Future\Downloads\MyGit\sp-project\ConsoleApplication1\Main.cpp(458,49): warning C4244:             T=int
-C:\Users\Future\Downloads\MyGit\sp-project\ConsoleApplication1\Main.cpp(458,49): warning C4244:         ]
-C:\Users\Future\Downloads\MyGit\sp-project\ConsoleApplication1\Main.cpp(614,31): warning C4305: 'argument': truncation from 'double' to 'float'
-C:\Users\Future\Downloads\MyGit\sp-project\ConsoleApplication1\Main.cpp(614,24): warning C4305: 'argument': truncation from 'double' to 'float'
-C:\Users\Future\Downloads\MyGit\sp-project\ConsoleApplication1\Main.cpp(620,33): warning C4305: 'argument': truncation from 'double' to 'float'
-C:\Users\Future\Downloads\MyGit\sp-project\ConsoleApplication1\Main.cpp(620,26): warning C4305: 'argument': truncation from 'double' to 'float'
-C:\Users\Future\Downloads\MyGit\sp-project\ConsoleApplication1\Main.cpp(630,30): warning C4305: 'argument': truncation from 'double' to 'float'
-C:\Users\Future\Downloads\MyGit\sp-project\ConsoleApplication1\Main.cpp(630,25): warning C4305: 'argument': truncation from 'double' to 'float'
-C:\Users\Future\Downloads\MyGit\sp-project\ConsoleApplication1\Main.cpp(635,36): warning C4305: 'argument': truncation from 'double' to 'float'
-C:\Users\Future\Downloads\MyGit\sp-project\ConsoleApplication1\Main.cpp(635,31): warning C4305: 'argument': truncation from 'double' to 'float'
-C:\Users\Future\Downloads\MyGit\sp-project\ConsoleApplication1\Main.cpp(641,42): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
-C:\Users\Future\Downloads\MyGit\sp-project\ConsoleApplication1\Main.cpp(649,26): warning C4305: 'argument': truncation from 'double' to 'float'
-C:\Users\Future\Downloads\MyGit\sp-project\ConsoleApplication1\Main.cpp(973,45): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
-  ConsoleApplication1.vcxproj -> C:\Users\Future\Downloads\MyGit\sp-project\x64\Debug\SFML Template.exe
+E:\Odootec\Staging\15\self_makkaa\sp-project\ConsoleApplication1\Main.cpp(309,31): warning C4305: 'argument': truncation from 'double' to 'float'
+E:\Odootec\Staging\15\self_makkaa\sp-project\ConsoleApplication1\Main.cpp(309,26): warning C4305: 'argument': truncation from 'double' to 'float'
+E:\Odootec\Staging\15\self_makkaa\sp-project\ConsoleApplication1\Main.cpp(317,34): warning C4305: 'argument': truncation from 'double' to 'float'
+E:\Odootec\Staging\15\self_makkaa\sp-project\ConsoleApplication1\Main.cpp(317,29): warning C4305: 'argument': truncation from 'double' to 'float'
+E:\Odootec\Staging\15\self_makkaa\sp-project\ConsoleApplication1\Main.cpp(325,37): warning C4305: 'argument': truncation from 'double' to 'float'
+E:\Odootec\Staging\15\self_makkaa\sp-project\ConsoleApplication1\Main.cpp(325,32): warning C4305: 'argument': truncation from 'double' to 'float'
+E:\Odootec\Staging\15\self_makkaa\sp-project\ConsoleApplication1\Main.cpp(333,30): warning C4305: 'argument': truncation from 'double' to 'float'
+E:\Odootec\Staging\15\self_makkaa\sp-project\ConsoleApplication1\Main.cpp(333,25): warning C4305: 'argument': truncation from 'double' to 'float'
+E:\Odootec\Staging\15\self_makkaa\sp-project\ConsoleApplication1\Main.cpp(341,33): warning C4305: 'argument': truncation from 'double' to 'float'
+E:\Odootec\Staging\15\self_makkaa\sp-project\ConsoleApplication1\Main.cpp(341,28): warning C4305: 'argument': truncation from 'double' to 'float'
+E:\Odootec\Staging\15\self_makkaa\sp-project\ConsoleApplication1\Main.cpp(351,35): warning C4305: 'argument': truncation from 'double' to 'float'
+E:\Odootec\Staging\15\self_makkaa\sp-project\ConsoleApplication1\Main.cpp(351,30): warning C4305: 'argument': truncation from 'double' to 'float'
+E:\Odootec\Staging\15\self_makkaa\sp-project\ConsoleApplication1\Main.cpp(357,33): warning C4305: 'argument': truncation from 'double' to 'float'
+E:\Odootec\Staging\15\self_makkaa\sp-project\ConsoleApplication1\Main.cpp(357,28): warning C4305: 'argument': truncation from 'double' to 'float'
+E:\Odootec\Staging\15\self_makkaa\sp-project\ConsoleApplication1\Main.cpp(361,39): warning C4305: 'argument': truncation from 'double' to 'float'
+E:\Odootec\Staging\15\self_makkaa\sp-project\ConsoleApplication1\Main.cpp(361,33): warning C4305: 'argument': truncation from 'double' to 'float'
+E:\Odootec\Staging\15\self_makkaa\sp-project\ConsoleApplication1\Main.cpp(379,31): warning C4305: 'argument': truncation from 'double' to 'float'
+E:\Odootec\Staging\15\self_makkaa\sp-project\ConsoleApplication1\Main.cpp(379,25): warning C4305: 'argument': truncation from 'double' to 'float'
+E:\Odootec\Staging\15\self_makkaa\sp-project\ConsoleApplication1\Main.cpp(428,30): warning C4305: 'argument': truncation from 'double' to 'float'
+E:\Odootec\Staging\15\self_makkaa\sp-project\ConsoleApplication1\Main.cpp(428,24): warning C4305: 'argument': truncation from 'double' to 'float'
+E:\Odootec\Staging\15\self_makkaa\sp-project\ConsoleApplication1\Main.cpp(442,15): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
+E:\Odootec\Staging\15\self_makkaa\sp-project\ConsoleApplication1\Main.cpp(453,47): warning C4244: 'argument': conversion from 'double' to 'T', possible loss of data
+E:\Odootec\Staging\15\self_makkaa\sp-project\ConsoleApplication1\Main.cpp(453,47): warning C4244:         with
+E:\Odootec\Staging\15\self_makkaa\sp-project\ConsoleApplication1\Main.cpp(453,47): warning C4244:         [
+E:\Odootec\Staging\15\self_makkaa\sp-project\ConsoleApplication1\Main.cpp(453,47): warning C4244:             T=int
+E:\Odootec\Staging\15\self_makkaa\sp-project\ConsoleApplication1\Main.cpp(453,47): warning C4244:         ]
+E:\Odootec\Staging\15\self_makkaa\sp-project\ConsoleApplication1\Main.cpp(456,48): warning C4244: 'argument': conversion from 'double' to 'T', possible loss of data
+E:\Odootec\Staging\15\self_makkaa\sp-project\ConsoleApplication1\Main.cpp(456,48): warning C4244:         with
+E:\Odootec\Staging\15\self_makkaa\sp-project\ConsoleApplication1\Main.cpp(456,48): warning C4244:         [
+E:\Odootec\Staging\15\self_makkaa\sp-project\ConsoleApplication1\Main.cpp(456,48): warning C4244:             T=int
+E:\Odootec\Staging\15\self_makkaa\sp-project\ConsoleApplication1\Main.cpp(456,48): warning C4244:         ]
+E:\Odootec\Staging\15\self_makkaa\sp-project\ConsoleApplication1\Main.cpp(459,49): warning C4244: 'argument': conversion from 'double' to 'T', possible loss of data
+E:\Odootec\Staging\15\self_makkaa\sp-project\ConsoleApplication1\Main.cpp(459,49): warning C4244:         with
+E:\Odootec\Staging\15\self_makkaa\sp-project\ConsoleApplication1\Main.cpp(459,49): warning C4244:         [
+E:\Odootec\Staging\15\self_makkaa\sp-project\ConsoleApplication1\Main.cpp(459,49): warning C4244:             T=int
+E:\Odootec\Staging\15\self_makkaa\sp-project\ConsoleApplication1\Main.cpp(459,49): warning C4244:         ]
+E:\Odootec\Staging\15\self_makkaa\sp-project\ConsoleApplication1\Main.cpp(462,49): warning C4244: 'argument': conversion from 'double' to 'T', possible loss of data
+E:\Odootec\Staging\15\self_makkaa\sp-project\ConsoleApplication1\Main.cpp(462,49): warning C4244:         with
+E:\Odootec\Staging\15\self_makkaa\sp-project\ConsoleApplication1\Main.cpp(462,49): warning C4244:         [
+E:\Odootec\Staging\15\self_makkaa\sp-project\ConsoleApplication1\Main.cpp(462,49): warning C4244:             T=int
+E:\Odootec\Staging\15\self_makkaa\sp-project\ConsoleApplication1\Main.cpp(462,49): warning C4244:         ]
+E:\Odootec\Staging\15\self_makkaa\sp-project\ConsoleApplication1\Main.cpp(468,49): warning C4244: 'argument': conversion from 'double' to 'T', possible loss of data
+E:\Odootec\Staging\15\self_makkaa\sp-project\ConsoleApplication1\Main.cpp(468,49): warning C4244:         with
+E:\Odootec\Staging\15\self_makkaa\sp-project\ConsoleApplication1\Main.cpp(468,49): warning C4244:         [
+E:\Odootec\Staging\15\self_makkaa\sp-project\ConsoleApplication1\Main.cpp(468,49): warning C4244:             T=int
+E:\Odootec\Staging\15\self_makkaa\sp-project\ConsoleApplication1\Main.cpp(468,49): warning C4244:         ]
+E:\Odootec\Staging\15\self_makkaa\sp-project\ConsoleApplication1\Main.cpp(471,49): warning C4244: 'argument': conversion from 'double' to 'T', possible loss of data
+E:\Odootec\Staging\15\self_makkaa\sp-project\ConsoleApplication1\Main.cpp(471,49): warning C4244:         with
+E:\Odootec\Staging\15\self_makkaa\sp-project\ConsoleApplication1\Main.cpp(471,49): warning C4244:         [
+E:\Odootec\Staging\15\self_makkaa\sp-project\ConsoleApplication1\Main.cpp(471,49): warning C4244:             T=int
+E:\Odootec\Staging\15\self_makkaa\sp-project\ConsoleApplication1\Main.cpp(471,49): warning C4244:         ]
+E:\Odootec\Staging\15\self_makkaa\sp-project\ConsoleApplication1\Main.cpp(474,49): warning C4244: 'argument': conversion from 'double' to 'T', possible loss of data
+E:\Odootec\Staging\15\self_makkaa\sp-project\ConsoleApplication1\Main.cpp(474,49): warning C4244:         with
+E:\Odootec\Staging\15\self_makkaa\sp-project\ConsoleApplication1\Main.cpp(474,49): warning C4244:         [
+E:\Odootec\Staging\15\self_makkaa\sp-project\ConsoleApplication1\Main.cpp(474,49): warning C4244:             T=int
+E:\Odootec\Staging\15\self_makkaa\sp-project\ConsoleApplication1\Main.cpp(474,49): warning C4244:         ]
+E:\Odootec\Staging\15\self_makkaa\sp-project\ConsoleApplication1\Main.cpp(630,31): warning C4305: 'argument': truncation from 'double' to 'float'
+E:\Odootec\Staging\15\self_makkaa\sp-project\ConsoleApplication1\Main.cpp(630,24): warning C4305: 'argument': truncation from 'double' to 'float'
+E:\Odootec\Staging\15\self_makkaa\sp-project\ConsoleApplication1\Main.cpp(636,33): warning C4305: 'argument': truncation from 'double' to 'float'
+E:\Odootec\Staging\15\self_makkaa\sp-project\ConsoleApplication1\Main.cpp(636,26): warning C4305: 'argument': truncation from 'double' to 'float'
+E:\Odootec\Staging\15\self_makkaa\sp-project\ConsoleApplication1\Main.cpp(646,30): warning C4305: 'argument': truncation from 'double' to 'float'
+E:\Odootec\Staging\15\self_makkaa\sp-project\ConsoleApplication1\Main.cpp(646,25): warning C4305: 'argument': truncation from 'double' to 'float'
+E:\Odootec\Staging\15\self_makkaa\sp-project\ConsoleApplication1\Main.cpp(651,36): warning C4305: 'argument': truncation from 'double' to 'float'
+E:\Odootec\Staging\15\self_makkaa\sp-project\ConsoleApplication1\Main.cpp(651,31): warning C4305: 'argument': truncation from 'double' to 'float'
+E:\Odootec\Staging\15\self_makkaa\sp-project\ConsoleApplication1\Main.cpp(657,42): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
+E:\Odootec\Staging\15\self_makkaa\sp-project\ConsoleApplication1\Main.cpp(666,26): warning C4305: 'argument': truncation from 'double' to 'float'
+E:\Odootec\Staging\15\self_makkaa\sp-project\ConsoleApplication1\Main.cpp(723,83): warning C4244: 'argument': conversion from 'double' to 'T', possible loss of data
+E:\Odootec\Staging\15\self_makkaa\sp-project\ConsoleApplication1\Main.cpp(723,83): warning C4244:         with
+E:\Odootec\Staging\15\self_makkaa\sp-project\ConsoleApplication1\Main.cpp(723,83): warning C4244:         [
+E:\Odootec\Staging\15\self_makkaa\sp-project\ConsoleApplication1\Main.cpp(723,83): warning C4244:             T=int
+E:\Odootec\Staging\15\self_makkaa\sp-project\ConsoleApplication1\Main.cpp(723,83): warning C4244:         ]
+E:\Odootec\Staging\15\self_makkaa\sp-project\ConsoleApplication1\Main.cpp(730,93): warning C4244: 'argument': conversion from 'double' to 'T', possible loss of data
+E:\Odootec\Staging\15\self_makkaa\sp-project\ConsoleApplication1\Main.cpp(730,93): warning C4244:         with
+E:\Odootec\Staging\15\self_makkaa\sp-project\ConsoleApplication1\Main.cpp(730,93): warning C4244:         [
+E:\Odootec\Staging\15\self_makkaa\sp-project\ConsoleApplication1\Main.cpp(730,93): warning C4244:             T=int
+E:\Odootec\Staging\15\self_makkaa\sp-project\ConsoleApplication1\Main.cpp(730,93): warning C4244:         ]
+E:\Odootec\Staging\15\self_makkaa\sp-project\ConsoleApplication1\Main.cpp(1043,45): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
+  ConsoleApplication1.vcxproj -> E:\Odootec\Staging\15\self_makkaa\sp-project\x64\Debug\SFML Template.exe

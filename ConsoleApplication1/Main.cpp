@@ -26,6 +26,11 @@ enum playerDirection
 {
     toright,toleft
 };
+enum monstertype
+{
+    Beast,
+    Werewolf
+};
 Gamestate gamestate = mainmenu;
 
 Text StartGameText, SettingsText, ExitText,LeaderboardText, CreditsText,volumeText,settingsmenuText;
@@ -184,6 +189,7 @@ struct enemy
 {
     RectangleShape attackBox,collider;
     Vector2f velocity;
+    monstertype MonsterType;
     Sprite shape;
     Texture enemyspreadsheet;
     animationstate AnimationState;
@@ -196,7 +202,9 @@ struct enemy
         if (health <= 0)
             isDead = true;
     }
-} beast;
+} beast,werewolf;
+
+vector<enemy> enemies;
 
 struct sword {
     Sprite shape;
@@ -428,6 +436,14 @@ void MapInit() {
     Map.setPosition(-10000, -10000);
 }
 
+void playertargeting(enemy& enemy1)
+{
+    enemy1.velocity = shanoa.sprite.getPosition() - enemy1.shape.getPosition();
+    float mag = sqrt(pow(enemy1.velocity.x, 2) + pow(enemy1.velocity.y, 2));
+    enemy1.velocity = Vector2f(enemy1.velocity.x / mag, enemy1.velocity.y / mag);
+    enemy1.velocity = enemy1.velocity * enemy1.speed;
+}
+
 void healthbarhandling() {
     healthRatio = shanoa.health / shanoa.Maxhp;
     if (healthRatio > 0.9) {
@@ -460,7 +476,7 @@ void healthbarhandling() {
     else if(shanoa.health <= 0){
         gamestate = gameover;
     }
-    healthbar.setPosition(shanoa.sprite.getPosition().x - 500, shanoa.sprite.getPosition().y - 500);
+    healthbar.setPosition(shanoa.sprite.getPosition().x - 500, shanoa.sprite.getPosition().y + 285);
   }
 
 void GameOverInit()
@@ -644,14 +660,16 @@ void SettingsMenuInit() {
 }
 
 void BeastInit() {
+    beast.MonsterType = Beast;
     beast.enemyspreadsheet.loadFromFile("Assets\\beastTexture.png");
     beast.shape.setTexture(beast.enemyspreadsheet);
     beast.shape.setScale(1.8,2.5);
     beast.health = 200;
-    beast.speed = 150 * deltaTime;
+    beast.speed = 150;
+    beast.velocity = Vector2f(beast.speed, beast.speed);
     beast.damage = 15;
     beast.attackBox.setSize(Vector2f(150, 150));
-    beast.shape.setPosition(50, 50);
+    beast.shape.setPosition(-200, -200);
     beast.shape.setOrigin(64,32);
     beast.AnimationState = walking;
     beast.collider.setFillColor(Color::Yellow);
@@ -660,6 +678,7 @@ void BeastInit() {
     beast.attackBox.setFillColor(Color::Red);
     beast.attackBox.setOrigin(beast.attackBox.getLocalBounds().width / 2, beast.attackBox.getLocalBounds().height / 2);
 }
+
 void beastUpdate() {
     beast.collider.setPosition(beast.shape.getPosition());
     beast.attackBox.setPosition(beast.shape.getPosition());
@@ -672,6 +691,49 @@ void beastUpdate() {
         beast.columnindex = (beast.columnindex + 1) % 8;
     }
     beast.shape.setTextureRect(IntRect(128 * beast.columnindex, 64 * beast.rowindex, 128, 64));
+    playertargeting(beast);
+    beast.shape.move(beast.velocity * deltaTime);
+}
+
+void werewolfInit() {
+    werewolf.MonsterType = Werewolf;
+    werewolf.shape.setTexture(werewolf.enemyspreadsheet);
+    werewolf.enemyspreadsheet.loadFromFile("Assets\\werewolfwhite.png");
+    werewolf.shape.setPosition(200, 200);
+    werewolf.speed = 175;
+    werewolf.health = 150;
+    werewolf.damage = 10;
+    werewolf.AnimationState = walking;
+    werewolf.attackBox.setSize(Vector2f(175, 175));
+    werewolf.attackBox.setFillColor(Color::Magenta);
+    werewolf.attackBox.setOrigin(werewolf.attackBox.getLocalBounds().width / 2, werewolf.attackBox.getLocalBounds().height / 2);
+    werewolf.collider.setSize(Vector2f(128, 128));
+    werewolf.collider.setFillColor(Color::Green);
+    werewolf.collider.setOrigin(werewolf.collider.getLocalBounds().width / 2, werewolf.collider.getLocalBounds().height / 2);
+    werewolf.shape.setOrigin(64,73);
+}
+
+void werewolfupdate()
+{
+
+    if (werewolf.AnimationState == walking)
+    {
+        // walking 
+        werewolf.rowindex = 1;
+        werewolf.shape.setTextureRect(IntRect(werewolf.columnindex * 128, 145.666 * werewolf.rowindex, 128, 146));
+        werewolf.columnindex = (werewolf.columnindex + 1) % 8;
+
+    }
+    else if (werewolf.AnimationState == attacking) {
+        // attacking /
+        werewolf.rowindex = 2;
+        werewolf.shape.setTextureRect(IntRect(werewolf.columnindex * 128, werewolf.rowindex * 145.666, 128, 146));
+        werewolf.columnindex = (werewolf.columnindex + 1) % 6;
+    }
+    playertargeting(werewolf);
+    werewolf.shape.move(werewolf.velocity * deltaTime);
+    werewolf.attackBox.setPosition(werewolf.shape.getPosition());
+    werewolf.collider.setPosition(werewolf.shape.getPosition());
 }
 
 void Start()
@@ -692,6 +754,7 @@ void Start()
     creditsInit();
     SettingsMenuInit();
     BeastInit();
+    werewolfInit();
 
     view.setCenter(10000, 9800);
     window.setView(view);
@@ -789,8 +852,11 @@ void Update()
             gamestate = gameover;
             selectedMenuButtonIndex = 0;
         }
-        shanoa.update();
+
+
         beastUpdate();
+        werewolfupdate();
+        shanoa.update();
         healthbarhandling();
         view.setCenter(shanoa.sprite.getPosition());
     }
@@ -909,9 +975,13 @@ void Draw()
           /*  window.draw(swords[i].collider);*/
             window.draw(swords[i].shape);
         }
+
         window.draw(beast.attackBox);
         window.draw(beast.collider);
         window.draw(beast.shape);
+        window.draw(werewolf.attackBox);
+        window.draw(werewolf.collider);
+        window.draw(werewolf.shape);
         window.draw(healthbar);
         window.draw(shanoa.sprite);
     }
