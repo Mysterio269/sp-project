@@ -1,2 +1,7 @@
+<<<<<<< HEAD
 PlatformToolSet=v143:VCToolArchitecture=Native64Bit:VCToolsVersion=14.42.34433:TargetPlatformVersion=10.0.22621.0:
 Debug|x64|E:\Odootec\Staging\15\self_makkaa\sp-project\|
+=======
+PlatformToolSet=v143:VCToolArchitecture=Native64Bit:VCToolsVersion=14.41.34120:TargetPlatformVersion=10.0.22621.0:
+Debug|x64|C:\Users\745 G3\Downloads\My-Github\sp-project\|
+>>>>>>> 24c47602a31d6744932c6d10f44af2c7713cef7f

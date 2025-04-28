@@ -1,9 +1,16 @@
 {
   "Version": 1,
+<<<<<<< HEAD
   "WorkspaceRootPath": "E:\\Odootec\\Staging\\15\\self_makkaa\\sp-project\\",
   "Documents": [
     {
       "AbsoluteMoniker": "D:0:0:{AEAC8384-1F3B-4B46-B595-738C74C38920}|ConsoleApplication1\\ConsoleApplication1.vcxproj|E:\\Odootec\\Staging\\15\\self_makkaa\\sp-project\\ConsoleApplication1\\Main.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
+=======
+  "WorkspaceRootPath": "C:\\Users\\745 G3\\Downloads\\My-Github\\sp-project\\",
+  "Documents": [
+    {
+      "AbsoluteMoniker": "D:0:0:{AEAC8384-1F3B-4B46-B595-738C74C38920}|ConsoleApplication1\\ConsoleApplication1.vcxproj|C:\\Users\\745 G3\\Downloads\\My-Github\\sp-project\\ConsoleApplication1\\Main.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
+>>>>>>> 24c47602a31d6744932c6d10f44af2c7713cef7f
       "RelativeMoniker": "D:0:0:{AEAC8384-1F3B-4B46-B595-738C74C38920}|ConsoleApplication1\\ConsoleApplication1.vcxproj|solutionrelative:ConsoleApplication1\\Main.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
     }
   ],
@@ -20,11 +27,19 @@
               "$type": "Document",
               "DocumentIndex": 0,
               "Title": "Main.cpp",
+<<<<<<< HEAD
               "DocumentMoniker": "E:\\Odootec\\Staging\\15\\self_makkaa\\sp-project\\ConsoleApplication1\\Main.cpp",
               "RelativeDocumentMoniker": "ConsoleApplication1\\Main.cpp",
               "ToolTip": "E:\\Odootec\\Staging\\15\\self_makkaa\\sp-project\\ConsoleApplication1\\Main.cpp",
               "RelativeToolTip": "ConsoleApplication1\\Main.cpp",
               "ViewState": "AgIAAOIDAAAAPWZmZmb0v5IDAAAgAAAAAAAAAA==",
+=======
+              "DocumentMoniker": "C:\\Users\\745 G3\\Downloads\\My-Github\\sp-project\\ConsoleApplication1\\Main.cpp",
+              "RelativeDocumentMoniker": "ConsoleApplication1\\Main.cpp",
+              "ToolTip": "C:\\Users\\745 G3\\Downloads\\My-Github\\sp-project\\ConsoleApplication1\\Main.cpp*",
+              "RelativeToolTip": "ConsoleApplication1\\Main.cpp*",
+              "ViewState": "AgIAAOYAAAAAAAAAAAAYwAUBAAAAAAAAAAAAAA==",
+>>>>>>> 24c47602a31d6744932c6d10f44af2c7713cef7f
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
               "WhenOpened": "2024-04-16T14:21:25.984Z",
               "EditorCaption": ""
