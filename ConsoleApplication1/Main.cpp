@@ -932,6 +932,8 @@ vector <enemy> mobSpawned;
 int spawnTimerDetector = 0, currentMobCounter = 0;
 void Spawn() {
     /*spawnTimerDetector += deltaTime;*/
+
+
     if (Keyboard::isKeyPressed(Keyboard::P)){
         spawnTimerDetector = 0;
         ++currentMobCounter;
