@@ -32,7 +32,8 @@ enum playerDirection
 enum monstertype
 {
     Beast,
-    Werewolf
+    Werewolf,
+    Bat
 };
 Gamestate gamestate = mainmenu;
 Text StartGameText, SettingsText, ExitText,LeaderboardText, CreditsText,volumeText,settingsmenuText;
@@ -197,7 +198,7 @@ struct character
 
 struct enemy
 {
-    RectangleShape attackBox,collider;
+    RectangleShape attackBox, collider;
     Vector2f velocity;
     monstertype MonsterType;
     Sprite shape;
@@ -205,14 +206,14 @@ struct enemy
     animationstate AnimationState;
     float speed;
     int columnindex, rowindex;
-    int health,damage;
+    int health, damage;
     bool isAttacking, isDead;
     void update()
     {
         if (health <= 0)
             isDead = true;
     }
-} beast,werewolf;
+} beast, werewolf, bat;
 
 vector<enemy> enemies;
 
@@ -781,6 +782,52 @@ void generalCollision(RectangleShape& objectTOBeMovedCollider, RectangleShape& W
         } // upper/lower 
     }
 }
+void AttackDetection(RectangleShape &playerCollider, RectangleShape &enemyCollider , enemy &theEnemy) {
+    if (playerCollider.getGlobalBounds().intersects(enemyCollider.getGlobalBounds())) {
+        theEnemy.AnimationState = attacking;
+    }
+    else
+        theEnemy.AnimationState = walking;
+}
+void BatInit() {
+    bat.MonsterType = Bat;
+    bat.enemyspreadsheet.loadFromFile("Assets\\Bat.png");
+    bat.shape.setTexture(bat.enemyspreadsheet);
+    bat.shape.setScale(3, 3);
+    bat.health = 50;
+    bat.speed = 75;
+    bat.velocity = Vector2f(bat.speed, bat.speed);
+    bat.damage = 5;
+    bat.attackBox.setSize(Vector2f(70, 70));
+    bat.shape.setPosition(-200, -200);
+    bat.shape.setOrigin(48.2/2, 35/2);
+    bat.AnimationState = walking;
+    bat.collider.setFillColor(Color::Yellow);
+    bat.collider.setSize(Vector2f(60, 120));
+    bat.collider.setOrigin(bat.collider.getLocalBounds().width / 2, bat.collider.getLocalBounds().height / 2);
+    bat.attackBox.setFillColor(Color::Red);
+    bat.attackBox.setOrigin(bat.attackBox.getLocalBounds().width / 2, bat.attackBox.getLocalBounds().height / 2);
+}
+void BatUpdate() {
+    bat.collider.setPosition(bat.shape.getPosition());
+    bat.attackBox.setPosition(bat.shape.getPosition());
+    if (bat.AnimationState == walking) {
+        bat.rowindex = 0;
+        bat.columnindex = (bat.columnindex + 1) % 3;
+    }
+    else if (bat.AnimationState == attacking) {
+        bat.rowindex = 2;
+        bat.columnindex = (bat.columnindex + 1) % 10;
+    }
+    bat.shape.setTextureRect(IntRect(48.2 * bat.columnindex, 35 * bat.rowindex, 48.2, 35));
+    playertargeting(bat);
+    bat.shape.move(bat.velocity * deltaTime);
+    if (bat.shape.getPosition().x < shanoa.sprite.getPosition().x )
+        bat.shape.setScale(-3, 3);
+    else
+        bat.shape.setScale(3, 3);
+    AttackDetection(shanoa.collider, bat.collider, bat);
+}
 
 
 
@@ -802,13 +849,6 @@ void BeastInit() {
     beast.collider.setOrigin(beast.collider.getLocalBounds().width / 2, beast.collider.getLocalBounds().height / 2);
     beast.attackBox.setFillColor(Color::Red);
     beast.attackBox.setOrigin(beast.attackBox.getLocalBounds().width / 2, beast.attackBox.getLocalBounds().height / 2);
-}
-void AttackDetection(RectangleShape &playerCollider, RectangleShape &enemyCollider , enemy &theEnemy) {
-    if (playerCollider.getGlobalBounds().intersects(enemyCollider.getGlobalBounds())) {
-        theEnemy.AnimationState = attacking;
-    }
-    else
-        theEnemy.AnimationState = walking;
 }
 
 void beastUpdate() {
@@ -988,6 +1028,7 @@ void swordFullCollision() {
 void globalCollsion() {
     generalCollision(beast.collider, shanoa.collider, beast.shape);
     generalCollision(werewolf.collider, shanoa.collider, werewolf.shape);
+    generalCollision(bat.collider, shanoa.collider, bat.shape);
     swordFullCollision();
 }
 
@@ -1013,6 +1054,7 @@ void Start()
     SettingsMenuInit();
     BeastInit();
     werewolfInit();
+    BatInit();
 
     view.setCenter(10000, 9800);
     window.setView(view);
@@ -1127,6 +1169,7 @@ void Update()
         }
         beastUpdate();
         werewolfupdate();
+        BatUpdate();
         shanoa.update();
         globalCollsion();
         healthbarhandling();
@@ -1263,6 +1306,7 @@ void Draw()
         }
         window.draw(beast.shape);
         window.draw(werewolf.shape);
+        window.draw(bat.shape);
         window.draw(healthbar);
         window.draw(shanoa.sprite);
         for (int i = 0; i < mobSpawned.size(); ++i) {
