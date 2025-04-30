@@ -769,42 +769,63 @@ void MapInit() {
     Map.setPosition(-10000, -10000);
 }
 
+float beastspawntimer = 0;
+float batspawntimer = 0;
+float werewolfspawntimer = 0;
+float zombiespawntimer = 0;
 void EnemySpawn() {
-    if (Mouse::isButtonPressed(Mouse::Right)) {
+    Vector2f randomspawnpoint = Vector2f(shanoa.sprite.getPosition().x + (rand() % 2001 - 1000), shanoa.sprite.getPosition().y + (rand() % 2001 - 1000));
+    beastspawntimer += deltaTime;
+    batspawntimer += deltaTime;
+    werewolfspawntimer += deltaTime;
+    zombiespawntimer += deltaTime;
+    if (beastspawntimer >= 4) {
 
         auto newBeast = make_unique<BEAST>();
 
         newBeast->start();
 
+        newBeast->shape.setPosition(randomspawnpoint);
+
         enemies.push_back(move(newBeast));
 
+        beastspawntimer = 0;
     }
-    if (Keyboard::isKeyPressed(Keyboard::BackSpace)) {
+    if (zombiespawntimer >= 2) {
 
         auto newZombie = make_unique<ZOMBIE>();
 
         newZombie->start();
 
+        newZombie->shape.setPosition(randomspawnpoint);
+
         enemies.push_back(move(newZombie));
 
+        zombiespawntimer = 0;
     }
-    if (Keyboard::isKeyPressed(Keyboard::Num0)) {
+    if (werewolfspawntimer >= 3) {
 
         auto newWerewolf = make_unique<WEREWOLF>();
 
         newWerewolf->start();
 
+        newWerewolf->shape.setPosition(randomspawnpoint);
+
         enemies.push_back(move(newWerewolf));
 
+        werewolfspawntimer = 0;
     }
-    if (Keyboard::isKeyPressed(Keyboard::Num9)) {
+    if (batspawntimer >= 1) {
 
         auto newBat = make_unique<BAT>();
 
         newBat->start();
 
-        enemies.push_back(move(newBat));
+        newBat->shape.setPosition(randomspawnpoint);
 
+        enemies.push_back(move(newBat));
+        
+        batspawntimer = 0;
     }
 }
 
@@ -1343,6 +1364,8 @@ void Update()
 
             GameloopMusic.stop();
             gamestate = gameover;
+            enemies.clear();
+            swords.clear();
             selectedMenuButtonIndex = 0;
         }
 
