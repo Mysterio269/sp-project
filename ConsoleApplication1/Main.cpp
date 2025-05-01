@@ -731,6 +731,7 @@ RectangleShape volumebar[10];
 vector<sword> swords; 
 vector<shared_ptr<ENEMY>> enemies;
 
+
 string names[11] = {
     "Developers :",
     "Mahmoud Abd Elmegeed",
@@ -1521,9 +1522,9 @@ void Update()
         for (int i = 0;i < swords.size();i++) {
             bool test = false;
             for (int j = 0;j < enemies.size();j++) {
-                if (swords[i].collider.getGlobalBounds().intersects(enemies[i]->collider.getGlobalBounds())) {
+                if (swords[i].collider.getGlobalBounds().intersects(enemies[j]->collider.getGlobalBounds())) {
                     //cout << " bb ";
-                    enemies[i]->health -= swords[i].damage;
+                    enemies[j]->health -= swords[i].damage;
                     cout << swords[i].damage << endl;
                     swords.erase(swords.begin() + i);
                     //cout << enemies[i] -> health << ' ';
