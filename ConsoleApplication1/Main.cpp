@@ -25,8 +25,18 @@ enum Gamestate
 
 enum CrystalState
 {
-    IDLE, REPEL, ATTRACT, ABSORB
+    IDLE, ATTRACT, ABSORB
 };
+
+enum ObstacleType
+{
+    tree,
+    rock,
+    statue,
+    objectwillbeadded,
+    wall
+};
+
 
 enum animationstate
 {
@@ -264,6 +274,7 @@ struct ENEMY
     virtual void update(){}
     virtual ~ENEMY() {}
 };
+
 struct XPc
 {
     Sprite sprite;
@@ -274,93 +285,92 @@ struct XPc
     CrystalState state = IDLE;
 
     // Animation parameters
-    float repelDistance = 150.0f;  // Maximum distance to repel
-    float repelSpeed = 300.0f;     // Speed of repelling
-    float attractRange = 150.0f;   // Range at which crystals start getting attracted
-    float attractSpeed = 190.0f;   // Base speed for attraction
-    float absorbSpeed = 550.0f;    // Speed during final absorption
-    float absorbDistance = 75.0f;  // Distance at which absorption animation starts
-
-    // Timing
+    float attractRange = 160.0f;
+    float attractSpeed = 90.0f;
+    float absorbSpeed = 200.0f;
+    float absorbDistance = 75.0f;
+    float returnSpeed = 90.0f;
     float repelTimer = 0.0f;
-    float maxRepelTime = 1.1f;     // Time it takes to complete repel animation
 
-    // Movement vector
     Vector2f direction;
+    Vector2f originalPosition;
 
-    XPc(float x, float y, Texture& tex, int xp) {
+    XPc(float x, float y, Texture& tex, int xp)
+    {
         sprite.setTexture(tex);
         sprite.setPosition(x, y);
         sprite.setScale(0.2f, 0.4f);
-
-        // Center the origin for proper positioning
         sprite.setOrigin(tex.getSize().x / 2.0f, tex.getSize().y / 2.0f);
-
         sprite.setTextureRect(IntRect(0, 0, tex.getSize().x, tex.getSize().y));
         xpValue = xp;
 
+        originalPosition = Vector2f(x, y);
     }
 
     void update(float deltaTime, const Vector2f& playerPosition)
     {
-        // Update lifetime regardless of state
         lifetime -= deltaTime;
-        if (lifetime <= 0.0f) {
+        if (lifetime <= 0.0f)
+        {
             CrystalsRemove = true;
             return;
         }
 
-        // Calculate distance to player
         Vector2f toPlayer = playerPosition - sprite.getPosition();
-        float mag = sqrt(toPlayer.x * toPlayer.x + toPlayer.y * toPlayer.y);
+        float distToPlayer = sqrt(toPlayer.x * toPlayer.x + toPlayer.y * toPlayer.y);
 
-        // Normalize direction to player
         Vector2f normalizedToPlayer = toPlayer;
-        if (mag > 0) {
-            normalizedToPlayer.x /= mag;
-            normalizedToPlayer.y /= mag;
+        if (distToPlayer > 0) {
+            normalizedToPlayer.x /= distToPlayer;
+            normalizedToPlayer.y /= distToPlayer;
+        }
+
+        Vector2f toOriginal = originalPosition - sprite.getPosition();
+        float distToOriginal = sqrt(toOriginal.x * toOriginal.x + toOriginal.y * toOriginal.y);
+
+        Vector2f normalizedToOriginal = toOriginal;
+        if (distToOriginal > 0) {
+            normalizedToOriginal.x /= distToOriginal;
+            normalizedToOriginal.y /= distToOriginal;
         }
 
         // Animation state machine
         switch (state) {
         case IDLE:
-            state = REPEL;
-            break;
-
-        case REPEL:
-            // Move away from player initially
-            repelTimer += deltaTime;
-
-            if (repelTimer < maxRepelTime)
+            // If player is within attract range, it transfers to the attract mode
+            if (distToPlayer <= attractRange)
             {
-                float currentRepelSpeed = repelSpeed * (1.0f - repelTimer / maxRepelTime); // Slow down as it reaches max distance
-                sprite.move(direction * currentRepelSpeed * deltaTime);
+                state = ATTRACT;
             }
-            else
+            // If not close to original position, move back toward it
+            else if (distToOriginal > 15.0f)
             {
-                state = (mag <= attractRange) ? ATTRACT : IDLE;
+                sprite.move(normalizedToOriginal * returnSpeed * deltaTime);
             }
             break;
 
         case ATTRACT:
-            // Move toward player with increasing speed based on distance
-            if (mag <= absorbDistance)
+
+            if (distToPlayer > attractRange)
             {
-                // When very close, transition to final absorption
+                state = IDLE;
+            }
+
+            else if (distToPlayer <= absorbDistance)
+            {
+                // if it's close -> transition to final absorption
                 state = ABSORB;
             }
             else
             {
-                float speedFactor = 1.0f + (attractRange - mag) / attractRange * 2.0f;
+                float speedFactor = 1.0f + (attractRange - distToPlayer) / attractRange * 2.0f;
                 sprite.move(normalizedToPlayer * attractSpeed * speedFactor * deltaTime);
-
             }
             break;
 
         case ABSORB:
             // Final quick absorption movement
             sprite.move(normalizedToPlayer * absorbSpeed * deltaTime);
-
             // Shrink effect
             float currentScale = sprite.getScale().x - 0.6f * deltaTime;
             if (currentScale <= 0.05f)
@@ -373,17 +383,13 @@ struct XPc
             }
             break;
         }
-
-        if (state == IDLE && mag <= attractRange)
-        {
-            state = ATTRACT;
-        }
     }
 
     FloatRect getBounds() const {
         return sprite.getGlobalBounds();
     }
 };
+
 vector<XPc> Crystals;
 
 struct BEAST:public ENEMY
@@ -807,6 +813,279 @@ struct sword {
     }
     
 };
+struct Obstacle
+{
+    Sprite sprite;
+    RectangleShape collider;
+    bool isActive = false;
+    float timeOffCamera = 0.0f;
+    bool isOffCamera = false;
+    ObstacleType type;
+
+    Obstacle(const Texture& texture, ObstacleType obstacleType) {
+        type = obstacleType;
+        sprite.setTexture(texture);
+
+        switch (type)
+        {
+        case tree:
+            sprite.setScale(2.0f, 3.2f);
+            break;
+
+        case rock:
+            sprite.setScale(0.8f, 1.2f);
+            break;
+
+        case statue:
+            sprite.setScale(1.7f, 3.0f);
+            break;
+
+        case objectwillbeadded:
+            sprite.setScale(2.0f, 1.0f);
+            break;
+
+        case wall:
+            sprite.setScale(0.8f, 1.5f);
+            break;
+        }
+
+        sprite.setOrigin(texture.getSize().x / 2.0f, texture.getSize().y / 2.0f);
+
+        float Width, Height; // That's for the collider
+
+        switch (type) {
+        case wall:
+            Width = 0.67f;
+            Height = 0.55f;
+            break;
+
+        case rock:
+            Width = 0.8f;
+            Height = 0.8f;
+            break;
+
+        case statue:
+            Width = 0.7f;
+            Height = 0.75f;
+            break;
+
+        case objectwillbeadded:
+            Width = 0.9f;
+            Height = 0.5f;
+            break;
+
+        case tree:
+            Width = 0.5f;
+            Height = 0.9f;
+            break;
+        }
+
+        float colliderWidth = texture.getSize().x * sprite.getScale().x * Width;
+        float colliderHeight = texture.getSize().y * sprite.getScale().y * Height;
+
+        collider.setSize(Vector2f(colliderWidth, colliderHeight));
+        collider.setOrigin(colliderWidth / 2.0f, colliderHeight / 2.0f);
+        collider.setFillColor(Color::Transparent);
+        collider.setOutlineColor(Color::Green);
+        collider.setOutlineThickness(2.0f);
+
+        isActive = false;
+        timeOffCamera = 0.0f;
+        isOffCamera = false;
+    }
+
+    Obstacle() {}
+
+    void activate(const Vector2f& position)
+    {
+        sprite.setPosition(position);
+        collider.setPosition(position);
+        isActive = true;
+        timeOffCamera = 0.0f;
+        isOffCamera = false;
+    }
+};
+
+const int MAX_OBSTACLES = 25;
+Obstacle obstacles[MAX_OBSTACLES];
+const float MinObstacleRadius = 200.0f; // Minimum distance from player
+const float MaxObstacleRadius = 2000.0f;
+const float DespawnRadius = 1800.0f;   // Distance to remove obstacles
+const float ObstacleTimer = 25.0f;  // Time in seconds before respawning when off camera
+
+
+Texture obstacleTextures[5];
+void LoadObstacleTextures() {
+    obstacleTextures[tree].loadFromFile("Assets\\tree.png");
+    obstacleTextures[rock].loadFromFile("Assets\\Rock1.png");
+    obstacleTextures[statue].loadFromFile("Assets\\Statue.png");
+    obstacleTextures[objectwillbeadded].loadFromFile("Assets\\fence.png");
+    obstacleTextures[wall].loadFromFile("Assets\\FirstObstacle.png");
+}
+
+void InitObstacles()
+{
+
+    LoadObstacleTextures();
+
+    for (int i = 0; i < MAX_OBSTACLES; i++) {
+        obstacles[i] = Obstacle();
+    }
+}
+
+bool IsInCameraView(const Vector2f& position) {
+    Vector2f viewCenter = view.getCenter();
+    Vector2f viewSize = view.getSize();
+
+    float left = viewCenter.x - viewSize.x / 2;
+    float right = viewCenter.x + viewSize.x / 2;
+    float top = viewCenter.y - viewSize.y / 2;
+    float bottom = viewCenter.y + viewSize.y / 2;
+
+
+    return (position.x >= left && position.x <= right &&
+        position.y >= top && position.y <= bottom);
+}
+
+// Display at a random position for obstacle outside player view
+Vector2f GetRandomObstaclePosition() {
+    Vector2f playerPos = shanoa.sprite.getPosition();
+
+    float angle = static_cast<float>(rand() % 360) * 3.14159f / 180.0f;
+    float spawnRadius = MinObstacleRadius +
+        static_cast<float>(rand() % static_cast<int>(MaxObstacleRadius - MinObstacleRadius));
+
+    Vector2f position;
+    position.x = playerPos.x + cos(angle) * spawnRadius;
+    position.y = playerPos.y + sin(angle) * spawnRadius;
+
+
+    position.x = max(-9900.0f, min(position.x, 9900.0f));
+    position.y = max(-9900.0f, min(position.y, 9900.0f));
+
+    return position;
+}
+
+// Check if a position is valid for obstacle placement (not overlapping)
+bool IsValidPosition(const Vector2f& position, float radius) {
+
+    float distToPlayer = sqrt(pow(position.x - shanoa.sprite.getPosition().x, 2) +
+        pow(position.y - shanoa.sprite.getPosition().y, 2));
+
+    if (distToPlayer < MinObstacleRadius)
+    {
+        return false;
+    }
+
+    for (int i = 0; i < MAX_OBSTACLES; i++)
+    {
+        if (obstacles[i].isActive)
+        {
+            float distToObstacle = sqrt(pow(position.x - obstacles[i].sprite.getPosition().x, 2) +
+                pow(position.y - obstacles[i].sprite.getPosition().y, 2));
+
+            if (distToObstacle < radius * 18)
+            {
+                return false;
+            }
+        }
+    }
+
+    return true;
+}
+
+ObstacleType GetRandomObstacleType() {
+    int randValue = (rand() % 100) + 1;
+
+    if (randValue < 35) return tree;
+    else if (randValue < 60) return rock;
+    else if (randValue < 80) return wall;
+    else if (randValue < 95) return objectwillbeadded;
+    else                     return statue;
+}
+
+void SpawnObstacle() {
+
+    for (int i = 0; i < MAX_OBSTACLES; i++)
+    {
+        if (!obstacles[i].isActive) {
+            Vector2f position;
+            bool validPosition = false;
+            int attempts = 0;
+
+            while (!validPosition && attempts < 20)
+            {
+                position = GetRandomObstaclePosition();
+                validPosition = IsValidPosition(position, 65.0f); // The radius between obstacles
+                attempts++;
+            }
+
+            if (validPosition)
+            {
+
+                ObstacleType type = GetRandomObstacleType();
+
+                obstacles[i] = Obstacle(obstacleTextures[type], type);
+
+                obstacles[i].activate(position);
+                return;
+            }
+        }
+    }
+}
+
+// Check for despawn and spawn new ones
+void UpdateObstacles(float deltaTime) {
+    Vector2f playerPos = shanoa.sprite.getPosition();
+    int activeCount = 0;
+
+    for (int i = 0; i < MAX_OBSTACLES; i++) {
+        if (obstacles[i].isActive) {
+
+            float distToPlayer = sqrt(pow(obstacles[i].sprite.getPosition().x - playerPos.x, 2) +
+                pow(obstacles[i].sprite.getPosition().y - playerPos.y, 2));
+
+            if (distToPlayer > DespawnRadius)
+            {
+                obstacles[i].isActive = false;
+            }
+            else
+            {
+                activeCount++;
+
+                bool inView = IsInCameraView(obstacles[i].sprite.getPosition());
+
+                if (!inView) {
+                    if (!obstacles[i].isOffCamera)
+                    {
+                        obstacles[i].isOffCamera = true;
+                        obstacles[i].timeOffCamera = 0.0f;
+                    }
+                    else
+                    {
+                        obstacles[i].timeOffCamera += deltaTime;
+
+                        if (obstacles[i].timeOffCamera >= ObstacleTimer) {
+                            obstacles[i].isActive = false;
+                        }
+                    }
+                }
+                else
+                {
+
+                    obstacles[i].isOffCamera = false;
+                    obstacles[i].timeOffCamera = 0.0f;
+                }
+            }
+        }
+    }
+
+    while (activeCount < MAX_OBSTACLES)
+    {
+        SpawnObstacle();
+        activeCount++;
+    }
+}
 
 
 Gamestate gamestate = mainmenu;
@@ -1548,9 +1827,17 @@ void swordFullCollisionAndDamage() {
 
 // For All Game Collision
 void globalCollsion() {
-  
+
+    for (int i = 0; i < MAX_OBSTACLES; i++)
+    {
+        if (obstacles[i].isActive == true)
+        {
+            generalCollision(shanoa.collider, obstacles[i].collider, shanoa.sprite);
+        }
+    }
     swordFullCollisionAndDamage();
 }
+
 
 void Start()
 {
@@ -1570,19 +1857,18 @@ void Start()
     zombieTexture.loadFromFile("Assets\\Zombie.png");
     batTexture.loadFromFile("Assets\\Bat.png");
     werewolfTexture.loadFromFile("Assets\\werewolfwhite.png");
-    MapInit();
     swordspritesheet.loadFromFile("Assets\\SWORDS.png");
+    MapInit();
     MainmenuInit();
     GameOverInit();
     CharacterInit();
     MapInit();
     creditsInit();
     SettingsMenuInit();
+    quotesInit();
+    InitObstacles();
     view.setCenter(10000, 9800);
     window.setView(view);
-    quotesInit();
-
-    
 }
 
 void Update()
@@ -1645,7 +1931,7 @@ void Update()
         //cout << "we are in game phase ";
 
         totalGameTime += deltaTime; // measure survival time
-
+        UpdateObstacles(deltaTime);
         GameOverSound.stop();
         MainMenuMusic.stop();
         shooting();
@@ -1861,7 +2147,6 @@ void Draw()
 
       /*  window.draw(shanoa.attackSpace);*/
         window.draw(shanoa.sprite);
-        window.draw(healthbar);
         
         for (int i = 0; i < Crystals.size(); i++)
         {
@@ -1875,6 +2160,14 @@ void Draw()
             window.draw(enemies[i]->healthBarOfEnemy);
             window.draw(enemies[i]->shape);
         }
+        for (int i = 0; i < MAX_OBSTACLES; i++) {
+            if (obstacles[i].isActive) {
+                window.draw(obstacles[i].sprite);
+
+                window.draw(obstacles[i].collider);
+            }
+        }
+        window.draw(healthbar);
     }
 
     if (gamestate == settings)
