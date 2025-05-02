@@ -1,120 +1,100 @@
 ﻿C:\Program Files\Microsoft Visual Studio\2022\Community\MSBuild\Microsoft\VC\v170\Microsoft.CppBuild.targets(534,5): warning MSB8028: The intermediate directory (x64\Debug\) contains files shared from another project (ConsoleApplication1.vcxproj).  This can lead to incorrect clean and rebuild behavior.
   Main.cpp
-C:\Users\Future\Downloads\MyGit\sp-project\ConsoleApplication1\Main.cpp(264,24): warning C4305: 'argument': truncation from 'double' to 'float'
-C:\Users\Future\Downloads\MyGit\sp-project\ConsoleApplication1\Main.cpp(294,28): warning C4305: 'argument': truncation from 'double' to 'float'
-C:\Users\Future\Downloads\MyGit\sp-project\ConsoleApplication1\Main.cpp(297,28): warning C4305: 'argument': truncation from 'double' to 'float'
-C:\Users\Future\Downloads\MyGit\sp-project\ConsoleApplication1\Main.cpp(325,24): warning C4305: 'argument': truncation from 'double' to 'float'
-C:\Users\Future\Downloads\MyGit\sp-project\ConsoleApplication1\Main.cpp(355,28): warning C4305: 'argument': truncation from 'double' to 'float'
-C:\Users\Future\Downloads\MyGit\sp-project\ConsoleApplication1\Main.cpp(358,28): warning C4305: 'argument': truncation from 'double' to 'float'
-C:\Users\Future\Downloads\MyGit\sp-project\ConsoleApplication1\Main.cpp(411,82): warning C4244: 'argument': conversion from 'double' to 'T', possible loss of data
-C:\Users\Future\Downloads\MyGit\sp-project\ConsoleApplication1\Main.cpp(411,82): warning C4244:         with
-C:\Users\Future\Downloads\MyGit\sp-project\ConsoleApplication1\Main.cpp(411,82): warning C4244:         [
-C:\Users\Future\Downloads\MyGit\sp-project\ConsoleApplication1\Main.cpp(411,82): warning C4244:             T=int
-C:\Users\Future\Downloads\MyGit\sp-project\ConsoleApplication1\Main.cpp(411,82): warning C4244:         ]
-C:\Users\Future\Downloads\MyGit\sp-project\ConsoleApplication1\Main.cpp(411,65): warning C4244: 'argument': conversion from 'double' to 'T', possible loss of data
-C:\Users\Future\Downloads\MyGit\sp-project\ConsoleApplication1\Main.cpp(411,65): warning C4244:         with
-C:\Users\Future\Downloads\MyGit\sp-project\ConsoleApplication1\Main.cpp(411,65): warning C4244:         [
-C:\Users\Future\Downloads\MyGit\sp-project\ConsoleApplication1\Main.cpp(411,65): warning C4244:             T=int
-C:\Users\Future\Downloads\MyGit\sp-project\ConsoleApplication1\Main.cpp(411,65): warning C4244:         ]
-C:\Users\Future\Downloads\MyGit\sp-project\ConsoleApplication1\Main.cpp(450,25): warning C4305: 'argument': truncation from 'double' to 'float'
-C:\Users\Future\Downloads\MyGit\sp-project\ConsoleApplication1\Main.cpp(471,73): warning C4244: 'argument': conversion from 'double' to 'T', possible loss of data
-C:\Users\Future\Downloads\MyGit\sp-project\ConsoleApplication1\Main.cpp(471,73): warning C4244:         with
-C:\Users\Future\Downloads\MyGit\sp-project\ConsoleApplication1\Main.cpp(471,73): warning C4244:         [
-C:\Users\Future\Downloads\MyGit\sp-project\ConsoleApplication1\Main.cpp(471,73): warning C4244:             T=int
-C:\Users\Future\Downloads\MyGit\sp-project\ConsoleApplication1\Main.cpp(471,73): warning C4244:         ]
-C:\Users\Future\Downloads\MyGit\sp-project\ConsoleApplication1\Main.cpp(471,43): warning C4244: 'argument': conversion from 'double' to 'T', possible loss of data
-C:\Users\Future\Downloads\MyGit\sp-project\ConsoleApplication1\Main.cpp(471,43): warning C4244:         with
-C:\Users\Future\Downloads\MyGit\sp-project\ConsoleApplication1\Main.cpp(471,43): warning C4244:         [
-C:\Users\Future\Downloads\MyGit\sp-project\ConsoleApplication1\Main.cpp(471,43): warning C4244:             T=int
-C:\Users\Future\Downloads\MyGit\sp-project\ConsoleApplication1\Main.cpp(471,43): warning C4244:         ]
-C:\Users\Future\Downloads\MyGit\sp-project\ConsoleApplication1\Main.cpp(539,15): warning C4244: 'argument': conversion from 'time_t' to 'unsigned int', possible loss of data
-C:\Users\Future\Downloads\MyGit\sp-project\ConsoleApplication1\Main.cpp(642,31): warning C4305: 'argument': truncation from 'double' to 'float'
-C:\Users\Future\Downloads\MyGit\sp-project\ConsoleApplication1\Main.cpp(642,26): warning C4305: 'argument': truncation from 'double' to 'float'
-C:\Users\Future\Downloads\MyGit\sp-project\ConsoleApplication1\Main.cpp(650,34): warning C4305: 'argument': truncation from 'double' to 'float'
-C:\Users\Future\Downloads\MyGit\sp-project\ConsoleApplication1\Main.cpp(650,29): warning C4305: 'argument': truncation from 'double' to 'float'
-C:\Users\Future\Downloads\MyGit\sp-project\ConsoleApplication1\Main.cpp(658,37): warning C4305: 'argument': truncation from 'double' to 'float'
-C:\Users\Future\Downloads\MyGit\sp-project\ConsoleApplication1\Main.cpp(658,32): warning C4305: 'argument': truncation from 'double' to 'float'
-C:\Users\Future\Downloads\MyGit\sp-project\ConsoleApplication1\Main.cpp(666,30): warning C4305: 'argument': truncation from 'double' to 'float'
-C:\Users\Future\Downloads\MyGit\sp-project\ConsoleApplication1\Main.cpp(666,25): warning C4305: 'argument': truncation from 'double' to 'float'
-C:\Users\Future\Downloads\MyGit\sp-project\ConsoleApplication1\Main.cpp(674,33): warning C4305: 'argument': truncation from 'double' to 'float'
-C:\Users\Future\Downloads\MyGit\sp-project\ConsoleApplication1\Main.cpp(674,28): warning C4305: 'argument': truncation from 'double' to 'float'
-C:\Users\Future\Downloads\MyGit\sp-project\ConsoleApplication1\Main.cpp(684,35): warning C4305: 'argument': truncation from 'double' to 'float'
-C:\Users\Future\Downloads\MyGit\sp-project\ConsoleApplication1\Main.cpp(684,30): warning C4305: 'argument': truncation from 'double' to 'float'
-C:\Users\Future\Downloads\MyGit\sp-project\ConsoleApplication1\Main.cpp(690,33): warning C4305: 'argument': truncation from 'double' to 'float'
-C:\Users\Future\Downloads\MyGit\sp-project\ConsoleApplication1\Main.cpp(690,28): warning C4305: 'argument': truncation from 'double' to 'float'
-C:\Users\Future\Downloads\MyGit\sp-project\ConsoleApplication1\Main.cpp(694,39): warning C4305: 'argument': truncation from 'double' to 'float'
-C:\Users\Future\Downloads\MyGit\sp-project\ConsoleApplication1\Main.cpp(694,33): warning C4305: 'argument': truncation from 'double' to 'float'
-C:\Users\Future\Downloads\MyGit\sp-project\ConsoleApplication1\Main.cpp(712,31): warning C4305: 'argument': truncation from 'double' to 'float'
-C:\Users\Future\Downloads\MyGit\sp-project\ConsoleApplication1\Main.cpp(712,25): warning C4305: 'argument': truncation from 'double' to 'float'
-C:\Users\Future\Downloads\MyGit\sp-project\ConsoleApplication1\Main.cpp(761,30): warning C4305: 'argument': truncation from 'double' to 'float'
-C:\Users\Future\Downloads\MyGit\sp-project\ConsoleApplication1\Main.cpp(761,24): warning C4305: 'argument': truncation from 'double' to 'float'
-C:\Users\Future\Downloads\MyGit\sp-project\ConsoleApplication1\Main.cpp(856,47): warning C4244: 'argument': conversion from 'double' to 'T', possible loss of data
-C:\Users\Future\Downloads\MyGit\sp-project\ConsoleApplication1\Main.cpp(856,47): warning C4244:         with
-C:\Users\Future\Downloads\MyGit\sp-project\ConsoleApplication1\Main.cpp(856,47): warning C4244:         [
-C:\Users\Future\Downloads\MyGit\sp-project\ConsoleApplication1\Main.cpp(856,47): warning C4244:             T=int
-C:\Users\Future\Downloads\MyGit\sp-project\ConsoleApplication1\Main.cpp(856,47): warning C4244:         ]
-C:\Users\Future\Downloads\MyGit\sp-project\ConsoleApplication1\Main.cpp(859,48): warning C4244: 'argument': conversion from 'double' to 'T', possible loss of data
-C:\Users\Future\Downloads\MyGit\sp-project\ConsoleApplication1\Main.cpp(859,48): warning C4244:         with
-C:\Users\Future\Downloads\MyGit\sp-project\ConsoleApplication1\Main.cpp(859,48): warning C4244:         [
-C:\Users\Future\Downloads\MyGit\sp-project\ConsoleApplication1\Main.cpp(859,48): warning C4244:             T=int
-C:\Users\Future\Downloads\MyGit\sp-project\ConsoleApplication1\Main.cpp(859,48): warning C4244:         ]
-C:\Users\Future\Downloads\MyGit\sp-project\ConsoleApplication1\Main.cpp(862,49): warning C4244: 'argument': conversion from 'double' to 'T', possible loss of data
-C:\Users\Future\Downloads\MyGit\sp-project\ConsoleApplication1\Main.cpp(862,49): warning C4244:         with
-C:\Users\Future\Downloads\MyGit\sp-project\ConsoleApplication1\Main.cpp(862,49): warning C4244:         [
-C:\Users\Future\Downloads\MyGit\sp-project\ConsoleApplication1\Main.cpp(862,49): warning C4244:             T=int
-C:\Users\Future\Downloads\MyGit\sp-project\ConsoleApplication1\Main.cpp(862,49): warning C4244:         ]
-C:\Users\Future\Downloads\MyGit\sp-project\ConsoleApplication1\Main.cpp(865,49): warning C4244: 'argument': conversion from 'double' to 'T', possible loss of data
-C:\Users\Future\Downloads\MyGit\sp-project\ConsoleApplication1\Main.cpp(865,49): warning C4244:         with
-C:\Users\Future\Downloads\MyGit\sp-project\ConsoleApplication1\Main.cpp(865,49): warning C4244:         [
-C:\Users\Future\Downloads\MyGit\sp-project\ConsoleApplication1\Main.cpp(865,49): warning C4244:             T=int
-C:\Users\Future\Downloads\MyGit\sp-project\ConsoleApplication1\Main.cpp(865,49): warning C4244:         ]
-C:\Users\Future\Downloads\MyGit\sp-project\ConsoleApplication1\Main.cpp(871,49): warning C4244: 'argument': conversion from 'double' to 'T', possible loss of data
-C:\Users\Future\Downloads\MyGit\sp-project\ConsoleApplication1\Main.cpp(871,49): warning C4244:         with
-C:\Users\Future\Downloads\MyGit\sp-project\ConsoleApplication1\Main.cpp(871,49): warning C4244:         [
-C:\Users\Future\Downloads\MyGit\sp-project\ConsoleApplication1\Main.cpp(871,49): warning C4244:             T=int
-C:\Users\Future\Downloads\MyGit\sp-project\ConsoleApplication1\Main.cpp(871,49): warning C4244:         ]
-C:\Users\Future\Downloads\MyGit\sp-project\ConsoleApplication1\Main.cpp(874,49): warning C4244: 'argument': conversion from 'double' to 'T', possible loss of data
-C:\Users\Future\Downloads\MyGit\sp-project\ConsoleApplication1\Main.cpp(874,49): warning C4244:         with
-C:\Users\Future\Downloads\MyGit\sp-project\ConsoleApplication1\Main.cpp(874,49): warning C4244:         [
-C:\Users\Future\Downloads\MyGit\sp-project\ConsoleApplication1\Main.cpp(874,49): warning C4244:             T=int
-C:\Users\Future\Downloads\MyGit\sp-project\ConsoleApplication1\Main.cpp(874,49): warning C4244:         ]
-C:\Users\Future\Downloads\MyGit\sp-project\ConsoleApplication1\Main.cpp(877,49): warning C4244: 'argument': conversion from 'double' to 'T', possible loss of data
-C:\Users\Future\Downloads\MyGit\sp-project\ConsoleApplication1\Main.cpp(877,49): warning C4244:         with
-C:\Users\Future\Downloads\MyGit\sp-project\ConsoleApplication1\Main.cpp(877,49): warning C4244:         [
-C:\Users\Future\Downloads\MyGit\sp-project\ConsoleApplication1\Main.cpp(877,49): warning C4244:             T=int
-C:\Users\Future\Downloads\MyGit\sp-project\ConsoleApplication1\Main.cpp(877,49): warning C4244:         ]
-C:\Users\Future\Downloads\MyGit\sp-project\ConsoleApplication1\Main.cpp(910,50): warning C4305: 'argument': truncation from 'double' to 'float'
-C:\Users\Future\Downloads\MyGit\sp-project\ConsoleApplication1\Main.cpp(910,40): warning C4305: 'argument': truncation from 'double' to 'float'
-C:\Users\Future\Downloads\MyGit\sp-project\ConsoleApplication1\Main.cpp(1058,31): warning C4305: 'argument': truncation from 'double' to 'float'
-C:\Users\Future\Downloads\MyGit\sp-project\ConsoleApplication1\Main.cpp(1058,24): warning C4305: 'argument': truncation from 'double' to 'float'
-C:\Users\Future\Downloads\MyGit\sp-project\ConsoleApplication1\Main.cpp(1064,33): warning C4305: 'argument': truncation from 'double' to 'float'
-C:\Users\Future\Downloads\MyGit\sp-project\ConsoleApplication1\Main.cpp(1064,26): warning C4305: 'argument': truncation from 'double' to 'float'
-C:\Users\Future\Downloads\MyGit\sp-project\ConsoleApplication1\Main.cpp(1074,30): warning C4305: 'argument': truncation from 'double' to 'float'
-C:\Users\Future\Downloads\MyGit\sp-project\ConsoleApplication1\Main.cpp(1074,25): warning C4305: 'argument': truncation from 'double' to 'float'
-C:\Users\Future\Downloads\MyGit\sp-project\ConsoleApplication1\Main.cpp(1079,36): warning C4305: 'argument': truncation from 'double' to 'float'
-C:\Users\Future\Downloads\MyGit\sp-project\ConsoleApplication1\Main.cpp(1079,31): warning C4305: 'argument': truncation from 'double' to 'float'
-C:\Users\Future\Downloads\MyGit\sp-project\ConsoleApplication1\Main.cpp(1085,42): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
-C:\Users\Future\Downloads\MyGit\sp-project\ConsoleApplication1\Main.cpp(1146,29): warning C4305: 'argument': truncation from 'double' to 'float'
-C:\Users\Future\Downloads\MyGit\sp-project\ConsoleApplication1\Main.cpp(1177,33): warning C4305: 'argument': truncation from 'double' to 'float'
-C:\Users\Future\Downloads\MyGit\sp-project\ConsoleApplication1\Main.cpp(1179,33): warning C4305: 'argument': truncation from 'double' to 'float'
-C:\Users\Future\Downloads\MyGit\sp-project\ConsoleApplication1\Main.cpp(1386,52): warning C4244: '-=': conversion from 'float' to 'int', possible loss of data
-C:\Users\Future\Downloads\MyGit\sp-project\ConsoleApplication1\Main.cpp(1450,124): warning C4244: 'argument': conversion from 'T' to 'T', possible loss of data
-C:\Users\Future\Downloads\MyGit\sp-project\ConsoleApplication1\Main.cpp(1450,124): warning C4244:         with
-C:\Users\Future\Downloads\MyGit\sp-project\ConsoleApplication1\Main.cpp(1450,124): warning C4244:         [
-C:\Users\Future\Downloads\MyGit\sp-project\ConsoleApplication1\Main.cpp(1450,124): warning C4244:             T=int
-C:\Users\Future\Downloads\MyGit\sp-project\ConsoleApplication1\Main.cpp(1450,124): warning C4244:         ]
-C:\Users\Future\Downloads\MyGit\sp-project\ConsoleApplication1\Main.cpp(1450,124): warning C4244:         and
-C:\Users\Future\Downloads\MyGit\sp-project\ConsoleApplication1\Main.cpp(1450,124): warning C4244:         [
-C:\Users\Future\Downloads\MyGit\sp-project\ConsoleApplication1\Main.cpp(1450,124): warning C4244:             T=float
-C:\Users\Future\Downloads\MyGit\sp-project\ConsoleApplication1\Main.cpp(1450,124): warning C4244:         ]
-C:\Users\Future\Downloads\MyGit\sp-project\ConsoleApplication1\Main.cpp(1450,107): warning C4244: 'argument': conversion from 'T' to 'T', possible loss of data
-C:\Users\Future\Downloads\MyGit\sp-project\ConsoleApplication1\Main.cpp(1450,107): warning C4244:         with
-C:\Users\Future\Downloads\MyGit\sp-project\ConsoleApplication1\Main.cpp(1450,107): warning C4244:         [
-C:\Users\Future\Downloads\MyGit\sp-project\ConsoleApplication1\Main.cpp(1450,107): warning C4244:             T=int
-C:\Users\Future\Downloads\MyGit\sp-project\ConsoleApplication1\Main.cpp(1450,107): warning C4244:         ]
-C:\Users\Future\Downloads\MyGit\sp-project\ConsoleApplication1\Main.cpp(1450,107): warning C4244:         and
-C:\Users\Future\Downloads\MyGit\sp-project\ConsoleApplication1\Main.cpp(1450,107): warning C4244:         [
-C:\Users\Future\Downloads\MyGit\sp-project\ConsoleApplication1\Main.cpp(1450,107): warning C4244:             T=float
-C:\Users\Future\Downloads\MyGit\sp-project\ConsoleApplication1\Main.cpp(1450,107): warning C4244:         ]
-C:\Users\Future\Downloads\MyGit\sp-project\ConsoleApplication1\Main.cpp(1628,45): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
-  ConsoleApplication1.vcxproj -> C:\Users\Future\Downloads\MyGit\sp-project\x64\Debug\SFML Template.exe
+D:\My Files\Project\sp-project\ConsoleApplication1\Main.cpp(255,24): warning C4305: 'argument': truncation from 'double' to 'float'
+D:\My Files\Project\sp-project\ConsoleApplication1\Main.cpp(285,28): warning C4305: 'argument': truncation from 'double' to 'float'
+D:\My Files\Project\sp-project\ConsoleApplication1\Main.cpp(288,28): warning C4305: 'argument': truncation from 'double' to 'float'
+D:\My Files\Project\sp-project\ConsoleApplication1\Main.cpp(316,24): warning C4305: 'argument': truncation from 'double' to 'float'
+D:\My Files\Project\sp-project\ConsoleApplication1\Main.cpp(346,28): warning C4305: 'argument': truncation from 'double' to 'float'
+D:\My Files\Project\sp-project\ConsoleApplication1\Main.cpp(349,28): warning C4305: 'argument': truncation from 'double' to 'float'
+D:\My Files\Project\sp-project\ConsoleApplication1\Main.cpp(402,82): warning C4244: 'argument': conversion from 'double' to 'T', possible loss of data
+D:\My Files\Project\sp-project\ConsoleApplication1\Main.cpp(402,82): warning C4244:         with
+D:\My Files\Project\sp-project\ConsoleApplication1\Main.cpp(402,82): warning C4244:         [
+D:\My Files\Project\sp-project\ConsoleApplication1\Main.cpp(402,82): warning C4244:             T=int
+D:\My Files\Project\sp-project\ConsoleApplication1\Main.cpp(402,82): warning C4244:         ]
+D:\My Files\Project\sp-project\ConsoleApplication1\Main.cpp(402,65): warning C4244: 'argument': conversion from 'double' to 'T', possible loss of data
+D:\My Files\Project\sp-project\ConsoleApplication1\Main.cpp(402,65): warning C4244:         with
+D:\My Files\Project\sp-project\ConsoleApplication1\Main.cpp(402,65): warning C4244:         [
+D:\My Files\Project\sp-project\ConsoleApplication1\Main.cpp(402,65): warning C4244:             T=int
+D:\My Files\Project\sp-project\ConsoleApplication1\Main.cpp(402,65): warning C4244:         ]
+D:\My Files\Project\sp-project\ConsoleApplication1\Main.cpp(441,25): warning C4305: 'argument': truncation from 'double' to 'float'
+D:\My Files\Project\sp-project\ConsoleApplication1\Main.cpp(462,73): warning C4244: 'argument': conversion from 'double' to 'T', possible loss of data
+D:\My Files\Project\sp-project\ConsoleApplication1\Main.cpp(462,73): warning C4244:         with
+D:\My Files\Project\sp-project\ConsoleApplication1\Main.cpp(462,73): warning C4244:         [
+D:\My Files\Project\sp-project\ConsoleApplication1\Main.cpp(462,73): warning C4244:             T=int
+D:\My Files\Project\sp-project\ConsoleApplication1\Main.cpp(462,73): warning C4244:         ]
+D:\My Files\Project\sp-project\ConsoleApplication1\Main.cpp(462,43): warning C4244: 'argument': conversion from 'double' to 'T', possible loss of data
+D:\My Files\Project\sp-project\ConsoleApplication1\Main.cpp(462,43): warning C4244:         with
+D:\My Files\Project\sp-project\ConsoleApplication1\Main.cpp(462,43): warning C4244:         [
+D:\My Files\Project\sp-project\ConsoleApplication1\Main.cpp(462,43): warning C4244:             T=int
+D:\My Files\Project\sp-project\ConsoleApplication1\Main.cpp(462,43): warning C4244:         ]
+D:\My Files\Project\sp-project\ConsoleApplication1\Main.cpp(538,15): warning C4244: 'argument': conversion from 'time_t' to 'unsigned int', possible loss of data
+D:\My Files\Project\sp-project\ConsoleApplication1\Main.cpp(647,31): warning C4305: 'argument': truncation from 'double' to 'float'
+D:\My Files\Project\sp-project\ConsoleApplication1\Main.cpp(647,26): warning C4305: 'argument': truncation from 'double' to 'float'
+D:\My Files\Project\sp-project\ConsoleApplication1\Main.cpp(655,34): warning C4305: 'argument': truncation from 'double' to 'float'
+D:\My Files\Project\sp-project\ConsoleApplication1\Main.cpp(655,29): warning C4305: 'argument': truncation from 'double' to 'float'
+D:\My Files\Project\sp-project\ConsoleApplication1\Main.cpp(663,37): warning C4305: 'argument': truncation from 'double' to 'float'
+D:\My Files\Project\sp-project\ConsoleApplication1\Main.cpp(663,32): warning C4305: 'argument': truncation from 'double' to 'float'
+D:\My Files\Project\sp-project\ConsoleApplication1\Main.cpp(671,30): warning C4305: 'argument': truncation from 'double' to 'float'
+D:\My Files\Project\sp-project\ConsoleApplication1\Main.cpp(671,25): warning C4305: 'argument': truncation from 'double' to 'float'
+D:\My Files\Project\sp-project\ConsoleApplication1\Main.cpp(679,33): warning C4305: 'argument': truncation from 'double' to 'float'
+D:\My Files\Project\sp-project\ConsoleApplication1\Main.cpp(679,28): warning C4305: 'argument': truncation from 'double' to 'float'
+D:\My Files\Project\sp-project\ConsoleApplication1\Main.cpp(689,35): warning C4305: 'argument': truncation from 'double' to 'float'
+D:\My Files\Project\sp-project\ConsoleApplication1\Main.cpp(689,30): warning C4305: 'argument': truncation from 'double' to 'float'
+D:\My Files\Project\sp-project\ConsoleApplication1\Main.cpp(695,33): warning C4305: 'argument': truncation from 'double' to 'float'
+D:\My Files\Project\sp-project\ConsoleApplication1\Main.cpp(695,28): warning C4305: 'argument': truncation from 'double' to 'float'
+D:\My Files\Project\sp-project\ConsoleApplication1\Main.cpp(699,39): warning C4305: 'argument': truncation from 'double' to 'float'
+D:\My Files\Project\sp-project\ConsoleApplication1\Main.cpp(699,33): warning C4305: 'argument': truncation from 'double' to 'float'
+D:\My Files\Project\sp-project\ConsoleApplication1\Main.cpp(717,31): warning C4305: 'argument': truncation from 'double' to 'float'
+D:\My Files\Project\sp-project\ConsoleApplication1\Main.cpp(717,25): warning C4305: 'argument': truncation from 'double' to 'float'
+D:\My Files\Project\sp-project\ConsoleApplication1\Main.cpp(771,30): warning C4305: 'argument': truncation from 'double' to 'float'
+D:\My Files\Project\sp-project\ConsoleApplication1\Main.cpp(771,24): warning C4305: 'argument': truncation from 'double' to 'float'
+D:\My Files\Project\sp-project\ConsoleApplication1\Main.cpp(774,22): warning C4244: '-=': conversion from 'float' to 'int', possible loss of data
+D:\My Files\Project\sp-project\ConsoleApplication1\Main.cpp(877,47): warning C4244: 'argument': conversion from 'double' to 'T', possible loss of data
+D:\My Files\Project\sp-project\ConsoleApplication1\Main.cpp(877,47): warning C4244:         with
+D:\My Files\Project\sp-project\ConsoleApplication1\Main.cpp(877,47): warning C4244:         [
+D:\My Files\Project\sp-project\ConsoleApplication1\Main.cpp(877,47): warning C4244:             T=int
+D:\My Files\Project\sp-project\ConsoleApplication1\Main.cpp(877,47): warning C4244:         ]
+D:\My Files\Project\sp-project\ConsoleApplication1\Main.cpp(880,48): warning C4244: 'argument': conversion from 'double' to 'T', possible loss of data
+D:\My Files\Project\sp-project\ConsoleApplication1\Main.cpp(880,48): warning C4244:         with
+D:\My Files\Project\sp-project\ConsoleApplication1\Main.cpp(880,48): warning C4244:         [
+D:\My Files\Project\sp-project\ConsoleApplication1\Main.cpp(880,48): warning C4244:             T=int
+D:\My Files\Project\sp-project\ConsoleApplication1\Main.cpp(880,48): warning C4244:         ]
+D:\My Files\Project\sp-project\ConsoleApplication1\Main.cpp(883,49): warning C4244: 'argument': conversion from 'double' to 'T', possible loss of data
+D:\My Files\Project\sp-project\ConsoleApplication1\Main.cpp(883,49): warning C4244:         with
+D:\My Files\Project\sp-project\ConsoleApplication1\Main.cpp(883,49): warning C4244:         [
+D:\My Files\Project\sp-project\ConsoleApplication1\Main.cpp(883,49): warning C4244:             T=int
+D:\My Files\Project\sp-project\ConsoleApplication1\Main.cpp(883,49): warning C4244:         ]
+D:\My Files\Project\sp-project\ConsoleApplication1\Main.cpp(886,49): warning C4244: 'argument': conversion from 'double' to 'T', possible loss of data
+D:\My Files\Project\sp-project\ConsoleApplication1\Main.cpp(886,49): warning C4244:         with
+D:\My Files\Project\sp-project\ConsoleApplication1\Main.cpp(886,49): warning C4244:         [
+D:\My Files\Project\sp-project\ConsoleApplication1\Main.cpp(886,49): warning C4244:             T=int
+D:\My Files\Project\sp-project\ConsoleApplication1\Main.cpp(886,49): warning C4244:         ]
+D:\My Files\Project\sp-project\ConsoleApplication1\Main.cpp(892,49): warning C4244: 'argument': conversion from 'double' to 'T', possible loss of data
+D:\My Files\Project\sp-project\ConsoleApplication1\Main.cpp(892,49): warning C4244:         with
+D:\My Files\Project\sp-project\ConsoleApplication1\Main.cpp(892,49): warning C4244:         [
+D:\My Files\Project\sp-project\ConsoleApplication1\Main.cpp(892,49): warning C4244:             T=int
+D:\My Files\Project\sp-project\ConsoleApplication1\Main.cpp(892,49): warning C4244:         ]
+D:\My Files\Project\sp-project\ConsoleApplication1\Main.cpp(895,49): warning C4244: 'argument': conversion from 'double' to 'T', possible loss of data
+D:\My Files\Project\sp-project\ConsoleApplication1\Main.cpp(895,49): warning C4244:         with
+D:\My Files\Project\sp-project\ConsoleApplication1\Main.cpp(895,49): warning C4244:         [
+D:\My Files\Project\sp-project\ConsoleApplication1\Main.cpp(895,49): warning C4244:             T=int
+D:\My Files\Project\sp-project\ConsoleApplication1\Main.cpp(895,49): warning C4244:         ]
+D:\My Files\Project\sp-project\ConsoleApplication1\Main.cpp(898,49): warning C4244: 'argument': conversion from 'double' to 'T', possible loss of data
+D:\My Files\Project\sp-project\ConsoleApplication1\Main.cpp(898,49): warning C4244:         with
+D:\My Files\Project\sp-project\ConsoleApplication1\Main.cpp(898,49): warning C4244:         [
+D:\My Files\Project\sp-project\ConsoleApplication1\Main.cpp(898,49): warning C4244:             T=int
+D:\My Files\Project\sp-project\ConsoleApplication1\Main.cpp(898,49): warning C4244:         ]
+D:\My Files\Project\sp-project\ConsoleApplication1\Main.cpp(931,50): warning C4305: 'argument': truncation from 'double' to 'float'
+D:\My Files\Project\sp-project\ConsoleApplication1\Main.cpp(931,40): warning C4305: 'argument': truncation from 'double' to 'float'
+D:\My Files\Project\sp-project\ConsoleApplication1\Main.cpp(1079,31): warning C4305: 'argument': truncation from 'double' to 'float'
+D:\My Files\Project\sp-project\ConsoleApplication1\Main.cpp(1079,24): warning C4305: 'argument': truncation from 'double' to 'float'
+D:\My Files\Project\sp-project\ConsoleApplication1\Main.cpp(1085,33): warning C4305: 'argument': truncation from 'double' to 'float'
+D:\My Files\Project\sp-project\ConsoleApplication1\Main.cpp(1085,26): warning C4305: 'argument': truncation from 'double' to 'float'
+D:\My Files\Project\sp-project\ConsoleApplication1\Main.cpp(1095,30): warning C4305: 'argument': truncation from 'double' to 'float'
+D:\My Files\Project\sp-project\ConsoleApplication1\Main.cpp(1095,25): warning C4305: 'argument': truncation from 'double' to 'float'
+D:\My Files\Project\sp-project\ConsoleApplication1\Main.cpp(1100,36): warning C4305: 'argument': truncation from 'double' to 'float'
+D:\My Files\Project\sp-project\ConsoleApplication1\Main.cpp(1100,31): warning C4305: 'argument': truncation from 'double' to 'float'
+D:\My Files\Project\sp-project\ConsoleApplication1\Main.cpp(1106,42): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
+D:\My Files\Project\sp-project\ConsoleApplication1\Main.cpp(1190,52): warning C4244: '-=': conversion from 'float' to 'int', possible loss of data
+D:\My Files\Project\sp-project\ConsoleApplication1\Main.cpp(1593,45): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
+  ConsoleApplication1.vcxproj -> D:\My Files\Project\sp-project\x64\Debug\SFML Template.exe
