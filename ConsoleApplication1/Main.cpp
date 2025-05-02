@@ -835,7 +835,7 @@ int main()
                 window.close();
             }
             //
-            if (event.type == sf::Event::TextEntered)
+            if (event.type == Event::TextEntered)
             {
                 if (gamestate == gameover)
                 {
@@ -864,7 +864,8 @@ int main()
                                 GameloopMusic.play();
                                 MathRevivalON = false;
                                 quoteUpdate();
-
+                                shanoa.isDead = false;
+                                shanoa.health = shanoa.Maxhp;
                             }
                             else
                             {
@@ -1054,10 +1055,12 @@ void CharacterInit() {
     healthbar.setTexture(healthbar_Texture);
     healthbar.setScale(0.84, 1.2);
 }
+
 void inRange(float& damage,shared_ptr< ENEMY>& Enemy) {
     Enemy->health -= damage;
     cout << damage;
 }
+
 void enemiesInAttackSpace(shared_ptr<ENEMY>& Enemy) {
     if (Enemy->collider.getGlobalBounds().intersects(shanoa.attackSpace.getGlobalBounds()))
     {
@@ -1419,6 +1422,7 @@ void generalCollision(RectangleShape& objectTOBeMovedCollider, RectangleShape& W
         } // upper/lower 
     }
 }
+
 void meleeAttack() {
     if (shanoa.isAttacking) {
         attackDelay += deltaTime;
@@ -1436,9 +1440,11 @@ void meleeAttack() {
 
 void GetRandIndex(int &randomIndex)
 {randomIndex = rand() % 6;}
+
 int indexForRandomQuote() {
     return rand() % 5;
 }
+
 void quotesInit() {
     Quote.setFont(defgamefont);
     Quote.setString(quotes[indexForRandomQuote()]);
@@ -1447,6 +1453,7 @@ void quotesInit() {
     Quote.setOrigin(Quote.getLocalBounds().width / 2, Quote.getLocalBounds().height / 2);
     Quote.setPosition(0, 300);
 }
+
 void quoteUpdate() {
     Quote.setString(quotes[indexForRandomQuote()]);
     Quote.setOrigin(Quote.getLocalBounds().width / 2, Quote.getLocalBounds().height / 2);
