@@ -49,8 +49,49 @@ enum monstertype
 float deltaTime;
 Texture MainMenuButtons_Texture,MainMenuBackground_Texture,Map_Texture,healthbar_Texture, credits_Texture, credits_background
         ,volume_up_Texture,volume_down_Texture;
+
+Text mathRevivalText;
+Text Quote;
 Texture equationSpriteSheet;
 Texture swordspritesheet;
+Sprite MainMenuButtons, MainMenuBackground,Map,healthbar, creditsbutton, creditback, volume_up, volume_down,settingsBackground;
+View view;
+Vector2i mouseScreenpos;
+Vector2f mouseWorldpos;
+
+RectangleShape StartButton(Vector2f(490, 110)),SettingsButton(Vector2f(490, 110)),LeaderboardButton(Vector2f(490, 110)),
+               ExitButton(Vector2f(490, 110)), creditsButton(Vector2f(490, 110)),MathRevivlaButton(Vector2f(250, 50)) ,restartButton(Vector2f(250, 50));
+RectangleShape equationAnsCellBox;
+RectangleShape gameOverOverlay; // red color in gameover background
+FloatRect StartButtonBounds,SettingsButtonBounds,LeaderboardButtonBounds,ExitButtonBounds, creditsButtonBounds,volumeUpBounds,
+          volumeDownBounds;
+RectangleShape menuCursor;
+Text nametext;
+Listener GameVolume;
+int selectedMenuButtonIndex = 0; // 0 for Start, 1 for Settings, 2 for Leaderboard, 3 for Exit
+float volumebarcontroller;
+int randIndex;// equations elements random index
+
+Sound MainMenuMusic, GameOverSound,GameloopMusic;
+SoundBuffer MainMenuMusic_source, GameOverSound_source,GameloopMusic_source;
+bool gameOverSoundPlayed = false;
+
+sf::VideoMode desktopMode = sf::VideoMode::getDesktopMode();
+RenderWindow window(desktopMode, "Vampire Survivors :The path to the legendary formula", sf::Style::Fullscreen);
+//fullscreen fix
+int mobCounter = 4;
+float spawnTime = 3.f;
+float healthRatio;
+float shootingtime = 0.f;
+float shootingrate = 3;
+float deltaTime;
+float totalGameTime = 0.f;
+float menuInputDelay = 0.f;
+float attackDelay = 0.f;
+const float timeForAttack = 0.45f;
+const float MENU_INPUT_COOLDOWN = 0.2f; // Time in seconds between allowed inputs
+float soundcontroller = 100;
+RectangleShape volumebar[10];
 Texture beasttexture,zombieTexture,batTexture,werewolfTexture;
 Texture BlueXP, GreenXP, RedXP;
 
@@ -63,7 +104,9 @@ Vector2f unitVector(Vector2f vector) {
     Vector2f unit = Vector2f(vector.x / magnitude, vector.y / magnitude);
     return unit;
 }
-void generalCollision();
+void generalCollision(RectangleShape& objectTOBeMovedCollider, RectangleShape& Wall, Sprite& Object);
+void quoteUpdate();
+void quotesInit();
 void GetRandIndex(int &randomIndex);
 void MainMenuInput();
 void Update();
@@ -72,7 +115,8 @@ void Draw();
 
 struct character
 {
-    RectangleShape collider; // Sprite collider
+    RectangleShape collider;// Sprite collider
+    RectangleShape attackSpace;
     Sprite sprite;
     Texture texture;
     Texture playerspreadsheet;
@@ -80,8 +124,10 @@ struct character
     float Maxhp = 120;
     float speed;
     int level = 1;
+    float MeleeDamage;
     Vector2f velocity;
     bool isDead;
+    bool revivalCrystal;
     animationstate AnimationState ;
     playerDirection spriteDirection;
     int columnIndex = 0;
@@ -108,12 +154,14 @@ struct character
             if (Keyboard::isKeyPressed(Keyboard::A) || Keyboard::isKeyPressed(Keyboard::Left)) {
                 sprite.move(-speed *deltaTime, 0);
                 sprite.setScale(-1, 1.5);
+                attackSpace.setScale(-1, 1);
                 spriteDirection = toleft;
                 AnimationState = walking;
             }
             if (Keyboard::isKeyPressed(Keyboard::D) || Keyboard::isKeyPressed(Keyboard::Right)) {
                 sprite.move(speed * deltaTime, 0);
                 sprite.setScale(1, 1.5);
+                attackSpace.setScale(1, 1);
                 spriteDirection = toright;
                 AnimationState = walking;
                 
@@ -136,6 +184,7 @@ struct character
                 }
             }
             collider.setPosition(sprite.getPosition());
+            attackSpace.setPosition(sprite.getPosition());
         }
 
         //animation
@@ -174,126 +223,6 @@ struct character
     }
 } shanoa;
 
-struct XPc
-{
-    Sprite sprite;
-    bool isCollected = false;
-    bool CrystalsRemove = false;
-    int xpValue;
-    float lifetime = 35.0f;  // Crystal will exist for 35 seconds 
-    CrystalState state = IDLE;
-
-    // Animation parameters
-    float repelDistance = 150.0f;  // Maximum distance to repel
-    float repelSpeed = 300.0f;     // Speed of repelling
-    float attractRange = 150.0f;   // Range at which crystals start getting attracted
-    float attractSpeed = 190.0f;   // Base speed for attraction
-    float absorbSpeed = 550.0f;    // Speed during final absorption
-    float absorbDistance = 75.0f;  // Distance at which absorption animation starts
-
-    // Timing
-    float repelTimer = 0.0f;
-    float maxRepelTime = 1.1f;     // Time it takes to complete repel animation
-
-    // Movement vector
-    Vector2f direction;
-
-    XPc(float x, float y, Texture& tex, int xp) {
-        sprite.setTexture(tex);
-        sprite.setPosition(x, y);
-        sprite.setScale(0.2f, 0.4f);
-
-        // Center the origin for proper positioning
-        sprite.setOrigin(tex.getSize().x / 2.0f, tex.getSize().y / 2.0f);
-
-        sprite.setTextureRect(IntRect(0, 0, tex.getSize().x, tex.getSize().y));
-        xpValue = xp;
-
-    }
-
-    void update(float deltaTime, const Vector2f& playerPosition)
-    {
-        // Update lifetime regardless of state
-        lifetime -= deltaTime;
-        if (lifetime <= 0.0f) {
-            CrystalsRemove = true;
-            return;
-        }
-
-        // Calculate distance to player
-        Vector2f toPlayer = playerPosition - sprite.getPosition();
-        float mag = sqrt(toPlayer.x * toPlayer.x + toPlayer.y * toPlayer.y);
-
-        // Normalize direction to player
-        Vector2f normalizedToPlayer = toPlayer;
-        if (mag > 0) {
-            normalizedToPlayer.x /= mag;
-            normalizedToPlayer.y /= mag;
-        }
-
-        // Animation state machine
-        switch (state) {
-        case IDLE:
-            state = REPEL;
-            break;
-
-        case REPEL:
-            // Move away from player initially
-            repelTimer += deltaTime;
-
-            if (repelTimer < maxRepelTime)
-            {
-                float currentRepelSpeed = repelSpeed * (1.0f - repelTimer / maxRepelTime); // Slow down as it reaches max distance
-                sprite.move(direction * currentRepelSpeed * deltaTime);
-            }
-            else
-            {
-                state = (mag <= attractRange) ? ATTRACT : IDLE;
-            }
-            break;
-
-        case ATTRACT:
-            // Move toward player with increasing speed based on distance
-            if (mag <= absorbDistance)
-            {
-                // When very close, transition to final absorption
-                state = ABSORB;
-            }
-            else
-            {
-                float speedFactor = 1.0f + (attractRange - mag) / attractRange * 2.0f;
-                sprite.move(normalizedToPlayer * attractSpeed * speedFactor * deltaTime);
-
-            }
-            break;
-
-        case ABSORB:
-            // Final quick absorption movement
-            sprite.move(normalizedToPlayer * absorbSpeed * deltaTime);
-
-            // Shrink effect
-            float currentScale = sprite.getScale().x - 0.6f * deltaTime;
-            if (currentScale <= 0.05f)
-            {
-                isCollected = true;
-            }
-            else
-            {
-                sprite.setScale(currentScale, currentScale * 2.0f);
-            }
-            break;
-        }
-
-        if (state == IDLE && mag <= attractRange)
-        {
-            state = ATTRACT;
-        }
-    }
-
-    FloatRect getBounds() const {
-        return sprite.getGlobalBounds();
-    }
-};
 
 struct ENEMY
 {
@@ -612,10 +541,10 @@ struct BAT :public ENEMY
         shape.setTextureRect(IntRect(48.2 * columnindex, 35 * rowindex, 48.2, 35));
         playertargeting();
         if (shape.getPosition().x > shanoa.sprite.getPosition().x) {
-            shape.setScale(-3, 3);
+            shape.setScale(3, 3);
         }
         else {
-            shape.setScale(3, 3);
+            shape.setScale(-3, 3);
         }
         if (health <= 0) {
             isDead = true;
@@ -745,6 +674,18 @@ string names[11] = {
     "Voice Actor (Math Revival) :",
     "Prof : Mohamed Ibrahem"
 };
+string quotes[5] = {
+    "Games don't make you violent, lag does.",
+    "It�s me, Mario!",
+    "Ah Shit, Here We Go Again.",
+    "Press F to Pay Respect.",
+    "Nah, I'd Win."
+};
+
+struct MathEquation {
+        Sprite sprite;
+    Text userAnsText;
+};
 MathEquation SuvivalEquation;
 int EquationsAns[8] = {3,4,4,2,7,4,1,6};
     string userInput = "";
@@ -796,14 +737,20 @@ int main()
                             {
                                 gamestate = gameloop;
                                 GameOverSound.stop();
+                                gameOverSoundPlayed = false;
+                                GameloopMusic.play();
                                 MathRevivalON = false;
+                                quoteUpdate();
+
                             }
                             else
                             {
                                 gamestate = mainmenu;
                                 MainMenuMusic.play();
                                 MathRevivalON = false;
-
+                                gameOverSoundPlayed = false;
+                                GameOverSound.stop();
+                                menuInputDelay = 0.f;
                             }
                             userInput = "";
                         }
@@ -973,12 +920,28 @@ void CharacterInit() {
     shanoa.collider.setSize(Vector2f(60, 125));
     shanoa.collider.setOrigin(shanoa.collider.getLocalBounds().width/2,shanoa.collider.getLocalBounds().height/2);
     shanoa.collider.setFillColor(Color::Blue);
+    shanoa.attackSpace.setSize(Vector2f(80, 45));
+    shanoa.attackSpace.setFillColor(Color::Black);
+    shanoa.attackSpace.setOrigin(0, shanoa.attackSpace.getLocalBounds().height / 2);
+    shanoa.MeleeDamage = 300;
     shanoa.sprite.setOrigin(66, 74);
     shanoa.sprite.setScale(1, 1.5);
     shanoa.AnimationState = idle;
+    shanoa.revivalCrystal = 1;
     healthbar.setTexture(healthbar_Texture);
     healthbar.setScale(0.84, 1.2);
 }
+void inRange(float& damage,shared_ptr< ENEMY>& Enemy) {
+    Enemy->health -= damage;
+    cout << damage;
+}
+void enemiesInAttackSpace(shared_ptr<ENEMY>& Enemy) {
+    if (Enemy->collider.getGlobalBounds().intersects(shanoa.attackSpace.getGlobalBounds()))
+    {
+        inRange(shanoa.MeleeDamage, Enemy);
+    }
+}
+
 
 void MapInit() {
     Map_Texture.loadFromFile("Assets\\mapfinal.png");
@@ -1333,24 +1296,58 @@ void generalCollision(RectangleShape& objectTOBeMovedCollider, RectangleShape& W
         } // upper/lower 
     }
 }
-
-void AttackDetection(RectangleShape &playerCollider, RectangleShape &enemyCollider , ENEMY &theEnemy) {
-    if (playerCollider.getGlobalBounds().intersects(enemyCollider.getGlobalBounds())) {
-        theEnemy.AnimationState = attacking;
+void meleeAttack() {
+    if (Keyboard::isKeyPressed(Keyboard::E)) {
+        attackDelay += deltaTime;
+        if (attackDelay >= timeForAttack) {
+            attackDelay = 0;
+            for (int i = 0; i < enemies.size(); ++i)
+            {
+                enemiesInAttackSpace(enemies[i]);
+            }
+        }
     }
     else
-        theEnemy.AnimationState = walking;
+        attackDelay = 0;
 }
 
 void GetRandIndex(int &randomIndex)
 {randomIndex = rand() % 6;}
+int indexForRandomQuote() {
+    return rand() % 5;
+}
+void quotesInit() {
+    Quote.setFont(defgamefont);
+    Quote.setString(quotes[indexForRandomQuote()]);
+    Quote.setCharacterSize(30);
+    Quote.setFillColor(Color::White);
+    Quote.setOrigin(Quote.getLocalBounds().width / 2, Quote.getLocalBounds().height / 2);
+    Quote.setPosition(0, 300);
+}
+void quoteUpdate() {
+    Quote.setString(quotes[indexForRandomQuote()]);
+    Quote.setOrigin(Quote.getLocalBounds().width / 2, Quote.getLocalBounds().height / 2);
+}
 
-void swordFullCollision() {
-    for (int i = 0; i < swords.size(); ++i) {
-        swords[i].update();
+void swordFullCollisionAndDamage() {
+   
         /*------------------enemys-----------------*/
-        bool beastDetection = swords[i].collider.getGlobalBounds().intersects(beast.collider.getGlobalBounds());
-        bool wereWolfDetection = swords[i].collider.getGlobalBounds().intersects(werewolf.collider.getGlobalBounds());
+        for (int i = 0; i < swords.size(); i++) {
+            swords[i].update();
+            bool SwordIsRemoved = false;
+            for (int j = 0; j < enemies.size(); j++) {
+                if (swords[i].collider.getGlobalBounds().intersects(enemies[j]->collider.getGlobalBounds())) {
+                    enemies[j]->health -= swords[i].damage;
+                    swords.erase(swords.begin() + i);
+                    cout << " bb ";
+                    cout << enemies[j]->health << ' ';
+                    SwordIsRemoved = true;
+                    break;
+                }
+            }
+            if (SwordIsRemoved)
+                break;
+        }
 
 
 
@@ -1364,20 +1361,15 @@ void swordFullCollision() {
 
 
 
-        /*-----------------All Conditions---------------*/
-        if (beastDetection or wereWolfDetection) {
-            swords.erase(swords.begin() + i);
-            break;
-        }
-    }
+       
+      
+    
 }
 
 // For All Game Collision
 void globalCollsion() {
-    generalCollision(beast.collider, shanoa.collider, beast.shape);
-    generalCollision(werewolf.collider, shanoa.collider, werewolf.shape);
-    generalCollision(bat.collider, shanoa.collider, bat.shape);
-    swordFullCollision();
+  
+    swordFullCollisionAndDamage();
 }
 
 void Start()
@@ -1408,6 +1400,7 @@ void Start()
     SettingsMenuInit();
     view.setCenter(10000, 9800);
     window.setView(view);
+    quotesInit();
 
     
 }
@@ -1458,6 +1451,9 @@ void Update()
         menuCursor.setSize(Vector2f(selectedButtonSize.x-200, selectedButtonSize.y-45));
 
         view.setCenter(10000, 9800);
+        quoteUpdate();
+        totalGameTime = 0;
+
 
     }
 
@@ -1549,6 +1545,7 @@ void Update()
                 Crystals.erase(Crystals.begin() + i);
             }
         }
+        meleeAttack();
         view.setCenter(shanoa.sprite.getPosition());
     }
 
@@ -1601,18 +1598,20 @@ void Update()
         // gameover screen update
         window.setMouseCursorVisible(true);
  
-        if (Keyboard::isKeyPressed(Keyboard::R))
         
-        if (Mouse::isButtonPressed(Mouse::Left) && restartButton.getGlobalBounds().contains(mouseScreenpos.x,mouseScreenpos.y))/// change to keyboard
+        
+        if (Mouse::isButtonPressed(Mouse::Left) && restartButton.getGlobalBounds().contains(mouseWorldpos))/// change to keyboard
         {
             GameOverSound.stop();
+            GameOverSound.play();
             gamestate = mainmenu;
             view.setCenter(10000, 9800); // Center view back on main menu
             //reset gameover sound so it works next time
             gameOverSoundPlayed = false;
             selectedMenuButtonIndex = 0;
+            menuInputDelay = 0.f;
         }
-        if (Mouse::isButtonPressed(Mouse::Left) /*&& MathRevivlaButton.getGlobalBounds().contains(mouseScreenpos.x, mouseScreenpos.y)*/) //// change to keyboard
+        if (Mouse::isButtonPressed(Mouse::Left) && MathRevivlaButton.getGlobalBounds().contains(mouseWorldpos) && shanoa.revivalCrystal) //// change to keyboard
         {
             MathRevivalON = true;
         }
@@ -1677,20 +1676,22 @@ void Draw()
         //window.draw(shanoa.collider);
         for (int i = 0; i < swords.size(); i++)
         {
-          /*  window.draw(swords[i].collider);*/
             window.draw(swords[i].shape);
         }
-        window.draw(healthbar);
+
+      /*  window.draw(shanoa.attackSpace);*/
         window.draw(shanoa.sprite);
-        for (int i = 0;i < enemies.size();i++) {
-            window.draw(enemies[i]->collider);
-            window.draw(enemies[i]->shape);
-        }
+        window.draw(healthbar);
+        
         for (int i = 0; i < Crystals.size(); i++)
         {
             if (Crystals[i].isCollected == false) {
                 window.draw(Crystals[i].sprite);
             }
+        }
+        for (int i = 0;i < enemies.size();i++) {
+           /* window.draw(enemies[i]->collider);*/
+            window.draw(enemies[i]->shape);
         }
     }
 
@@ -1734,6 +1735,9 @@ void Draw()
         MathRevivlaButton.setPosition(viewCenter.x - MathRevivlaButton.getGlobalBounds().width / 2.f, viewCenter.y + 175.f);//
         mathRevivalText.setPosition(viewCenter.x - mathRevivalText.getGlobalBounds().width / 2.f, viewCenter.y + 185.f);//
 
+        Quote.setPosition(viewCenter.x, viewCenter.y + 275.f);
+
+
         SuvivalEquation.sprite.setPosition(viewCenter.x - SuvivalEquation.sprite.getGlobalBounds().width / 2.f , viewCenter.y + 100.f);
         equationAnsCellBox.setPosition(viewCenter.x - equationAnsCellBox.getGlobalBounds().width / 2.f , viewCenter.y + 160.f);
         SuvivalEquation.userAnsText.setPosition(viewCenter.x - equationAnsCellBox.getGlobalBounds().width / 2.f +5, viewCenter.y + 163.f);//
@@ -1751,12 +1755,13 @@ void Draw()
         {
             window.draw(restartButton);
             window.draw(RestartText);
-            window.draw(MathRevivlaButton);
-            window.draw(mathRevivalText);
+            if (shanoa.revivalCrystal)
+            {
+                window.draw(MathRevivlaButton);
+                window.draw(mathRevivalText);
+            }
+            window.draw(Quote);
         }
-
-       
-
     }
 
     if (gamestate == credits)
