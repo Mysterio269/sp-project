@@ -244,18 +244,19 @@ struct character
     }
 } shanoa;
 
-
 struct ENEMY
 {
     RectangleShape attackBox, collider;
+    RectangleShape healthBarHolder, healthBarOfEnemy;
     Vector2f velocity;
     monstertype MonsterType;
     Sprite shape;
     Texture enemyspreadsheet;
     animationstate AnimationState;
     float speed,animationdelaytimer;
+    float healthBarWidth;
     int columnindex = 0, rowindex;
-    int health, damage;
+    int health, damage,maxHealth;
     bool isAttacking = false, isDead = false, hasDroppedXP = false;
     virtual void start() {
         //virtual start to be edited afterwards in the code
@@ -412,6 +413,7 @@ struct BEAST:public ENEMY
         shape.setTexture(beasttexture);
         shape.setScale(1.8, 2.5);
         health = 250;
+        maxHealth = 250;
         speed = 100;
         damage = 25;
         attackBox.setSize(Vector2f(130, 1));
@@ -423,10 +425,19 @@ struct BEAST:public ENEMY
         collider.setOrigin(collider.getLocalBounds().width / 2, collider.getLocalBounds().height / 2);
         attackBox.setFillColor(Color::Red);
         attackBox.setOrigin(attackBox.getLocalBounds().width / 2, attackBox.getLocalBounds().height / 2);
+        healthBarHolder.setFillColor(Color::Black);
+        healthBarHolder.setSize(Vector2f(60, 10));
+        healthBarHolder.setOrigin(healthBarHolder.getLocalBounds().width / 2, healthBarHolder.getLocalBounds().height/2);
+        healthBarOfEnemy.setFillColor(Color::Green);
+        healthBarOfEnemy.setSize(Vector2f(60, 10));
+        healthBarWidth = 60;
+        healthBarOfEnemy.setOrigin(healthBarHolder.getLocalBounds().width / 2, healthBarHolder.getLocalBounds().height / 2);
     }
     void update() override{
         collider.setPosition(shape.getPosition());
         attackBox.setPosition(shape.getPosition().x, shape.getPosition().y - 40);
+        healthBarHolder.setPosition(shape.getPosition().x , shape.getPosition().y-70);
+        healthBarOfEnemy.setPosition(shape.getPosition().x , shape.getPosition().y - 70);
         AttackDetection();
         animationdelaytimer++;
         if (animationdelaytimer >= 2) {
@@ -502,6 +513,7 @@ struct ZOMBIE :public ENEMY
         shape.setTexture(zombieTexture);
         shape.setScale(2.52, 3.5);
         health = 100;
+        maxHealth = 100;
         speed = 120;
         damage = 20;
         attackBox.setSize(Vector2f(65, 1));
@@ -513,10 +525,19 @@ struct ZOMBIE :public ENEMY
         collider.setOrigin(collider.getLocalBounds().width / 2, collider.getLocalBounds().height / 2);
         attackBox.setFillColor(Color::Red);
         attackBox.setOrigin(attackBox.getLocalBounds().width / 2, attackBox.getLocalBounds().height / 2);
+        healthBarHolder.setFillColor(Color::Black);
+        healthBarHolder.setSize(Vector2f(40, 10));
+        healthBarHolder.setOrigin(healthBarHolder.getLocalBounds().width / 2, healthBarHolder.getLocalBounds().height /2);
+        healthBarOfEnemy.setFillColor(Color::Green);
+        healthBarOfEnemy.setSize(Vector2f(40, 10));
+        healthBarWidth = 40;
+        healthBarOfEnemy.setOrigin(healthBarHolder.getLocalBounds().width / 2, healthBarHolder.getLocalBounds().height / 2);
     }
     void update() override {
         collider.setPosition(shape.getPosition());
         attackBox.setPosition(shape.getPosition().x, shape.getPosition().y - 40);
+        healthBarHolder.setPosition(shape.getPosition().x, shape.getPosition().y - 50);
+        healthBarOfEnemy.setPosition(shape.getPosition().x , shape.getPosition().y - 50);
         AttackDetection();
         animationdelaytimer++;
         if (animationdelaytimer >= 2) {
@@ -593,6 +614,7 @@ struct WEREWOLF :public ENEMY
         shape.setPosition(200, 200);
         speed = 175;
         health = 150;
+        maxHealth = 150;
         damage = 10;
         AnimationState = walking;
         attackBox.setSize(Vector2f(70, 1));
@@ -601,12 +623,21 @@ struct WEREWOLF :public ENEMY
         collider.setFillColor(Color::Yellow);
         collider.setSize(Vector2f(128, 128));
         collider.setOrigin(collider.getLocalBounds().width / 2, collider.getLocalBounds().height / 2);
+        healthBarHolder.setFillColor(Color::Black);
+        healthBarHolder.setSize(Vector2f(50, 10));
+        healthBarHolder.setOrigin(healthBarHolder.getLocalBounds().width / 2, healthBarHolder.getLocalBounds().height/2);
         shape.setOrigin(64, 73);
+        healthBarOfEnemy.setFillColor(Color::Green);
+        healthBarOfEnemy.setSize(Vector2f(50, 10));
+        healthBarWidth = 50;
+        healthBarOfEnemy.setOrigin(healthBarHolder.getLocalBounds().width / 2, healthBarHolder.getLocalBounds().height / 2);
     }
     void update() override {
         AttackDetection();
         collider.setPosition(shape.getPosition());
         attackBox.setPosition(shape.getPosition().x, shape.getPosition().y - 40);
+        healthBarHolder.setPosition(shape.getPosition().x, shape.getPosition().y - 40);
+        healthBarOfEnemy.setPosition(shape.getPosition().x, shape.getPosition().y - 40);
         animationdelaytimer++;
         if (animationdelaytimer >= 2) {
             columnindex++;
@@ -681,6 +712,7 @@ struct BAT :public ENEMY
         shape.setTexture(batTexture);
         shape.setScale(3, 3);
         health = 50;
+        maxHealth = 50;
         speed = 250;
         damage = 5;
         attackBox.setSize(Vector2f(70, 1));
@@ -692,10 +724,19 @@ struct BAT :public ENEMY
         collider.setOrigin(collider.getLocalBounds().width / 2, collider.getLocalBounds().height / 2);
         attackBox.setFillColor(Color::Red);
         attackBox.setOrigin(attackBox.getLocalBounds().width / 2, attackBox.getLocalBounds().height / 2);
+        healthBarHolder.setFillColor(Color::Black);
+        healthBarHolder.setSize(Vector2f(30, 10));
+        healthBarHolder.setOrigin(healthBarHolder.getLocalBounds().width / 2, healthBarHolder.getLocalBounds().height /2);
+        healthBarOfEnemy.setFillColor(Color::Green);
+        healthBarOfEnemy.setSize(Vector2f(30, 10));
+        healthBarWidth = 30;
+        healthBarOfEnemy.setOrigin(healthBarHolder.getLocalBounds().width / 2, healthBarHolder.getLocalBounds().height / 2);
     }
     void update() override {
         collider.setPosition(shape.getPosition());
         attackBox.setPosition(shape.getPosition().x, shape.getPosition().y - 40);
+        healthBarHolder.setPosition(shape.getPosition().x +5, shape.getPosition().y - 45);
+        healthBarOfEnemy.setPosition(shape.getPosition().x + 5, shape.getPosition().y - 45);
         AttackDetection();
         animationdelaytimer++;
         if (animationdelaytimer >= 2) {
@@ -749,7 +790,7 @@ struct sword {
     Sprite shape;
     RectangleShape collider;
     Vector2f velocity;
-    float damage = 200;
+    float damage = 50;
     float speed;
     float deletiontimer = 0;
 
@@ -1047,7 +1088,7 @@ void CharacterInit() {
     shanoa.attackSpace.setSize(Vector2f(80, 45));
     shanoa.attackSpace.setFillColor(Color::Black);
     shanoa.attackSpace.setOrigin(0, shanoa.attackSpace.getLocalBounds().height / 2);
-    shanoa.MeleeDamage = 300;
+    shanoa.MeleeDamage = 90;
     shanoa.sprite.setOrigin(66, 74);
     shanoa.sprite.setScale(1, 1.5);
     shanoa.AnimationState = idle;
@@ -1057,7 +1098,14 @@ void CharacterInit() {
 }
 
 void inRange(float& damage,shared_ptr< ENEMY>& Enemy) {
-    Enemy->health -= damage;
+    if (Enemy->health >= damage)
+    {
+        Enemy->health -= damage;
+        float decreaseRatio = float(Enemy->health) / float(Enemy->maxHealth);
+        Enemy->healthBarOfEnemy.setSize(Vector2f(Enemy->healthBarWidth * (decreaseRatio), 10));
+    }
+    else
+        Enemy->health = 0;
     cout << damage;
 }
 
@@ -1468,6 +1516,8 @@ void swordFullCollisionAndDamage() {
             for (int j = 0; j < enemies.size(); j++) {
                 if (swords[i].collider.getGlobalBounds().intersects(enemies[j]->collider.getGlobalBounds())) {
                     enemies[j]->health -= swords[i].damage;
+                    float decreaseRatio = float(enemies[j]->health) / float(enemies[j]->maxHealth);
+                    enemies[j]->healthBarOfEnemy.setSize(Vector2f(enemies[j]->healthBarWidth * (decreaseRatio), 10));
                     swords.erase(swords.begin() + i);
                     cout << " bb ";
                     cout << enemies[j]->health << ' ';
@@ -1821,6 +1871,8 @@ void Draw()
         }
         for (int i = 0;i < enemies.size();i++) {
            /* window.draw(enemies[i]->collider);*/
+            window.draw(enemies[i]->healthBarHolder);
+            window.draw(enemies[i]->healthBarOfEnemy);
             window.draw(enemies[i]->shape);
         }
     }
