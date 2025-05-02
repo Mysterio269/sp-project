@@ -159,28 +159,36 @@ struct character
         //movement
         {
             if (Keyboard::isKeyPressed(Keyboard::A) || Keyboard::isKeyPressed(Keyboard::Left)) {
-                sprite.move(-speed *deltaTime, 0);
+                sprite.move(-speed * deltaTime, 0);
                 sprite.setScale(-1, 1.5);
                 attackSpace.setScale(-1, 1);
                 spriteDirection = toleft;
-                AnimationState = walking;
+                if (!isAttacking) {
+                    AnimationState = walking;
+                }
             }
             if (Keyboard::isKeyPressed(Keyboard::D) || Keyboard::isKeyPressed(Keyboard::Right)) {
                 sprite.move(speed * deltaTime, 0);
                 sprite.setScale(1, 1.5);
                 attackSpace.setScale(1, 1);
                 spriteDirection = toright;
-                AnimationState = walking;
+                if (!isAttacking) {
+                    AnimationState = walking;
+                }
                 
             }
             if (Keyboard::isKeyPressed(Keyboard::S) || Keyboard::isKeyPressed(Keyboard::Down)) {
                 sprite.move(0, speed * deltaTime);
-                AnimationState = walking;
+                if (!isAttacking) {
+                    AnimationState = walking;
+                }
 
             }
             if (Keyboard::isKeyPressed(Keyboard::W) || Keyboard::isKeyPressed(Keyboard::Up)) {
                 sprite.move(0, -speed * deltaTime);
-                AnimationState = walking;
+                if (!isAttacking) {
+                    AnimationState = walking;
+                }
 
             }
             if (AutoAttackTimer >= 1.5){

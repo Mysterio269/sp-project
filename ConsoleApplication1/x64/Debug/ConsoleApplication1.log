@@ -1,102 +1,102 @@
 ﻿C:\Program Files\Microsoft Visual Studio\2022\Community\MSBuild\Microsoft\VC\v170\Microsoft.CppBuild.targets(531,5): warning MSB8028: The intermediate directory (x64\Debug\) contains files shared from another project (ConsoleApplication1.vcxproj).  This can lead to incorrect clean and rebuild behavior.
   Main.cpp
-E:\Odootec\Staging\15\self_makkaa\sp-project\ConsoleApplication1\Main.cpp(396,24): warning C4305: 'argument': truncation from 'double' to 'float'
-E:\Odootec\Staging\15\self_makkaa\sp-project\ConsoleApplication1\Main.cpp(431,28): warning C4305: 'argument': truncation from 'double' to 'float'
-E:\Odootec\Staging\15\self_makkaa\sp-project\ConsoleApplication1\Main.cpp(434,28): warning C4305: 'argument': truncation from 'double' to 'float'
-E:\Odootec\Staging\15\self_makkaa\sp-project\ConsoleApplication1\Main.cpp(478,24): warning C4305: 'argument': truncation from 'double' to 'float'
-E:\Odootec\Staging\15\self_makkaa\sp-project\ConsoleApplication1\Main.cpp(513,28): warning C4305: 'argument': truncation from 'double' to 'float'
-E:\Odootec\Staging\15\self_makkaa\sp-project\ConsoleApplication1\Main.cpp(516,28): warning C4305: 'argument': truncation from 'double' to 'float'
-E:\Odootec\Staging\15\self_makkaa\sp-project\ConsoleApplication1\Main.cpp(591,82): warning C4244: 'argument': conversion from 'double' to 'T', possible loss of data
-E:\Odootec\Staging\15\self_makkaa\sp-project\ConsoleApplication1\Main.cpp(591,82): warning C4244:         with
-E:\Odootec\Staging\15\self_makkaa\sp-project\ConsoleApplication1\Main.cpp(591,82): warning C4244:         [
-E:\Odootec\Staging\15\self_makkaa\sp-project\ConsoleApplication1\Main.cpp(591,82): warning C4244:             T=int
-E:\Odootec\Staging\15\self_makkaa\sp-project\ConsoleApplication1\Main.cpp(591,82): warning C4244:         ]
-E:\Odootec\Staging\15\self_makkaa\sp-project\ConsoleApplication1\Main.cpp(591,65): warning C4244: 'argument': conversion from 'double' to 'T', possible loss of data
-E:\Odootec\Staging\15\self_makkaa\sp-project\ConsoleApplication1\Main.cpp(591,65): warning C4244:         with
-E:\Odootec\Staging\15\self_makkaa\sp-project\ConsoleApplication1\Main.cpp(591,65): warning C4244:         [
-E:\Odootec\Staging\15\self_makkaa\sp-project\ConsoleApplication1\Main.cpp(591,65): warning C4244:             T=int
-E:\Odootec\Staging\15\self_makkaa\sp-project\ConsoleApplication1\Main.cpp(591,65): warning C4244:         ]
-E:\Odootec\Staging\15\self_makkaa\sp-project\ConsoleApplication1\Main.cpp(647,25): warning C4305: 'argument': truncation from 'double' to 'float'
-E:\Odootec\Staging\15\self_makkaa\sp-project\ConsoleApplication1\Main.cpp(673,73): warning C4244: 'argument': conversion from 'double' to 'T', possible loss of data
-E:\Odootec\Staging\15\self_makkaa\sp-project\ConsoleApplication1\Main.cpp(673,73): warning C4244:         with
-E:\Odootec\Staging\15\self_makkaa\sp-project\ConsoleApplication1\Main.cpp(673,73): warning C4244:         [
-E:\Odootec\Staging\15\self_makkaa\sp-project\ConsoleApplication1\Main.cpp(673,73): warning C4244:             T=int
-E:\Odootec\Staging\15\self_makkaa\sp-project\ConsoleApplication1\Main.cpp(673,73): warning C4244:         ]
-E:\Odootec\Staging\15\self_makkaa\sp-project\ConsoleApplication1\Main.cpp(673,43): warning C4244: 'argument': conversion from 'double' to 'T', possible loss of data
-E:\Odootec\Staging\15\self_makkaa\sp-project\ConsoleApplication1\Main.cpp(673,43): warning C4244:         with
-E:\Odootec\Staging\15\self_makkaa\sp-project\ConsoleApplication1\Main.cpp(673,43): warning C4244:         [
-E:\Odootec\Staging\15\self_makkaa\sp-project\ConsoleApplication1\Main.cpp(673,43): warning C4244:             T=int
-E:\Odootec\Staging\15\self_makkaa\sp-project\ConsoleApplication1\Main.cpp(673,43): warning C4244:         ]
-E:\Odootec\Staging\15\self_makkaa\sp-project\ConsoleApplication1\Main.cpp(781,15): warning C4244: 'argument': conversion from 'time_t' to 'unsigned int', possible loss of data
-E:\Odootec\Staging\15\self_makkaa\sp-project\ConsoleApplication1\Main.cpp(890,31): warning C4305: 'argument': truncation from 'double' to 'float'
-E:\Odootec\Staging\15\self_makkaa\sp-project\ConsoleApplication1\Main.cpp(890,26): warning C4305: 'argument': truncation from 'double' to 'float'
-E:\Odootec\Staging\15\self_makkaa\sp-project\ConsoleApplication1\Main.cpp(898,34): warning C4305: 'argument': truncation from 'double' to 'float'
-E:\Odootec\Staging\15\self_makkaa\sp-project\ConsoleApplication1\Main.cpp(898,29): warning C4305: 'argument': truncation from 'double' to 'float'
-E:\Odootec\Staging\15\self_makkaa\sp-project\ConsoleApplication1\Main.cpp(906,37): warning C4305: 'argument': truncation from 'double' to 'float'
-E:\Odootec\Staging\15\self_makkaa\sp-project\ConsoleApplication1\Main.cpp(906,32): warning C4305: 'argument': truncation from 'double' to 'float'
-E:\Odootec\Staging\15\self_makkaa\sp-project\ConsoleApplication1\Main.cpp(914,30): warning C4305: 'argument': truncation from 'double' to 'float'
-E:\Odootec\Staging\15\self_makkaa\sp-project\ConsoleApplication1\Main.cpp(914,25): warning C4305: 'argument': truncation from 'double' to 'float'
-E:\Odootec\Staging\15\self_makkaa\sp-project\ConsoleApplication1\Main.cpp(922,33): warning C4305: 'argument': truncation from 'double' to 'float'
-E:\Odootec\Staging\15\self_makkaa\sp-project\ConsoleApplication1\Main.cpp(922,28): warning C4305: 'argument': truncation from 'double' to 'float'
-E:\Odootec\Staging\15\self_makkaa\sp-project\ConsoleApplication1\Main.cpp(932,35): warning C4305: 'argument': truncation from 'double' to 'float'
-E:\Odootec\Staging\15\self_makkaa\sp-project\ConsoleApplication1\Main.cpp(932,30): warning C4305: 'argument': truncation from 'double' to 'float'
-E:\Odootec\Staging\15\self_makkaa\sp-project\ConsoleApplication1\Main.cpp(938,33): warning C4305: 'argument': truncation from 'double' to 'float'
-E:\Odootec\Staging\15\self_makkaa\sp-project\ConsoleApplication1\Main.cpp(938,28): warning C4305: 'argument': truncation from 'double' to 'float'
-E:\Odootec\Staging\15\self_makkaa\sp-project\ConsoleApplication1\Main.cpp(942,39): warning C4305: 'argument': truncation from 'double' to 'float'
-E:\Odootec\Staging\15\self_makkaa\sp-project\ConsoleApplication1\Main.cpp(942,33): warning C4305: 'argument': truncation from 'double' to 'float'
-E:\Odootec\Staging\15\self_makkaa\sp-project\ConsoleApplication1\Main.cpp(960,31): warning C4305: 'argument': truncation from 'double' to 'float'
-E:\Odootec\Staging\15\self_makkaa\sp-project\ConsoleApplication1\Main.cpp(960,25): warning C4305: 'argument': truncation from 'double' to 'float'
-E:\Odootec\Staging\15\self_makkaa\sp-project\ConsoleApplication1\Main.cpp(1014,30): warning C4305: 'argument': truncation from 'double' to 'float'
-E:\Odootec\Staging\15\self_makkaa\sp-project\ConsoleApplication1\Main.cpp(1014,24): warning C4305: 'argument': truncation from 'double' to 'float'
-E:\Odootec\Staging\15\self_makkaa\sp-project\ConsoleApplication1\Main.cpp(1017,22): warning C4244: '-=': conversion from 'float' to 'int', possible loss of data
-E:\Odootec\Staging\15\self_makkaa\sp-project\ConsoleApplication1\Main.cpp(1112,47): warning C4244: 'argument': conversion from 'double' to 'T', possible loss of data
-E:\Odootec\Staging\15\self_makkaa\sp-project\ConsoleApplication1\Main.cpp(1112,47): warning C4244:         with
-E:\Odootec\Staging\15\self_makkaa\sp-project\ConsoleApplication1\Main.cpp(1112,47): warning C4244:         [
-E:\Odootec\Staging\15\self_makkaa\sp-project\ConsoleApplication1\Main.cpp(1112,47): warning C4244:             T=int
-E:\Odootec\Staging\15\self_makkaa\sp-project\ConsoleApplication1\Main.cpp(1112,47): warning C4244:         ]
-E:\Odootec\Staging\15\self_makkaa\sp-project\ConsoleApplication1\Main.cpp(1115,48): warning C4244: 'argument': conversion from 'double' to 'T', possible loss of data
-E:\Odootec\Staging\15\self_makkaa\sp-project\ConsoleApplication1\Main.cpp(1115,48): warning C4244:         with
-E:\Odootec\Staging\15\self_makkaa\sp-project\ConsoleApplication1\Main.cpp(1115,48): warning C4244:         [
-E:\Odootec\Staging\15\self_makkaa\sp-project\ConsoleApplication1\Main.cpp(1115,48): warning C4244:             T=int
-E:\Odootec\Staging\15\self_makkaa\sp-project\ConsoleApplication1\Main.cpp(1115,48): warning C4244:         ]
-E:\Odootec\Staging\15\self_makkaa\sp-project\ConsoleApplication1\Main.cpp(1118,49): warning C4244: 'argument': conversion from 'double' to 'T', possible loss of data
-E:\Odootec\Staging\15\self_makkaa\sp-project\ConsoleApplication1\Main.cpp(1118,49): warning C4244:         with
-E:\Odootec\Staging\15\self_makkaa\sp-project\ConsoleApplication1\Main.cpp(1118,49): warning C4244:         [
-E:\Odootec\Staging\15\self_makkaa\sp-project\ConsoleApplication1\Main.cpp(1118,49): warning C4244:             T=int
-E:\Odootec\Staging\15\self_makkaa\sp-project\ConsoleApplication1\Main.cpp(1118,49): warning C4244:         ]
-E:\Odootec\Staging\15\self_makkaa\sp-project\ConsoleApplication1\Main.cpp(1121,49): warning C4244: 'argument': conversion from 'double' to 'T', possible loss of data
-E:\Odootec\Staging\15\self_makkaa\sp-project\ConsoleApplication1\Main.cpp(1121,49): warning C4244:         with
-E:\Odootec\Staging\15\self_makkaa\sp-project\ConsoleApplication1\Main.cpp(1121,49): warning C4244:         [
-E:\Odootec\Staging\15\self_makkaa\sp-project\ConsoleApplication1\Main.cpp(1121,49): warning C4244:             T=int
-E:\Odootec\Staging\15\self_makkaa\sp-project\ConsoleApplication1\Main.cpp(1121,49): warning C4244:         ]
-E:\Odootec\Staging\15\self_makkaa\sp-project\ConsoleApplication1\Main.cpp(1127,49): warning C4244: 'argument': conversion from 'double' to 'T', possible loss of data
-E:\Odootec\Staging\15\self_makkaa\sp-project\ConsoleApplication1\Main.cpp(1127,49): warning C4244:         with
-E:\Odootec\Staging\15\self_makkaa\sp-project\ConsoleApplication1\Main.cpp(1127,49): warning C4244:         [
-E:\Odootec\Staging\15\self_makkaa\sp-project\ConsoleApplication1\Main.cpp(1127,49): warning C4244:             T=int
-E:\Odootec\Staging\15\self_makkaa\sp-project\ConsoleApplication1\Main.cpp(1127,49): warning C4244:         ]
-E:\Odootec\Staging\15\self_makkaa\sp-project\ConsoleApplication1\Main.cpp(1130,49): warning C4244: 'argument': conversion from 'double' to 'T', possible loss of data
-E:\Odootec\Staging\15\self_makkaa\sp-project\ConsoleApplication1\Main.cpp(1130,49): warning C4244:         with
-E:\Odootec\Staging\15\self_makkaa\sp-project\ConsoleApplication1\Main.cpp(1130,49): warning C4244:         [
-E:\Odootec\Staging\15\self_makkaa\sp-project\ConsoleApplication1\Main.cpp(1130,49): warning C4244:             T=int
-E:\Odootec\Staging\15\self_makkaa\sp-project\ConsoleApplication1\Main.cpp(1130,49): warning C4244:         ]
-E:\Odootec\Staging\15\self_makkaa\sp-project\ConsoleApplication1\Main.cpp(1133,49): warning C4244: 'argument': conversion from 'double' to 'T', possible loss of data
-E:\Odootec\Staging\15\self_makkaa\sp-project\ConsoleApplication1\Main.cpp(1133,49): warning C4244:         with
-E:\Odootec\Staging\15\self_makkaa\sp-project\ConsoleApplication1\Main.cpp(1133,49): warning C4244:         [
-E:\Odootec\Staging\15\self_makkaa\sp-project\ConsoleApplication1\Main.cpp(1133,49): warning C4244:             T=int
-E:\Odootec\Staging\15\self_makkaa\sp-project\ConsoleApplication1\Main.cpp(1133,49): warning C4244:         ]
-E:\Odootec\Staging\15\self_makkaa\sp-project\ConsoleApplication1\Main.cpp(1166,51): warning C4305: 'argument': truncation from 'double' to 'float'
-E:\Odootec\Staging\15\self_makkaa\sp-project\ConsoleApplication1\Main.cpp(1166,41): warning C4305: 'argument': truncation from 'double' to 'float'
-E:\Odootec\Staging\15\self_makkaa\sp-project\ConsoleApplication1\Main.cpp(1314,31): warning C4305: 'argument': truncation from 'double' to 'float'
-E:\Odootec\Staging\15\self_makkaa\sp-project\ConsoleApplication1\Main.cpp(1314,24): warning C4305: 'argument': truncation from 'double' to 'float'
-E:\Odootec\Staging\15\self_makkaa\sp-project\ConsoleApplication1\Main.cpp(1320,33): warning C4305: 'argument': truncation from 'double' to 'float'
-E:\Odootec\Staging\15\self_makkaa\sp-project\ConsoleApplication1\Main.cpp(1320,26): warning C4305: 'argument': truncation from 'double' to 'float'
-E:\Odootec\Staging\15\self_makkaa\sp-project\ConsoleApplication1\Main.cpp(1330,30): warning C4305: 'argument': truncation from 'double' to 'float'
-E:\Odootec\Staging\15\self_makkaa\sp-project\ConsoleApplication1\Main.cpp(1330,25): warning C4305: 'argument': truncation from 'double' to 'float'
-E:\Odootec\Staging\15\self_makkaa\sp-project\ConsoleApplication1\Main.cpp(1335,36): warning C4305: 'argument': truncation from 'double' to 'float'
-E:\Odootec\Staging\15\self_makkaa\sp-project\ConsoleApplication1\Main.cpp(1335,31): warning C4305: 'argument': truncation from 'double' to 'float'
-E:\Odootec\Staging\15\self_makkaa\sp-project\ConsoleApplication1\Main.cpp(1341,42): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
-E:\Odootec\Staging\15\self_makkaa\sp-project\ConsoleApplication1\Main.cpp(1422,52): warning C4244: '-=': conversion from 'float' to 'int', possible loss of data
-E:\Odootec\Staging\15\self_makkaa\sp-project\ConsoleApplication1\Main.cpp(1605,52): warning C4244: '-=': conversion from 'float' to 'int', possible loss of data
-E:\Odootec\Staging\15\self_makkaa\sp-project\ConsoleApplication1\Main.cpp(1625,20): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
-E:\Odootec\Staging\15\self_makkaa\sp-project\ConsoleApplication1\Main.cpp(1862,45): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
+E:\Odootec\Staging\15\self_makkaa\sp-project\ConsoleApplication1\Main.cpp(404,24): warning C4305: 'argument': truncation from 'double' to 'float'
+E:\Odootec\Staging\15\self_makkaa\sp-project\ConsoleApplication1\Main.cpp(439,28): warning C4305: 'argument': truncation from 'double' to 'float'
+E:\Odootec\Staging\15\self_makkaa\sp-project\ConsoleApplication1\Main.cpp(442,28): warning C4305: 'argument': truncation from 'double' to 'float'
+E:\Odootec\Staging\15\self_makkaa\sp-project\ConsoleApplication1\Main.cpp(486,24): warning C4305: 'argument': truncation from 'double' to 'float'
+E:\Odootec\Staging\15\self_makkaa\sp-project\ConsoleApplication1\Main.cpp(521,28): warning C4305: 'argument': truncation from 'double' to 'float'
+E:\Odootec\Staging\15\self_makkaa\sp-project\ConsoleApplication1\Main.cpp(524,28): warning C4305: 'argument': truncation from 'double' to 'float'
+E:\Odootec\Staging\15\self_makkaa\sp-project\ConsoleApplication1\Main.cpp(599,82): warning C4244: 'argument': conversion from 'double' to 'T', possible loss of data
+E:\Odootec\Staging\15\self_makkaa\sp-project\ConsoleApplication1\Main.cpp(599,82): warning C4244:         with
+E:\Odootec\Staging\15\self_makkaa\sp-project\ConsoleApplication1\Main.cpp(599,82): warning C4244:         [
+E:\Odootec\Staging\15\self_makkaa\sp-project\ConsoleApplication1\Main.cpp(599,82): warning C4244:             T=int
+E:\Odootec\Staging\15\self_makkaa\sp-project\ConsoleApplication1\Main.cpp(599,82): warning C4244:         ]
+E:\Odootec\Staging\15\self_makkaa\sp-project\ConsoleApplication1\Main.cpp(599,65): warning C4244: 'argument': conversion from 'double' to 'T', possible loss of data
+E:\Odootec\Staging\15\self_makkaa\sp-project\ConsoleApplication1\Main.cpp(599,65): warning C4244:         with
+E:\Odootec\Staging\15\self_makkaa\sp-project\ConsoleApplication1\Main.cpp(599,65): warning C4244:         [
+E:\Odootec\Staging\15\self_makkaa\sp-project\ConsoleApplication1\Main.cpp(599,65): warning C4244:             T=int
+E:\Odootec\Staging\15\self_makkaa\sp-project\ConsoleApplication1\Main.cpp(599,65): warning C4244:         ]
+E:\Odootec\Staging\15\self_makkaa\sp-project\ConsoleApplication1\Main.cpp(655,25): warning C4305: 'argument': truncation from 'double' to 'float'
+E:\Odootec\Staging\15\self_makkaa\sp-project\ConsoleApplication1\Main.cpp(681,73): warning C4244: 'argument': conversion from 'double' to 'T', possible loss of data
+E:\Odootec\Staging\15\self_makkaa\sp-project\ConsoleApplication1\Main.cpp(681,73): warning C4244:         with
+E:\Odootec\Staging\15\self_makkaa\sp-project\ConsoleApplication1\Main.cpp(681,73): warning C4244:         [
+E:\Odootec\Staging\15\self_makkaa\sp-project\ConsoleApplication1\Main.cpp(681,73): warning C4244:             T=int
+E:\Odootec\Staging\15\self_makkaa\sp-project\ConsoleApplication1\Main.cpp(681,73): warning C4244:         ]
+E:\Odootec\Staging\15\self_makkaa\sp-project\ConsoleApplication1\Main.cpp(681,43): warning C4244: 'argument': conversion from 'double' to 'T', possible loss of data
+E:\Odootec\Staging\15\self_makkaa\sp-project\ConsoleApplication1\Main.cpp(681,43): warning C4244:         with
+E:\Odootec\Staging\15\self_makkaa\sp-project\ConsoleApplication1\Main.cpp(681,43): warning C4244:         [
+E:\Odootec\Staging\15\self_makkaa\sp-project\ConsoleApplication1\Main.cpp(681,43): warning C4244:             T=int
+E:\Odootec\Staging\15\self_makkaa\sp-project\ConsoleApplication1\Main.cpp(681,43): warning C4244:         ]
+E:\Odootec\Staging\15\self_makkaa\sp-project\ConsoleApplication1\Main.cpp(789,15): warning C4244: 'argument': conversion from 'time_t' to 'unsigned int', possible loss of data
+E:\Odootec\Staging\15\self_makkaa\sp-project\ConsoleApplication1\Main.cpp(898,31): warning C4305: 'argument': truncation from 'double' to 'float'
+E:\Odootec\Staging\15\self_makkaa\sp-project\ConsoleApplication1\Main.cpp(898,26): warning C4305: 'argument': truncation from 'double' to 'float'
+E:\Odootec\Staging\15\self_makkaa\sp-project\ConsoleApplication1\Main.cpp(906,34): warning C4305: 'argument': truncation from 'double' to 'float'
+E:\Odootec\Staging\15\self_makkaa\sp-project\ConsoleApplication1\Main.cpp(906,29): warning C4305: 'argument': truncation from 'double' to 'float'
+E:\Odootec\Staging\15\self_makkaa\sp-project\ConsoleApplication1\Main.cpp(914,37): warning C4305: 'argument': truncation from 'double' to 'float'
+E:\Odootec\Staging\15\self_makkaa\sp-project\ConsoleApplication1\Main.cpp(914,32): warning C4305: 'argument': truncation from 'double' to 'float'
+E:\Odootec\Staging\15\self_makkaa\sp-project\ConsoleApplication1\Main.cpp(922,30): warning C4305: 'argument': truncation from 'double' to 'float'
+E:\Odootec\Staging\15\self_makkaa\sp-project\ConsoleApplication1\Main.cpp(922,25): warning C4305: 'argument': truncation from 'double' to 'float'
+E:\Odootec\Staging\15\self_makkaa\sp-project\ConsoleApplication1\Main.cpp(930,33): warning C4305: 'argument': truncation from 'double' to 'float'
+E:\Odootec\Staging\15\self_makkaa\sp-project\ConsoleApplication1\Main.cpp(930,28): warning C4305: 'argument': truncation from 'double' to 'float'
+E:\Odootec\Staging\15\self_makkaa\sp-project\ConsoleApplication1\Main.cpp(940,35): warning C4305: 'argument': truncation from 'double' to 'float'
+E:\Odootec\Staging\15\self_makkaa\sp-project\ConsoleApplication1\Main.cpp(940,30): warning C4305: 'argument': truncation from 'double' to 'float'
+E:\Odootec\Staging\15\self_makkaa\sp-project\ConsoleApplication1\Main.cpp(946,33): warning C4305: 'argument': truncation from 'double' to 'float'
+E:\Odootec\Staging\15\self_makkaa\sp-project\ConsoleApplication1\Main.cpp(946,28): warning C4305: 'argument': truncation from 'double' to 'float'
+E:\Odootec\Staging\15\self_makkaa\sp-project\ConsoleApplication1\Main.cpp(950,39): warning C4305: 'argument': truncation from 'double' to 'float'
+E:\Odootec\Staging\15\self_makkaa\sp-project\ConsoleApplication1\Main.cpp(950,33): warning C4305: 'argument': truncation from 'double' to 'float'
+E:\Odootec\Staging\15\self_makkaa\sp-project\ConsoleApplication1\Main.cpp(968,31): warning C4305: 'argument': truncation from 'double' to 'float'
+E:\Odootec\Staging\15\self_makkaa\sp-project\ConsoleApplication1\Main.cpp(968,25): warning C4305: 'argument': truncation from 'double' to 'float'
+E:\Odootec\Staging\15\self_makkaa\sp-project\ConsoleApplication1\Main.cpp(1022,30): warning C4305: 'argument': truncation from 'double' to 'float'
+E:\Odootec\Staging\15\self_makkaa\sp-project\ConsoleApplication1\Main.cpp(1022,24): warning C4305: 'argument': truncation from 'double' to 'float'
+E:\Odootec\Staging\15\self_makkaa\sp-project\ConsoleApplication1\Main.cpp(1025,22): warning C4244: '-=': conversion from 'float' to 'int', possible loss of data
+E:\Odootec\Staging\15\self_makkaa\sp-project\ConsoleApplication1\Main.cpp(1120,47): warning C4244: 'argument': conversion from 'double' to 'T', possible loss of data
+E:\Odootec\Staging\15\self_makkaa\sp-project\ConsoleApplication1\Main.cpp(1120,47): warning C4244:         with
+E:\Odootec\Staging\15\self_makkaa\sp-project\ConsoleApplication1\Main.cpp(1120,47): warning C4244:         [
+E:\Odootec\Staging\15\self_makkaa\sp-project\ConsoleApplication1\Main.cpp(1120,47): warning C4244:             T=int
+E:\Odootec\Staging\15\self_makkaa\sp-project\ConsoleApplication1\Main.cpp(1120,47): warning C4244:         ]
+E:\Odootec\Staging\15\self_makkaa\sp-project\ConsoleApplication1\Main.cpp(1123,48): warning C4244: 'argument': conversion from 'double' to 'T', possible loss of data
+E:\Odootec\Staging\15\self_makkaa\sp-project\ConsoleApplication1\Main.cpp(1123,48): warning C4244:         with
+E:\Odootec\Staging\15\self_makkaa\sp-project\ConsoleApplication1\Main.cpp(1123,48): warning C4244:         [
+E:\Odootec\Staging\15\self_makkaa\sp-project\ConsoleApplication1\Main.cpp(1123,48): warning C4244:             T=int
+E:\Odootec\Staging\15\self_makkaa\sp-project\ConsoleApplication1\Main.cpp(1123,48): warning C4244:         ]
+E:\Odootec\Staging\15\self_makkaa\sp-project\ConsoleApplication1\Main.cpp(1126,49): warning C4244: 'argument': conversion from 'double' to 'T', possible loss of data
+E:\Odootec\Staging\15\self_makkaa\sp-project\ConsoleApplication1\Main.cpp(1126,49): warning C4244:         with
+E:\Odootec\Staging\15\self_makkaa\sp-project\ConsoleApplication1\Main.cpp(1126,49): warning C4244:         [
+E:\Odootec\Staging\15\self_makkaa\sp-project\ConsoleApplication1\Main.cpp(1126,49): warning C4244:             T=int
+E:\Odootec\Staging\15\self_makkaa\sp-project\ConsoleApplication1\Main.cpp(1126,49): warning C4244:         ]
+E:\Odootec\Staging\15\self_makkaa\sp-project\ConsoleApplication1\Main.cpp(1129,49): warning C4244: 'argument': conversion from 'double' to 'T', possible loss of data
+E:\Odootec\Staging\15\self_makkaa\sp-project\ConsoleApplication1\Main.cpp(1129,49): warning C4244:         with
+E:\Odootec\Staging\15\self_makkaa\sp-project\ConsoleApplication1\Main.cpp(1129,49): warning C4244:         [
+E:\Odootec\Staging\15\self_makkaa\sp-project\ConsoleApplication1\Main.cpp(1129,49): warning C4244:             T=int
+E:\Odootec\Staging\15\self_makkaa\sp-project\ConsoleApplication1\Main.cpp(1129,49): warning C4244:         ]
+E:\Odootec\Staging\15\self_makkaa\sp-project\ConsoleApplication1\Main.cpp(1135,49): warning C4244: 'argument': conversion from 'double' to 'T', possible loss of data
+E:\Odootec\Staging\15\self_makkaa\sp-project\ConsoleApplication1\Main.cpp(1135,49): warning C4244:         with
+E:\Odootec\Staging\15\self_makkaa\sp-project\ConsoleApplication1\Main.cpp(1135,49): warning C4244:         [
+E:\Odootec\Staging\15\self_makkaa\sp-project\ConsoleApplication1\Main.cpp(1135,49): warning C4244:             T=int
+E:\Odootec\Staging\15\self_makkaa\sp-project\ConsoleApplication1\Main.cpp(1135,49): warning C4244:         ]
+E:\Odootec\Staging\15\self_makkaa\sp-project\ConsoleApplication1\Main.cpp(1138,49): warning C4244: 'argument': conversion from 'double' to 'T', possible loss of data
+E:\Odootec\Staging\15\self_makkaa\sp-project\ConsoleApplication1\Main.cpp(1138,49): warning C4244:         with
+E:\Odootec\Staging\15\self_makkaa\sp-project\ConsoleApplication1\Main.cpp(1138,49): warning C4244:         [
+E:\Odootec\Staging\15\self_makkaa\sp-project\ConsoleApplication1\Main.cpp(1138,49): warning C4244:             T=int
+E:\Odootec\Staging\15\self_makkaa\sp-project\ConsoleApplication1\Main.cpp(1138,49): warning C4244:         ]
+E:\Odootec\Staging\15\self_makkaa\sp-project\ConsoleApplication1\Main.cpp(1141,49): warning C4244: 'argument': conversion from 'double' to 'T', possible loss of data
+E:\Odootec\Staging\15\self_makkaa\sp-project\ConsoleApplication1\Main.cpp(1141,49): warning C4244:         with
+E:\Odootec\Staging\15\self_makkaa\sp-project\ConsoleApplication1\Main.cpp(1141,49): warning C4244:         [
+E:\Odootec\Staging\15\self_makkaa\sp-project\ConsoleApplication1\Main.cpp(1141,49): warning C4244:             T=int
+E:\Odootec\Staging\15\self_makkaa\sp-project\ConsoleApplication1\Main.cpp(1141,49): warning C4244:         ]
+E:\Odootec\Staging\15\self_makkaa\sp-project\ConsoleApplication1\Main.cpp(1174,51): warning C4305: 'argument': truncation from 'double' to 'float'
+E:\Odootec\Staging\15\self_makkaa\sp-project\ConsoleApplication1\Main.cpp(1174,41): warning C4305: 'argument': truncation from 'double' to 'float'
+E:\Odootec\Staging\15\self_makkaa\sp-project\ConsoleApplication1\Main.cpp(1322,31): warning C4305: 'argument': truncation from 'double' to 'float'
+E:\Odootec\Staging\15\self_makkaa\sp-project\ConsoleApplication1\Main.cpp(1322,24): warning C4305: 'argument': truncation from 'double' to 'float'
+E:\Odootec\Staging\15\self_makkaa\sp-project\ConsoleApplication1\Main.cpp(1328,33): warning C4305: 'argument': truncation from 'double' to 'float'
+E:\Odootec\Staging\15\self_makkaa\sp-project\ConsoleApplication1\Main.cpp(1328,26): warning C4305: 'argument': truncation from 'double' to 'float'
+E:\Odootec\Staging\15\self_makkaa\sp-project\ConsoleApplication1\Main.cpp(1338,30): warning C4305: 'argument': truncation from 'double' to 'float'
+E:\Odootec\Staging\15\self_makkaa\sp-project\ConsoleApplication1\Main.cpp(1338,25): warning C4305: 'argument': truncation from 'double' to 'float'
+E:\Odootec\Staging\15\self_makkaa\sp-project\ConsoleApplication1\Main.cpp(1343,36): warning C4305: 'argument': truncation from 'double' to 'float'
+E:\Odootec\Staging\15\self_makkaa\sp-project\ConsoleApplication1\Main.cpp(1343,31): warning C4305: 'argument': truncation from 'double' to 'float'
+E:\Odootec\Staging\15\self_makkaa\sp-project\ConsoleApplication1\Main.cpp(1349,42): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
+E:\Odootec\Staging\15\self_makkaa\sp-project\ConsoleApplication1\Main.cpp(1430,52): warning C4244: '-=': conversion from 'float' to 'int', possible loss of data
+E:\Odootec\Staging\15\self_makkaa\sp-project\ConsoleApplication1\Main.cpp(1613,52): warning C4244: '-=': conversion from 'float' to 'int', possible loss of data
+E:\Odootec\Staging\15\self_makkaa\sp-project\ConsoleApplication1\Main.cpp(1633,20): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
+E:\Odootec\Staging\15\self_makkaa\sp-project\ConsoleApplication1\Main.cpp(1870,45): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
   ConsoleApplication1.vcxproj -> E:\Odootec\Staging\15\self_makkaa\sp-project\x64\Debug\SFML Template.exe
