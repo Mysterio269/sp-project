@@ -94,6 +94,7 @@ float beastspawntimer = 0;
 float batspawntimer = 0;
 float werewolfspawntimer = 0;
 float zombiespawntimer = 0;
+float enemyAttackDelay = 1.0f;
 RectangleShape volumebar[10];
 Texture beasttexture,zombieTexture,batTexture,werewolfTexture;
 Texture BlueXP, GreenXP, RedXP;
@@ -386,14 +387,22 @@ vector<XPc> Crystals;
 
 struct BEAST:public ENEMY
 {
+    float beastAttackTime = 0;
     void playertargeting()
     {
         velocity = shanoa.sprite.getPosition() - shape.getPosition();
         velocity = unitVector(velocity) * speed;
     }
     void AttackDetection() {
-        if (shanoa.sprite.getGlobalBounds().intersects(attackBox.getGlobalBounds())) {
-            AnimationState = attacking;
+        if (shanoa.sprite.getGlobalBounds().intersects(attackBox.getGlobalBounds()))
+        {
+            beastAttackTime += deltaTime;
+            if (beastAttackTime >= enemyAttackDelay)
+            {
+                beastAttackTime = 0;
+                AnimationState = attacking;
+                shanoa.health -= damage;
+            }
         }
         else
             AnimationState = walking;
@@ -468,14 +477,22 @@ struct BEAST:public ENEMY
 
 struct ZOMBIE :public ENEMY
 {
+    float zombieAttackTime = 0;
     void playertargeting()
     {
         velocity = shanoa.sprite.getPosition() - shape.getPosition();
         velocity = unitVector(velocity) * speed;
     }
     void AttackDetection() {
-        if (shanoa.sprite.getGlobalBounds().intersects(attackBox.getGlobalBounds())) {
-            AnimationState = attacking;
+        if (shanoa.sprite.getGlobalBounds().intersects(attackBox.getGlobalBounds()))
+        {
+            zombieAttackTime += deltaTime;
+            if (zombieAttackTime >= enemyAttackDelay)
+            {
+                zombieAttackTime = 0;
+                AnimationState = attacking;
+                shanoa.health -= damage;
+            }
         }
         else
             AnimationState = walking;
@@ -550,14 +567,22 @@ struct ZOMBIE :public ENEMY
 
 struct WEREWOLF :public ENEMY
 {
+    float werewolfAttackTime = 0;
     void playertargeting()
     {
         velocity = shanoa.sprite.getPosition() - shape.getPosition();
         velocity = unitVector(velocity) * speed;
     }
     void AttackDetection() {
-        if (shanoa.sprite.getGlobalBounds().intersects(attackBox.getGlobalBounds())) {
-            AnimationState = attacking;
+        if (shanoa.sprite.getGlobalBounds().intersects(attackBox.getGlobalBounds()))
+        {
+            werewolfAttackTime += deltaTime;
+            if (werewolfAttackTime >= enemyAttackDelay)
+            {
+                werewolfAttackTime = 0;
+                AnimationState = attacking;
+                shanoa.health -= damage;
+            }
         }
         else
             AnimationState = walking;
@@ -631,14 +656,22 @@ struct WEREWOLF :public ENEMY
 
 struct BAT :public ENEMY
 {
+    float batAttacktime = 0;
     void playertargeting()
     {
         velocity = shanoa.sprite.getPosition() - shape.getPosition();
         velocity = unitVector(velocity) * speed;
     }
     void AttackDetection() {
-        if (shanoa.sprite.getGlobalBounds().intersects(attackBox.getGlobalBounds())) {
-            AnimationState = attacking;
+        if (shanoa.sprite.getGlobalBounds().intersects(attackBox.getGlobalBounds()))
+        {
+            batAttacktime += deltaTime;
+            if (batAttacktime >= enemyAttackDelay)
+            {
+                batAttacktime = 0;
+                AnimationState = attacking;
+                shanoa.health -= damage;
+            }
         }
         else
             AnimationState = walking;
