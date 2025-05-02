@@ -84,13 +84,16 @@ float spawnTime = 3.f;
 float healthRatio;
 float shootingtime = 0.f;
 float shootingrate = 3;
-float deltaTime;
 float totalGameTime = 0.f;
 float menuInputDelay = 0.f;
 float attackDelay = 0.f;
-const float timeForAttack = 0.45f;
+const float timeForAttack = 0.15f;
 const float MENU_INPUT_COOLDOWN = 0.2f; // Time in seconds between allowed inputs
 float soundcontroller = 100;
+float beastspawntimer = 0;
+float batspawntimer = 0;
+float werewolfspawntimer = 0;
+float zombiespawntimer = 0;
 RectangleShape volumebar[10];
 Texture beasttexture,zombieTexture,batTexture,werewolfTexture;
 Texture BlueXP, GreenXP, RedXP;
@@ -126,21 +129,25 @@ struct character
     int level = 1;
     float MeleeDamage;
     Vector2f velocity;
-    bool isDead;
+    bool isDead,isAttacking;
     bool revivalCrystal;
     animationstate AnimationState ;
     playerDirection spriteDirection;
     int columnIndex = 0;
     int rowIndex = 0;
     int animationdelaytimer = 0;
+    float AutoAttackTimer = 0;
     bool startattack = false;
 
 
     void update()
     {
         //spriteDirection = toright;
-        AnimationState = idle;
+        if(!isAttacking){
+            AnimationState = idle;
+        }
         animationdelaytimer++;
+        AutoAttackTimer += deltaTime;
         if (animationdelaytimer > 2) {
             columnIndex++;
             animationdelaytimer = 0;
@@ -176,11 +183,13 @@ struct character
                 AnimationState = walking;
 
             }
-            if (Keyboard::isKeyPressed(Keyboard::E)){
+            if (AutoAttackTimer >= 1.5){
                 AnimationState = attacking;
                 if (startattack == false) {
                     columnIndex = 0;
+                    isAttacking = true;
                     startattack =  true;
+                    AutoAttackTimer = 0;
                 }
             }
             collider.setPosition(sprite.getPosition());
@@ -203,14 +212,17 @@ struct character
                     sprite.setTextureRect(IntRect(columnIndex * 98 + 90, rowIndex * 130 + 18, 160, 148));
                 else if (columnIndex == 4)
                     sprite.setTextureRect(IntRect(columnIndex * 98 + 135, rowIndex * 130 + 11, 160, 148));
-                else if (columnIndex == 5)
-                    sprite.setTextureRect(IntRect(columnIndex * 98 + 195, rowIndex * 130  + 8, 160, 140));
+                else if (columnIndex == 5){
+                        sprite.setTextureRect(IntRect(columnIndex * 98 + 195, rowIndex * 130 + 8, 160, 140));
+                        isAttacking = false;
+                    }
                 break;
             case walking:
                 rowIndex = 1;
                 columnIndex %= 8;
                 sprite.setTextureRect(IntRect(columnIndex * 98 + 30, rowIndex * 130, 120, 148));
                 startattack = false;
+                isAttacking = false;
                 break;
             case idle:
                 rowIndex = 0;
@@ -241,6 +253,126 @@ struct ENEMY
     }
     virtual void update(){}
     virtual ~ENEMY() {}
+};
+struct XPc
+{
+    Sprite sprite;
+    bool isCollected = false;
+    bool CrystalsRemove = false;
+    int xpValue;
+    float lifetime = 35.0f;  // Crystal will exist for 35 seconds 
+    CrystalState state = IDLE;
+
+    // Animation parameters
+    float repelDistance = 150.0f;  // Maximum distance to repel
+    float repelSpeed = 300.0f;     // Speed of repelling
+    float attractRange = 150.0f;   // Range at which crystals start getting attracted
+    float attractSpeed = 190.0f;   // Base speed for attraction
+    float absorbSpeed = 550.0f;    // Speed during final absorption
+    float absorbDistance = 75.0f;  // Distance at which absorption animation starts
+
+    // Timing
+    float repelTimer = 0.0f;
+    float maxRepelTime = 1.1f;     // Time it takes to complete repel animation
+
+    // Movement vector
+    Vector2f direction;
+
+    XPc(float x, float y, Texture& tex, int xp) {
+        sprite.setTexture(tex);
+        sprite.setPosition(x, y);
+        sprite.setScale(0.2f, 0.4f);
+
+        // Center the origin for proper positioning
+        sprite.setOrigin(tex.getSize().x / 2.0f, tex.getSize().y / 2.0f);
+
+        sprite.setTextureRect(IntRect(0, 0, tex.getSize().x, tex.getSize().y));
+        xpValue = xp;
+
+    }
+
+    void update(float deltaTime, const Vector2f& playerPosition)
+    {
+        // Update lifetime regardless of state
+        lifetime -= deltaTime;
+        if (lifetime <= 0.0f) {
+            CrystalsRemove = true;
+            return;
+        }
+
+        // Calculate distance to player
+        Vector2f toPlayer = playerPosition - sprite.getPosition();
+        float mag = sqrt(toPlayer.x * toPlayer.x + toPlayer.y * toPlayer.y);
+
+        // Normalize direction to player
+        Vector2f normalizedToPlayer = toPlayer;
+        if (mag > 0) {
+            normalizedToPlayer.x /= mag;
+            normalizedToPlayer.y /= mag;
+        }
+
+        // Animation state machine
+        switch (state) {
+        case IDLE:
+            state = REPEL;
+            break;
+
+        case REPEL:
+            // Move away from player initially
+            repelTimer += deltaTime;
+
+            if (repelTimer < maxRepelTime)
+            {
+                float currentRepelSpeed = repelSpeed * (1.0f - repelTimer / maxRepelTime); // Slow down as it reaches max distance
+                sprite.move(direction * currentRepelSpeed * deltaTime);
+            }
+            else
+            {
+                state = (mag <= attractRange) ? ATTRACT : IDLE;
+            }
+            break;
+
+        case ATTRACT:
+            // Move toward player with increasing speed based on distance
+            if (mag <= absorbDistance)
+            {
+                // When very close, transition to final absorption
+                state = ABSORB;
+            }
+            else
+            {
+                float speedFactor = 1.0f + (attractRange - mag) / attractRange * 2.0f;
+                sprite.move(normalizedToPlayer * attractSpeed * speedFactor * deltaTime);
+
+            }
+            break;
+
+        case ABSORB:
+            // Final quick absorption movement
+            sprite.move(normalizedToPlayer * absorbSpeed * deltaTime);
+
+            // Shrink effect
+            float currentScale = sprite.getScale().x - 0.6f * deltaTime;
+            if (currentScale <= 0.05f)
+            {
+                isCollected = true;
+            }
+            else
+            {
+                sprite.setScale(currentScale, currentScale * 2.0f);
+            }
+            break;
+        }
+
+        if (state == IDLE && mag <= attractRange)
+        {
+            state = ATTRACT;
+        }
+    }
+
+    FloatRect getBounds() const {
+        return sprite.getGlobalBounds();
+    }
 };
 vector<XPc> Crystals;
 
@@ -594,70 +726,19 @@ struct sword {
     
 };
 
-struct MathEquation {
-        Sprite sprite;
-    Text userAnsText;
-};
 
 Gamestate gamestate = mainmenu;
 
 Font defgamefont; // default game font
 
-View view;
 
 Text StartGameText, SettingsText, ExitText,LeaderboardText, CreditsText,volumeText,settingsmenuText;
 Text DEV_T, TEAMNAME, NAMES, prof, teamname;
 Text GameOverText, ScoreText, RestartText;
-Text mathRevivalText;
-Text nametext;
 
-
-Sprite MainMenuButtons, MainMenuBackground,Map,healthbar, creditsbutton, creditback, volume_up, volume_down,settingsBackground;
-
-Vector2i mouseScreenpos;
-Vector2f mouseWorldpos;
-
-RectangleShape StartButton(Vector2f(490, 110)),SettingsButton(Vector2f(490, 110)),LeaderboardButton(Vector2f(490, 110)),
-               ExitButton(Vector2f(490, 110)), creditsButton(Vector2f(490, 110)),MathRevivlaButton(Vector2f(250, 50)) ,restartButton(Vector2f(250, 50));
-RectangleShape equationAnsCellBox;
-RectangleShape gameOverOverlay; // red color in gameover background
-RectangleShape menuCursor;
-
-FloatRect StartButtonBounds,SettingsButtonBounds,LeaderboardButtonBounds,ExitButtonBounds, creditsButtonBounds,volumeUpBounds,
-          volumeDownBounds;
-
-float volumebarcontroller;
-
-int selectedMenuButtonIndex = 0; // 0 for Start, 1 for Settings, 2 for Leaderboard, 3 for Exit
-int randIndex;// equations elements random index
-
-Listener GameVolume;
-Sound MainMenuMusic, GameOverSound,GameloopMusic;
-SoundBuffer MainMenuMusic_source, GameOverSound_source,GameloopMusic_source;
-
-bool gameOverSoundPlayed = false;
-VideoMode desktopMode = VideoMode::getDesktopMode();
-RenderWindow window(desktopMode, "Vampire Survivors :The path to the legendary formula", sf::Style::Fullscreen);
-//fullscreen fix
-float beastspawntimer = 0;
-float batspawntimer = 0;
-float werewolfspawntimer = 0;
-float zombiespawntimer = 0;
-float spawnTime = 3.f;
-float healthRatio;
-float shootingtime = 0.f;
-float shootingrate = 1;
-float totalGameTime = 0.f;
-float menuInputDelay = 0.f;
-const float MENU_INPUT_COOLDOWN = 0.2f; // Time in seconds between allowed inputs
-float soundcontroller = 100;
-RectangleShape volumebar[10];
-
-
-
-    
 
 vector<sword> swords; 
+
 vector<shared_ptr<ENEMY>> enemies;
 
 
@@ -686,16 +767,17 @@ struct MathEquation {
         Sprite sprite;
     Text userAnsText;
 };
-MathEquation SuvivalEquation;
+
+MathEquation SurvivalEquation;
 int EquationsAns[8] = {3,4,4,2,7,4,1,6};
     string userInput = "";
     bool MathRevivalON;
 
 int main()
 {
-    SuvivalEquation.userAnsText.setFont(defgamefont);
-    SuvivalEquation.userAnsText.setCharacterSize(30);
-    SuvivalEquation.userAnsText.setFillColor(sf::Color::White);
+    SurvivalEquation.userAnsText.setFont(defgamefont);
+    SurvivalEquation.userAnsText.setCharacterSize(30);
+    SurvivalEquation.userAnsText.setFillColor(sf::Color::White);
     srand(time(nullptr));
     Start();
     Clock clock;
@@ -757,7 +839,7 @@ int main()
                     }
                 }
             }
-            SuvivalEquation.userAnsText.setString(userInput);
+            SurvivalEquation.userAnsText.setString(userInput);
         }
         Update();
         Draw();
@@ -1079,9 +1161,9 @@ void GameOverInit()
     mathRevivalText.setFillColor(Color::White);
 
     equationSpriteSheet.loadFromFile("Assets\\equationSpriteSheet.png");
-    SuvivalEquation.sprite.setTexture(equationSpriteSheet);
-    SuvivalEquation.sprite.setTextureRect(IntRect(0, 156 * randIndex, 600, 156));
-    SuvivalEquation.sprite.setScale(0.3/1.5, 0.45/1.5);
+    SurvivalEquation.sprite.setTexture(equationSpriteSheet);
+    SurvivalEquation.sprite.setTextureRect(IntRect(0, 156 * randIndex, 600, 156));
+    SurvivalEquation.sprite.setScale(0.3/1.5, 0.45/1.5);
 
     equationAnsCellBox.setFillColor(Color::Black);
     equationAnsCellBox.setSize(Vector2f(200, 50));
@@ -1297,7 +1379,7 @@ void generalCollision(RectangleShape& objectTOBeMovedCollider, RectangleShape& W
     }
 }
 void meleeAttack() {
-    if (Keyboard::isKeyPressed(Keyboard::E)) {
+    if (shanoa.isAttacking) {
         attackDelay += deltaTime;
         if (attackDelay >= timeForAttack) {
             attackDelay = 0;
@@ -1488,7 +1570,7 @@ void Update()
         {
 
             GetRandIndex(randIndex);
-            SuvivalEquation.sprite.setTextureRect(IntRect(0, 156 * randIndex, 600, 156));
+            SurvivalEquation.sprite.setTextureRect(IntRect(0, 156 * randIndex, 600, 156));
 
             int minutes = static_cast<int>(totalGameTime) / 60; // time calculations for final score
             int seconds = static_cast<int>(totalGameTime) % 60;
@@ -1619,7 +1701,7 @@ void Update()
     if (gamestate != gameover)
     {
         userInput = ""; // delete the last user input   
-        SuvivalEquation.userAnsText.setString("");
+        SurvivalEquation.userAnsText.setString("");
         if(gameOverSoundPlayed)
         {
          GameOverSound.stop();
@@ -1738,18 +1820,18 @@ void Draw()
         Quote.setPosition(viewCenter.x, viewCenter.y + 275.f);
 
 
-        SuvivalEquation.sprite.setPosition(viewCenter.x - SuvivalEquation.sprite.getGlobalBounds().width / 2.f , viewCenter.y + 100.f);
+        SurvivalEquation.sprite.setPosition(viewCenter.x - SurvivalEquation.sprite.getGlobalBounds().width / 2.f , viewCenter.y + 100.f);
         equationAnsCellBox.setPosition(viewCenter.x - equationAnsCellBox.getGlobalBounds().width / 2.f , viewCenter.y + 160.f);
-        SuvivalEquation.userAnsText.setPosition(viewCenter.x - equationAnsCellBox.getGlobalBounds().width / 2.f +5, viewCenter.y + 163.f);//
+        SurvivalEquation.userAnsText.setPosition(viewCenter.x - equationAnsCellBox.getGlobalBounds().width / 2.f +5, viewCenter.y + 163.f);//
 
         window.draw(GameOverText);
         window.draw(ScoreText);
 
         if (MathRevivalON)
         {
-             window.draw(SuvivalEquation.sprite);
+             window.draw(SurvivalEquation.sprite);
              window.draw(equationAnsCellBox);  
-             window.draw(SuvivalEquation.userAnsText);
+             window.draw(SurvivalEquation.userAnsText);
         } 
         else
         {
