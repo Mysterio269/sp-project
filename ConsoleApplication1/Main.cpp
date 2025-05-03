@@ -49,7 +49,7 @@ enum animationstate
 
 enum playerDirection
 {
-    toright,toleft
+    toright, toleft
 };
 
 enum monstertype
@@ -65,24 +65,24 @@ float deltaTime;
 Text mathRevivalText;
 Text Quote;
 
-Texture MainMenuButtons_Texture,MainMenuBackground_Texture,Map_Texture,healthbar_Texture, credits_Texture, credits_background
-        ,volume_up_Texture,volume_down_Texture;
+Texture MainMenuButtons_Texture, MainMenuBackground_Texture, Map_Texture, healthbar_Texture, credits_Texture, credits_background
+, volume_up_Texture, volume_down_Texture;
 Texture equationSpriteSheet;
 Texture swordspritesheet;
-Texture beasttexture,zombieTexture,batTexture,werewolfTexture;
+Texture beasttexture, zombieTexture, batTexture, werewolfTexture;
 Texture BlueXP, GreenXP, RedXP;
-Sprite MainMenuButtons, MainMenuBackground,Map,healthbar, creditsbutton, creditback, volume_up, volume_down,settingsBackground;
+Sprite MainMenuButtons, MainMenuBackground, Map, healthbar, creditsbutton, creditback, volume_up, volume_down, settingsBackground;
 View view;
 Vector2i mouseScreenpos;
 Vector2f mouseWorldpos;
 int selectedGameOverOptionIndex = 0;
-RectangleShape StartButton(Vector2f(490, 110)),SettingsButton(Vector2f(490, 110)),LeaderboardButton(Vector2f(490, 110)),
-               ExitButton(Vector2f(490, 110)), creditsButton(Vector2f(490, 110)),MathRevivlaButton(Vector2f(250, 50)) ,restartButton(Vector2f(250, 50));
+RectangleShape StartButton(Vector2f(490, 110)), SettingsButton(Vector2f(490, 110)), LeaderboardButton(Vector2f(490, 110)),
+ExitButton(Vector2f(490, 110)), creditsButton(Vector2f(490, 110)), MathRevivlaButton(Vector2f(250, 50)), restartButton(Vector2f(250, 50));
 RectangleShape GiveUpButton(Vector2f(250, 50)); // *** Add shape for the Give Up button *** 
 RectangleShape equationAnsCellBox;
 RectangleShape gameOverOverlay; // red color in gameover background
-FloatRect StartButtonBounds,SettingsButtonBounds,LeaderboardButtonBounds,ExitButtonBounds, creditsButtonBounds,volumeUpBounds,
-          volumeDownBounds;
+FloatRect StartButtonBounds, SettingsButtonBounds, LeaderboardButtonBounds, ExitButtonBounds, creditsButtonBounds, volumeUpBounds,
+volumeDownBounds;
 RectangleShape menuCursor;
 FloatRect MathRevivlaButtonBounds, RestartButtonBounds, GiveUpButtonBounds; // *** Add bounds for Give Up button ***
 Text nametext;
@@ -91,8 +91,8 @@ int selectedMenuButtonIndex = 0; // 0 for Start, 1 for Settings, 2 for Leaderboa
 float volumebarcontroller;
 int randIndex;// equations elements random index
 
-Sound MainMenuMusic, GameOverSound,GameloopMusic;
-SoundBuffer MainMenuMusic_source, GameOverSound_source,GameloopMusic_source;
+Sound MainMenuMusic, GameOverSound, GameloopMusic;
+SoundBuffer MainMenuMusic_source, GameOverSound_source, GameloopMusic_source;
 bool gameOverSoundPlayed = false;
 
 sf::VideoMode desktopMode = sf::VideoMode::getDesktopMode();
@@ -130,7 +130,7 @@ Vector2f unitVector(Vector2f vector) {
 void generalCollision(RectangleShape& objectTOBeMovedCollider, RectangleShape& Wall, Sprite& Object);
 void quoteUpdate();
 void quotesInit();
-void GetRandIndex(int &randomIndex);
+void GetRandIndex(int& randomIndex);
 void MainMenuInput();
 void PauseMenuInit();
 void handleNameInput(sf::Event& event);
@@ -155,9 +155,9 @@ struct character
     int level = 1;
     float MeleeDamage;
     Vector2f velocity;
-    bool isDead,isAttacking;
+    bool isDead, isAttacking;
     bool revivalCrystal;
-    animationstate AnimationState ;
+    animationstate AnimationState;
     playerDirection spriteDirection;
     int columnIndex = 0;
     int rowIndex = 0;
@@ -171,7 +171,7 @@ struct character
     void update()
     {
         //spriteDirection = toright;
-        if(!isAttacking){
+        if (!isAttacking) {
             AnimationState = idle;
         }
         animationdelaytimer++;
@@ -203,7 +203,7 @@ struct character
                 if (!isAttacking) {
                     AnimationState = walking;
                 }
-                
+
             }
             if (Keyboard::isKeyPressed(Keyboard::S) || Keyboard::isKeyPressed(Keyboard::Down)) {
                 sprite.move(0, speed * deltaTime);
@@ -219,12 +219,12 @@ struct character
                 }
 
             }
-            if (AutoAttackTimer >= 1.5){
+            if (AutoAttackTimer >= 1.5) {
                 AnimationState = attacking;
                 if (startattack == false) {
                     columnIndex = 0;
                     isAttacking = true;
-                    startattack =  true;
+                    startattack = true;
                     AutoAttackTimer = 0;
                 }
             }
@@ -238,20 +238,20 @@ struct character
             case attacking:
                 rowIndex = 2;
                 columnIndex %= 6;
-                if(columnIndex == 0)
-                    sprite.setTextureRect(IntRect(columnIndex * 98 + 30, rowIndex * 130 +13, 120, 148));
-                else if(columnIndex == 1)
-                    sprite.setTextureRect(IntRect(columnIndex * 98 + 30, rowIndex * 130 +18, 120, 148));
+                if (columnIndex == 0)
+                    sprite.setTextureRect(IntRect(columnIndex * 98 + 30, rowIndex * 130 + 13, 120, 148));
+                else if (columnIndex == 1)
+                    sprite.setTextureRect(IntRect(columnIndex * 98 + 30, rowIndex * 130 + 18, 120, 148));
                 else if (columnIndex == 2)
                     sprite.setTextureRect(IntRect(columnIndex * 98 + 30, rowIndex * 130 + 18, 160, 148));
                 else if (columnIndex == 3)
                     sprite.setTextureRect(IntRect(columnIndex * 98 + 90, rowIndex * 130 + 18, 160, 148));
                 else if (columnIndex == 4)
                     sprite.setTextureRect(IntRect(columnIndex * 98 + 135, rowIndex * 130 + 11, 160, 148));
-                else if (columnIndex == 5){
-                        sprite.setTextureRect(IntRect(columnIndex * 98 + 195, rowIndex * 130 + 8, 160, 140));
-                        isAttacking = false;
-                    }
+                else if (columnIndex == 5) {
+                    sprite.setTextureRect(IntRect(columnIndex * 98 + 195, rowIndex * 130 + 8, 160, 140));
+                    isAttacking = false;
+                }
                 break;
             case walking:
                 rowIndex = 1;
@@ -280,15 +280,15 @@ struct ENEMY
     Sprite shape;
     Texture enemyspreadsheet;
     animationstate AnimationState;
-    float speed,animationdelaytimer;
+    float speed, animationdelaytimer;
     float healthBarWidth;
     int columnindex = 0, rowindex;
-    int health, damage,maxHealth;
+    int health, damage, maxHealth;
     bool isAttacking = false, isDead = false, hasDroppedXP = false;
     virtual void start() {
         //virtual start to be edited afterwards in the code
     }
-    virtual void update(){}
+    virtual void update() {}
     virtual ~ENEMY() {}
 };
 
@@ -412,7 +412,7 @@ struct XPc
 
 vector<XPc> Crystals;
 
-struct BEAST:public ENEMY
+struct BEAST :public ENEMY
 {
     float beastAttackTime = 0;
     void playertargeting()
@@ -434,7 +434,7 @@ struct BEAST:public ENEMY
         else
             AnimationState = walking;
     }
-    void start() override{
+    void start() override {
         MonsterType = Beast;
         shape.setTexture(beasttexture);
         shape.setScale(1.8, 2.5);
@@ -453,17 +453,17 @@ struct BEAST:public ENEMY
         attackBox.setOrigin(attackBox.getLocalBounds().width / 2, attackBox.getLocalBounds().height / 2);
         healthBarHolder.setFillColor(Color::Black);
         healthBarHolder.setSize(Vector2f(60, 10));
-        healthBarHolder.setOrigin(healthBarHolder.getLocalBounds().width / 2, healthBarHolder.getLocalBounds().height/2);
+        healthBarHolder.setOrigin(healthBarHolder.getLocalBounds().width / 2, healthBarHolder.getLocalBounds().height / 2);
         healthBarOfEnemy.setFillColor(Color::Green);
         healthBarOfEnemy.setSize(Vector2f(60, 10));
         healthBarWidth = 60;
         healthBarOfEnemy.setOrigin(healthBarHolder.getLocalBounds().width / 2, healthBarHolder.getLocalBounds().height / 2);
     }
-    void update() override{
+    void update() override {
         collider.setPosition(shape.getPosition());
         attackBox.setPosition(shape.getPosition().x, shape.getPosition().y - 40);
-        healthBarHolder.setPosition(shape.getPosition().x , shape.getPosition().y-70);
-        healthBarOfEnemy.setPosition(shape.getPosition().x , shape.getPosition().y - 70);
+        healthBarHolder.setPosition(shape.getPosition().x, shape.getPosition().y - 70);
+        healthBarOfEnemy.setPosition(shape.getPosition().x, shape.getPosition().y - 70);
         AttackDetection();
         animationdelaytimer++;
         if (animationdelaytimer >= 2) {
@@ -553,7 +553,7 @@ struct ZOMBIE :public ENEMY
         attackBox.setOrigin(attackBox.getLocalBounds().width / 2, attackBox.getLocalBounds().height / 2);
         healthBarHolder.setFillColor(Color::Black);
         healthBarHolder.setSize(Vector2f(40, 10));
-        healthBarHolder.setOrigin(healthBarHolder.getLocalBounds().width / 2, healthBarHolder.getLocalBounds().height /2);
+        healthBarHolder.setOrigin(healthBarHolder.getLocalBounds().width / 2, healthBarHolder.getLocalBounds().height / 2);
         healthBarOfEnemy.setFillColor(Color::Green);
         healthBarOfEnemy.setSize(Vector2f(40, 10));
         healthBarWidth = 40;
@@ -563,7 +563,7 @@ struct ZOMBIE :public ENEMY
         collider.setPosition(shape.getPosition());
         attackBox.setPosition(shape.getPosition().x, shape.getPosition().y - 40);
         healthBarHolder.setPosition(shape.getPosition().x, shape.getPosition().y - 50);
-        healthBarOfEnemy.setPosition(shape.getPosition().x , shape.getPosition().y - 50);
+        healthBarOfEnemy.setPosition(shape.getPosition().x, shape.getPosition().y - 50);
         AttackDetection();
         animationdelaytimer++;
         if (animationdelaytimer >= 2) {
@@ -651,7 +651,7 @@ struct WEREWOLF :public ENEMY
         collider.setOrigin(collider.getLocalBounds().width / 2, collider.getLocalBounds().height / 2);
         healthBarHolder.setFillColor(Color::Black);
         healthBarHolder.setSize(Vector2f(50, 10));
-        healthBarHolder.setOrigin(healthBarHolder.getLocalBounds().width / 2, healthBarHolder.getLocalBounds().height/2);
+        healthBarHolder.setOrigin(healthBarHolder.getLocalBounds().width / 2, healthBarHolder.getLocalBounds().height / 2);
         shape.setOrigin(64, 73);
         healthBarOfEnemy.setFillColor(Color::Green);
         healthBarOfEnemy.setSize(Vector2f(50, 10));
@@ -752,7 +752,7 @@ struct BAT :public ENEMY
         attackBox.setOrigin(attackBox.getLocalBounds().width / 2, attackBox.getLocalBounds().height / 2);
         healthBarHolder.setFillColor(Color::Black);
         healthBarHolder.setSize(Vector2f(30, 10));
-        healthBarHolder.setOrigin(healthBarHolder.getLocalBounds().width / 2, healthBarHolder.getLocalBounds().height /2);
+        healthBarHolder.setOrigin(healthBarHolder.getLocalBounds().width / 2, healthBarHolder.getLocalBounds().height / 2);
         healthBarOfEnemy.setFillColor(Color::Green);
         healthBarOfEnemy.setSize(Vector2f(30, 10));
         healthBarWidth = 30;
@@ -761,7 +761,7 @@ struct BAT :public ENEMY
     void update() override {
         collider.setPosition(shape.getPosition());
         attackBox.setPosition(shape.getPosition().x, shape.getPosition().y - 40);
-        healthBarHolder.setPosition(shape.getPosition().x +5, shape.getPosition().y - 45);
+        healthBarHolder.setPosition(shape.getPosition().x + 5, shape.getPosition().y - 45);
         healthBarOfEnemy.setPosition(shape.getPosition().x + 5, shape.getPosition().y - 45);
         AttackDetection();
         animationdelaytimer++;
@@ -811,7 +811,6 @@ struct BAT :public ENEMY
     }
 }bat;
 
-
 struct sword {
     Sprite shape;
     RectangleShape collider;
@@ -825,14 +824,15 @@ struct sword {
         shape.move(velocity * deltaTime);
         collider.setPosition(shape.getPosition());
         collider.setOrigin(shape.getOrigin());
-        collider.setSize(Vector2f(32,32));
+        collider.setSize(Vector2f(32, 32));
         shape.setOrigin(16, 16);
         collider.setOrigin(15, 7.5);
         deletiontimer += deltaTime;
-        
+
     }
-    
+
 };
+
 struct Obstacle
 {
     Sprite sprite;
@@ -1113,7 +1113,7 @@ Gamestate gamestate = mainmenu;
 Font defgamefont; // default game font
 
 
-Text StartGameText, SettingsText, ExitText,LeaderboardText, CreditsText,volumeText,settingsmenuText;
+Text StartGameText, SettingsText, ExitText, LeaderboardText, CreditsText, volumeText, settingsmenuText;
 Text DEV_T, TEAMNAME, NAMES, prof, teamname;
 Text GameOverText, ScoreText, RestartText;
 Text nameInputPromptText; // For the next screen
@@ -1131,7 +1131,7 @@ FloatRect PauseReturnToMenuButtonBounds;
 
 string playerName = "";
 
-vector<sword> swords; 
+vector<sword> swords;
 
 vector<shared_ptr<ENEMY>> enemies;
 
@@ -1158,14 +1158,14 @@ string quotes[5] = {
 };
 
 struct MathEquation {
-        Sprite sprite;
+    Sprite sprite;
     Text userAnsText;
 };
 
 MathEquation SurvivalEquation;
-int EquationsAns[8] = {3,4,4,2,7,4,1,6};
-    string userInput = "";
-    bool MathRevivalON;
+int EquationsAns[8] = { 3,4,4,2,7,4,1,6 };
+string userInput = "";
+bool MathRevivalON;
 
 int main()
 {
@@ -1201,12 +1201,14 @@ int main()
                     selectedMenuButtonIndex = 0; // Reset pause menu selection
                 }
             }
+
             if (Keyboard::isKeyPressed(Keyboard::Tab)) // DEBUGGING BUTTON
             {
                 window.close();
             }
+
             // --- Handle Text Entered event ---
-            if (event.type == Event::TextEntered)
+            if (event.type == sf::Event::TextEntered)
             {
                 if (gamestate == gameover && MathRevivalON) // Math Revival input (only when MathRevivalON is true)
                 {
@@ -1215,11 +1217,11 @@ int main()
                     if (event.text.unicode == 8)// isKeyPressed::Backspace
                     {
                         if (!userInput.empty())
-                            userInput.pop_back(); 
+                            userInput.pop_back();
                     }
                     else if (event.text.unicode >= '0' && event.text.unicode <= '9')
                     {
-                        if (userInput.size() < 9) 
+                        if (userInput.size() < 9)
                         {
                             userInput += static_cast<char>(event.text.unicode);
                         }
@@ -1228,19 +1230,16 @@ int main()
                     else if (event.text.unicode == 13)// iskeypressed::Enter
                     {
                         if (!userInput.empty())
-                        { 
+                        {
                             if (stoi(userInput) == EquationsAns[randIndex]) // correct answer
                             {
-                                gamestate = gameloop;// Go back to gameloop
+                                gamestate = gameloop; // Go back to gameloop
                                 postTransitionCooldown = POST_TRANSITION_DELAY; // Set cooldown
                                 GameOverSound.stop();
-                                gameOverSoundPlayed = false;
-                                GameloopMusic.play();
                                 MathRevivalON = false;
                                 userInput = ""; // Clear input
-                                quoteUpdate();
                                 // *** Reset player state for revival ***
-                                shanoa.health = shanoa.Maxhp / 2.f; // Restore half health
+                                shanoa.health = shanoa.Maxhp / 2.f; // Restore half health (example)
                                 shanoa.isDead = false; // Player is no longer dead
                                 shanoa.hasRevived = true; // Mark that revival occurred
                                 // You might need to adjust player position away from enemies
@@ -1248,31 +1247,33 @@ int main()
                             else
                             {
                                 // Math Revival failed
-                                gamestate = gameover;
+                                gamestate = gameover; // Go to main menu (or gameover options again?)
                                 postTransitionCooldown = POST_TRANSITION_DELAY; // Set cooldown
-                                userInput = ""; // Clear input
                                 MainMenuMusic.play();
-                                MathRevivalON = false;
-                                gameOverSoundPlayed = false;
-                                GameOverSound.stop();
-                                menuInputDelay = 0.f;
+                                MathRevivalON = false; // Turn off Math Revival puzzle
+                                userInput = ""; // Clear input
                                 // Game over screen is skipped, so score won't be saved from here.
-                               // If you want to save score on Math Revival fail,
-                               // transition back to gameover options instead of mainmenu.
+                                // If you want to save score on Math Revival fail,
+                                // transition back to gameover options instead of mainmenu.
                             }
                         }
                     }
+                    SurvivalEquation.userAnsText.setString(userInput); // Update Math Revival text display
+                }
+                // *** Add Name Input handling ***
+                else if (gamestate == nameinput) // Name input
+                {
+                    handleNameInput(event);
                 }
             }
-            else if (gamestate == nameinput) // Name input
-            {
-                handleNameInput(event);
-            }
-            SurvivalEquation.userAnsText.setString(userInput);
-            // *** Add Name Input handling ***
-        }// End of while (window.pollEvent(event))
+
+
+        } // End of while (window.pollEvent(event))
+
+
         // --- Handle Keyboard::isKeyPressed checks (for continuous actions like Backspace/Enter on name input) ---
         // These checks run every frame, outside the event polling loop.
+
 
         Update();
         Draw();
@@ -1447,8 +1448,8 @@ void NameInputInit()
 void shooting()
 {
     shootingtime += deltaTime;
-    
-    if (shootingtime>=shootingrate)
+
+    if (shootingtime >= shootingrate)
     {
         shootingtime = 0;
         float erasuretimer = 0;
@@ -1460,14 +1461,14 @@ void shooting()
         newSword.shape.setPosition(shanoa.sprite.getPosition());// init
         newSword.collider.setSize(Vector2f(30, 15));// init
 
-   
+
 
         if (shanoa.spriteDirection == toleft)
         {
             newSword.velocity = Vector2f(-1.f, 0.f) * newSword.speed;
             newSword.shape.setRotation(225);
         }
-        else  
+        else
         {
             newSword.velocity = Vector2f(1.f, 0.f) * newSword.speed;
             newSword.shape.setRotation(45);
@@ -1514,7 +1515,7 @@ void MainmenuInit() {
     ExitText.setString("Exit");
     ExitText.setPosition(9970, 10199);
 
-    creditsButton.setPosition(9853, 10094); 
+    creditsButton.setPosition(9853, 10094);
     creditsButton.setFillColor(Color::Red);
     creditsButton.setScale(0.6, 0.65);
     CreditsText.setPosition(9940, 10107);
@@ -1544,7 +1545,7 @@ void MainmenuInit() {
     menuCursor.setOutlineThickness(4);
 
 
-    selectedMenuButtonIndex = 0; 
+    selectedMenuButtonIndex = 0;
 
 
     MainMenuMusic_source.loadFromFile("Assets\\MainMenuMusic.ogg");
@@ -1624,7 +1625,7 @@ void CharacterInit() {
     shanoa.speed = 200;
     shanoa.sprite.setPosition(0, 0);
     shanoa.collider.setSize(Vector2f(60, 125));
-    shanoa.collider.setOrigin(shanoa.collider.getLocalBounds().width/2,shanoa.collider.getLocalBounds().height/2);
+    shanoa.collider.setOrigin(shanoa.collider.getLocalBounds().width / 2, shanoa.collider.getLocalBounds().height / 2);
     shanoa.collider.setFillColor(Color::Blue);
     shanoa.attackSpace.setSize(Vector2f(80, 45));
     shanoa.attackSpace.setFillColor(Color::Black);
@@ -1638,7 +1639,7 @@ void CharacterInit() {
     healthbar.setScale(0.84, 1.2);
 }
 
-void inRange(float& damage,shared_ptr< ENEMY>& Enemy) {
+void inRange(float& damage, shared_ptr< ENEMY>& Enemy) {
     if (Enemy->health >= damage)
     {
         Enemy->health -= damage;
@@ -1660,14 +1661,14 @@ void enemiesInAttackSpace(shared_ptr<ENEMY>& Enemy) {
 void MapInit() {
     Map_Texture.loadFromFile("Assets\\mapfinal.png");
     Map_Texture.setRepeated(true);
-    Map.setTextureRect(IntRect(0,0,20000,20000));
+    Map.setTextureRect(IntRect(0, 0, 20000, 20000));
     Map.setTexture(Map_Texture);
     Map.setPosition(-10000, -10000);
 }
 
 void EnemySpawn() {
     Vector2f randomspawnpoint = Vector2f(shanoa.sprite.getPosition().x + (rand() % 2001 - 1000), shanoa.sprite.getPosition().y + (rand() % 2001 - 1000));
-    if(enemies.size() <= 25){
+    if (enemies.size() <= 25) {
         beastspawntimer += deltaTime;
         batspawntimer += deltaTime;
         werewolfspawntimer += deltaTime;
@@ -1741,7 +1742,7 @@ void healthbarhandling() {
         healthbar.setTextureRect(IntRect(0, 0, 445, 177));
     }
     else if (healthRatio > 0.8) {
-        healthbar.setTextureRect(IntRect(444.4+ 5, 0, 445, 177));
+        healthbar.setTextureRect(IntRect(444.4 + 5, 0, 445, 177));
     }
     else if (healthRatio > 0.7) {
         healthbar.setTextureRect(IntRect(888.8 + 10, 0, 445, 177));
@@ -1764,11 +1765,11 @@ void healthbarhandling() {
     else if (healthRatio > 0.1) {
         healthbar.setTextureRect(IntRect(3552.2 + 42, 0, 445, 177));
     }
-    else if(shanoa.health <= 0){
+    else if (shanoa.health <= 0) {
         gamestate = gameover;
     }
     healthbar.setPosition(shanoa.sprite.getPosition().x - 500, shanoa.sprite.getPosition().y + 285);
-  }
+}
 
 void GameOverInit()
 {
@@ -1779,11 +1780,11 @@ void GameOverInit()
 
     ScoreText.setFont(defgamefont);
     ScoreText.setString("Time: 00:00");
-    ScoreText.setCharacterSize(40); 
+    ScoreText.setCharacterSize(40);
     ScoreText.setFillColor(Color::White);
 
     RestartText.setFont(defgamefont);
-    RestartText.setString("return to Main Menu");
+    RestartText.setString("Restart");
     RestartText.setCharacterSize(20);
     RestartText.setFillColor(Color::White);
 
@@ -1807,7 +1808,7 @@ void GameOverInit()
     equationSpriteSheet.loadFromFile("Assets\\equationSpriteSheet.png");
     SurvivalEquation.sprite.setTexture(equationSpriteSheet);
     SurvivalEquation.sprite.setTextureRect(IntRect(0, 156 * randIndex, 600, 156));
-    SurvivalEquation.sprite.setScale(0.3/1.5, 0.45/1.5);
+    SurvivalEquation.sprite.setScale(0.3 / 1.5, 0.45 / 1.5);
 
     equationAnsCellBox.setFillColor(Color::Black);
     equationAnsCellBox.setSize(Vector2f(200, 50));
@@ -1816,12 +1817,12 @@ void GameOverInit()
 
     restartButton.setFillColor(Color(100, 0, 0));
     restartButton.setOutlineColor(Color::Yellow);
-    restartButton.setOutlineThickness(5);
 
     MathRevivlaButton.setFillColor(Color(100, 0, 0));
     MathRevivlaButton.setOutlineColor(Color::Yellow);
-    MathRevivlaButton.setOutlineThickness(5);
 
+    restartButton.setSize(Vector2f(250, 50)); // Example size
+    MathRevivlaButton.setSize(Vector2f(250, 50)); // Example size
 
 
     gameOverOverlay.setSize(view.getSize()); // Set size based on the view's size
@@ -1831,14 +1832,16 @@ void GameOverInit()
     // The fourth parameter (100) is the alpha channel (transparency), from 0 (fully transparent) to 255 (fully opaque)
     gameOverOverlay.setFillColor(Color(100, 0, 0, 120));
 
+
     // REMEMBER TO REPLACE GAMEOVER SOUND WITH NEW ONE
     GameOverSound_source.loadFromFile("Assets\\MainMenuMusic.ogg");
     GameOverSound.setBuffer(GameOverSound_source);
 
     gameOverSoundPlayed = false;
-    
+
     // Ensure MathRevivalON is false initially for the gameover screen
     MathRevivalON = false;
+
 }
 
 void MainMenuButtonCheck()
@@ -1846,7 +1849,7 @@ void MainMenuButtonCheck()
     if (StartButtonBounds.contains(mouseWorldpos))
     {
         selectedMenuButtonIndex = 0;
-        if(Mouse::isButtonPressed(Mouse::Left))
+        if (Mouse::isButtonPressed(Mouse::Left))
         {
             gamestate = gameloop;
             MainMenuMusic.stop();
@@ -1882,7 +1885,7 @@ void MainMenuButtonCheck()
         {
             gamestate = credits;
         }
-        
+
     }
 }
 
@@ -1907,9 +1910,9 @@ void MainMenuInput()
         {
             // handling out of bounds
             if (selectedMenuButtonIndex < 0) {
-                selectedMenuButtonIndex = 4; 
+                selectedMenuButtonIndex = 4;
             }
-            else if (selectedMenuButtonIndex > 4) { 
+            else if (selectedMenuButtonIndex > 4) {
                 selectedMenuButtonIndex = 0;
             }
 
@@ -1984,7 +1987,7 @@ void SettingsMenuInit() {
             volumebar[i].setSize(Vector2f(15, 30));
             volumebar[i].setFillColor(Color::White);
             volumebar[i].setPosition(690 + (i * 20), 20307);
-       }
+        }
     }
 }
 
@@ -2039,8 +2042,10 @@ void meleeAttack() {
         attackDelay = 0;
 }
 
-void GetRandIndex(int &randomIndex)
-{randomIndex = rand() % 6;}
+void GetRandIndex(int& randomIndex)
+{
+    randomIndex = rand() % 6;
+}
 
 int indexForRandomQuote() {
     return rand() % 5;
@@ -2061,26 +2066,26 @@ void quoteUpdate() {
 }
 
 void swordFullCollisionAndDamage() {
-   
-        /*------------------enemys-----------------*/
-        for (int i = 0; i < swords.size(); i++) {
-            swords[i].update();
-            bool SwordIsRemoved = false;
-            for (int j = 0; j < enemies.size(); j++) {
-                if (swords[i].collider.getGlobalBounds().intersects(enemies[j]->collider.getGlobalBounds())) {
-                    enemies[j]->health -= swords[i].damage;
-                    float decreaseRatio = float(enemies[j]->health) / float(enemies[j]->maxHealth);
-                    enemies[j]->healthBarOfEnemy.setSize(Vector2f(enemies[j]->healthBarWidth * (decreaseRatio), 10));
-                    swords.erase(swords.begin() + i);
-                    cout << " bb ";
-                    cout << enemies[j]->health << ' ';
-                    SwordIsRemoved = true;
-                    break;
-                }
-            }
-            if (SwordIsRemoved)
+
+    /*------------------enemys-----------------*/
+    for (int i = 0; i < swords.size(); i++) {
+        swords[i].update();
+        bool SwordIsRemoved = false;
+        for (int j = 0; j < enemies.size(); j++) {
+            if (swords[i].collider.getGlobalBounds().intersects(enemies[j]->collider.getGlobalBounds())) {
+                enemies[j]->health -= swords[i].damage;
+                float decreaseRatio = float(enemies[j]->health) / float(enemies[j]->maxHealth);
+                enemies[j]->healthBarOfEnemy.setSize(Vector2f(enemies[j]->healthBarWidth * (decreaseRatio), 10));
+                swords.erase(swords.begin() + i);
+                cout << " bb ";
+                cout << enemies[j]->health << ' ';
+                SwordIsRemoved = true;
                 break;
+            }
         }
+        if (SwordIsRemoved)
+            break;
+    }
 
 
 
@@ -2088,15 +2093,15 @@ void swordFullCollisionAndDamage() {
 
 
 
-        /*------------------obstacles-----------------*/
+    /*------------------obstacles-----------------*/
 
 
 
 
 
-       
-      
-    
+
+
+
 }
 
 // For All Game Collision
@@ -2162,7 +2167,7 @@ void Update()
         MainMenuButtonCheck();
 
 
-        
+
         MainMenuInput();
         // changing cursor based on button it's on
         Vector2f selectedButtonPosition;
@@ -2191,7 +2196,7 @@ void Update()
         }
 
         menuCursor.setPosition(selectedButtonPosition.x, selectedButtonPosition.y);
-        menuCursor.setSize(Vector2f(selectedButtonSize.x-200, selectedButtonSize.y-45));
+        menuCursor.setSize(Vector2f(selectedButtonSize.x - 200, selectedButtonSize.y - 45));
 
         view.setCenter(10000, 9800);
         quoteUpdate();
@@ -2200,7 +2205,7 @@ void Update()
 
     }
 
-    if (gamestate == gameloop)
+    else if (gamestate == gameloop)
     {
         // gameloop update
 
@@ -2215,7 +2220,7 @@ void Update()
         for (int i = 0; i < swords.size(); i++)
         {
             swords[i].update();
-            if (swords[i].deletiontimer > 10 ) {
+            if (swords[i].deletiontimer > 10) {
                 swords.erase(swords.begin() + i);
             }
         }
@@ -2225,7 +2230,7 @@ void Update()
             view.setCenter(10000, 9800);
             GameloopMusic.stop();
             MainMenuMusic.play();
-            
+
         }
         if (Keyboard::isKeyPressed(Keyboard::Q) || shanoa.isDead)
         {
@@ -2271,7 +2276,7 @@ void Update()
                     break;
                 }
             }
-            
+
         }
         for (int i = 0; i < Crystals.size(); i++) {
             // Pass player position to update function
@@ -2291,6 +2296,7 @@ void Update()
         meleeAttack();
         view.setCenter(shanoa.sprite.getPosition());
     }
+
     else if (gamestate == paused) // <-- New Paused State Update
     {
         window.setMouseCursorVisible(true);
@@ -2406,8 +2412,7 @@ void Update()
         view.setCenter(viewCenter); // Keep view centered on pause screen
     }
 
-
-    if (gamestate == settings)
+    else if (gamestate == settings)
     {
         // settings menu update
         window.setMouseCursorVisible(true);
@@ -2439,7 +2444,7 @@ void Update()
         }
     }
 
-    if (gamestate == leaderboard)
+    else if (gamestate == leaderboard)
     {
         // leaderboard menu update
         window.setMouseCursorVisible(true);
@@ -2450,7 +2455,7 @@ void Update()
         }
     }
 
-    if (gamestate == gameover)
+    else if (gamestate == gameover)
     {
         // gameover screen update
         window.setMouseCursorVisible(true);
@@ -2535,11 +2540,9 @@ void Update()
                 {
                     if (selectedGameOverOptionIndex == 0) // Restart selected
                     {
-                        GameOverSound.stop();
-                        menuInputDelay = 0.f; // Reset delay BEFORE state change
-                        gamestate = mainmenu; // Transition to main menu
-                        view.setCenter(10000, 9800); // Center view back on main menu
-                        MainMenuMusic.play();
+                        gamestate = gameloop;
+                        MainMenuMusic.stop();
+                        GameloopMusic.play();
                         gameOverSoundPlayed = false;
                         selectedMenuButtonIndex = 0; // Reset main menu selection
                         // Reset game state elements (enemies, crystals, etc.) when going to main menu for a new game
@@ -2604,7 +2607,7 @@ void Update()
 
     }
 
-    if (gamestate == credits) {
+    else if (gamestate == credits) {
         creditback.setColor(Color(70, 70, 70));
         view.setCenter(10000, 9800);
         if (Keyboard::isKeyPressed(Keyboard::R))
@@ -2612,6 +2615,7 @@ void Update()
             gamestate = mainmenu;
         }
     }
+
     else if (gamestate == nameinput)
     {
         menuInputDelay += deltaTime; // Increment delay for nameinput state
@@ -2682,7 +2686,7 @@ void Draw()
         //window.draw(SettingsButton);
         //window.draw(LeaderboardButton);
         //window.draw(ExitButton);
-         
+
 
         // main menu draw
         window.draw(MainMenuBackground);
@@ -2734,9 +2738,9 @@ void Draw()
             window.draw(swords[i].shape);
         }
 
-      /*  window.draw(shanoa.attackSpace);*/
+        /*  window.draw(shanoa.attackSpace);*/
         window.draw(shanoa.sprite);
-        
+
         for (int i = 0; i < Crystals.size(); i++)
         {
             if (Crystals[i].isCollected == false) {
@@ -2744,7 +2748,7 @@ void Draw()
             }
         }
         for (int i = 0;i < enemies.size();i++) {
-           /* window.draw(enemies[i]->collider);*/
+            /* window.draw(enemies[i]->collider);*/
             window.draw(enemies[i]->healthBarHolder);
             window.draw(enemies[i]->healthBarOfEnemy);
             window.draw(enemies[i]->shape);
@@ -2781,7 +2785,7 @@ void Draw()
         Vector2f viewCenter = view.getCenter();
         // Center horizontally by subtracting half of the text's width
         GameOverText.setPosition(viewCenter.x - GameOverText.getGlobalBounds().width / 2.f, viewCenter.y - 100.f);
-        ScoreText.setPosition(viewCenter.x - ScoreText.getGlobalBounds().width / 2.f, viewCenter.y+10);
+        ScoreText.setPosition(viewCenter.x - ScoreText.getGlobalBounds().width / 2.f, viewCenter.y + 10);
         window.draw(GameOverText);
         window.draw(ScoreText);
 
@@ -2824,9 +2828,9 @@ void Draw()
             // Cursor position is updated in the Update function
             window.draw(menuCursor);
         }
-    
+
         window.draw(Quote);
-        
+
     }
 
     if (gamestate == credits)
