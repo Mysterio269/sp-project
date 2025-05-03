@@ -71,6 +71,10 @@ Texture equationSpriteSheet;
 Texture swordspritesheet;
 Texture beasttexture, zombieTexture, batTexture, werewolfTexture;
 Texture BlueXP, GreenXP, RedXP;
+Texture levelup;
+Sprite levelupsprite;
+bool showlevelup = false;
+float levelupdisplaytimer = 0.0f;
 Sprite MainMenuButtons, MainMenuBackground, Map, healthbar, creditsbutton, creditback, volume_up, volume_down, settingsBackground;
 View view;
 Vector2i mouseScreenpos;
@@ -119,6 +123,8 @@ multimap<float, string> leaderboardEntriesMap; // Key: -score (float), Value: pl
 
 int BlueXPcValue = 10, GreenXPcValue = 30, RedXPcValue = 50;
 
+bool checklevel = false;
+
 Vector2f unitVector(Vector2f vector) {
     float magnitude = sqrt(vector.x * vector.x + vector.y * vector.y);
     if (magnitude == 0) {
@@ -127,6 +133,8 @@ Vector2f unitVector(Vector2f vector) {
     Vector2f unit = Vector2f(vector.x / magnitude, vector.y / magnitude);
     return unit;
 }
+Sound shanoadamaged, sowrdsound;
+SoundBuffer shanoadamaged_source, sowrdsound_source;
 void generalCollision(RectangleShape& objectTOBeMovedCollider, RectangleShape& Wall, Sprite& Object);
 void quoteUpdate();
 void quotesInit();
@@ -149,14 +157,16 @@ struct character
     Sprite sprite;
     Texture texture;
     Texture playerspreadsheet;
-    float health = 120, xp;
+    float health = 120;
     float Maxhp = 120;
+    int xp = 0 , MaxXp = 100;
     float speed;
     int level = 1;
     float MeleeDamage;
     Vector2f velocity;
     bool isDead, isAttacking;
     bool revivalCrystal;
+    bool canthrowsowrds = false;
     animationstate AnimationState;
     playerDirection spriteDirection;
     int columnIndex = 0;
@@ -167,6 +177,22 @@ struct character
     // *** Add members for revival tracking and score calculation ***
     bool hasRevived = false;
     float timeAtFirstDeath = 0.f; // totalGameTime when the player first died
+    void updatelevel() {
+        if (xp >= MaxXp) {
+            float excessxp = xp - MaxXp;
+            level++;
+            MaxXp += (level - 1) * 20 + 100;
+            xp = excessxp;
+            Maxhp += 5;
+            health += 5;
+            showlevelup = true;
+            levelupdisplaytimer = 0.0f;
+        }
+        if (level >= 10) {
+            canthrowsowrds = true;
+        }
+        cout << xp << ' ' << level << endl;
+    }
 
     void update()
     {
@@ -231,7 +257,7 @@ struct character
             collider.setPosition(sprite.getPosition());
             attackSpace.setPosition(sprite.getPosition());
         }
-
+        updatelevel();
         //animation
         {
             switch (AnimationState) {
@@ -1283,6 +1309,7 @@ int main()
 }
 
 // Function to handle name input
+
 void handleNameInput(sf::Event& event)
 {
     if (event.type == sf::Event::TextEntered)
@@ -1447,33 +1474,35 @@ void NameInputInit()
 
 void shooting()
 {
-    shootingtime += deltaTime;
+    if(shanoa.canthrowsowrds){
+        shootingtime += deltaTime;
 
-    if (shootingtime >= shootingrate)
-    {
-        shootingtime = 0;
-        float erasuretimer = 0;
-        sword newSword;
-        newSword.speed = 5000 * deltaTime;
-        newSword.shape.setTexture(swordspritesheet);
-        newSword.shape.setTextureRect(IntRect(1 * 32, 2 * 32, 32, 32));
-        newSword.shape.setScale(2, 2);
-        newSword.shape.setPosition(shanoa.sprite.getPosition());// init
-        newSword.collider.setSize(Vector2f(30, 15));// init
-
-
-
-        if (shanoa.spriteDirection == toleft)
+        if (shootingtime >= shootingrate)
         {
-            newSword.velocity = Vector2f(-1.f, 0.f) * newSword.speed;
-            newSword.shape.setRotation(225);
+            shootingtime = 0;
+            float erasuretimer = 0;
+            sword newSword;
+            newSword.speed = 5000 * deltaTime;
+            newSword.shape.setTexture(swordspritesheet);
+            newSword.shape.setTextureRect(IntRect(1 * 32, 2 * 32, 32, 32));
+            newSword.shape.setScale(2, 2);
+            newSword.shape.setPosition(shanoa.sprite.getPosition());// init
+            newSword.collider.setSize(Vector2f(30, 15));// init
+
+
+
+            if (shanoa.spriteDirection == toleft)
+            {
+                newSword.velocity = Vector2f(-1.f, 0.f) * newSword.speed;
+                newSword.shape.setRotation(225);
+            }
+            else
+            {
+                newSword.velocity = Vector2f(1.f, 0.f) * newSword.speed;
+                newSword.shape.setRotation(45);
+            }
+            swords.push_back(newSword);
         }
-        else
-        {
-            newSword.velocity = Vector2f(1.f, 0.f) * newSword.speed;
-            newSword.shape.setRotation(45);
-        }
-        swords.push_back(newSword);
     }
 
 }
@@ -1648,7 +1677,7 @@ void inRange(float& damage, shared_ptr< ENEMY>& Enemy) {
     }
     else
         Enemy->health = 0;
-    cout << damage;
+    //cout << damage;
 }
 
 void enemiesInAttackSpace(shared_ptr<ENEMY>& Enemy) {
@@ -2077,8 +2106,6 @@ void swordFullCollisionAndDamage() {
                 float decreaseRatio = float(enemies[j]->health) / float(enemies[j]->maxHealth);
                 enemies[j]->healthBarOfEnemy.setSize(Vector2f(enemies[j]->healthBarWidth * (decreaseRatio), 10));
                 swords.erase(swords.begin() + i);
-                cout << " bb ";
-                cout << enemies[j]->health << ' ';
                 SwordIsRemoved = true;
                 break;
             }
@@ -2137,6 +2164,15 @@ void Start()
     batTexture.loadFromFile("Assets\\Bat.png");
     werewolfTexture.loadFromFile("Assets\\werewolfwhite.png");
     swordspritesheet.loadFromFile("Assets\\SWORDS.png");
+    shanoadamaged_source.loadFromFile("Assets\\shanoatakingdamage.ogg");
+    shanoadamaged.setBuffer(shanoadamaged_source);
+    shanoadamaged.setVolume(50);
+    sowrdsound_source.loadFromFile("Assets\\sowrdssound.ogg");
+    sowrdsound.setBuffer(sowrdsound_source);
+    sowrdsound.setVolume(50);
+    levelup.loadFromFile("Assets\\level_up.png");
+    levelupsprite.setTexture(levelup);
+    levelupsprite.setScale(0.3, 0.5);
     MapInit();
     MainmenuInit();
     GameOverInit();
@@ -2210,7 +2246,6 @@ void Update()
         // gameloop update
 
         window.setMouseCursorVisible(false); // get rid of the mouse
-        //cout << "we are in game phase ";
 
         totalGameTime += deltaTime; // measure survival time
         UpdateObstacles(deltaTime);
@@ -2258,6 +2293,13 @@ void Update()
             swords.clear();
             selectedMenuButtonIndex = 0;
         }
+        if (showlevelup) {
+            levelupdisplaytimer += deltaTime;
+            if (levelupdisplaytimer >= 2.0f) {
+                showlevelup = false;
+                levelupdisplaytimer = 0.0f;
+            }
+        }
         EnemySpawn();
         EnemyHandler();
         shanoa.update();
@@ -2267,11 +2309,9 @@ void Update()
             bool test = false;
             for (int j = 0;j < enemies.size();j++) {
                 if (swords[i].collider.getGlobalBounds().intersects(enemies[j]->collider.getGlobalBounds())) {
-                    //cout << " bb ";
                     enemies[j]->health -= swords[i].damage;
                     cout << swords[i].damage << endl;
                     swords.erase(swords.begin() + i);
-                    //cout << enemies[i] -> health << ' ';
                     test = true;
                     break;
                 }
@@ -2284,8 +2324,12 @@ void Update()
 
             if (Crystals[i].isCollected && !Crystals[i].CrystalsRemove) {
                 shanoa.xp += Crystals[i].xpValue;
-                cout << "Collected XP: " << Crystals[i].xpValue << " (Total: " << shanoa.xp << ")" << endl;
+                //cout << "Collected XP: " << Crystals[i].xpValue << " (Total: " << shanoa.xp << ")" << endl;
                 Crystals[i].CrystalsRemove = true;
+                checklevel = true;
+            }
+            if (checklevel) {
+                shanoa.updatelevel();
             }
         }
         for (int i = Crystals.size() - 1; i >= 0; i--) {
@@ -2740,7 +2784,6 @@ void Draw()
 
         /*  window.draw(shanoa.attackSpace);*/
         window.draw(shanoa.sprite);
-
         for (int i = 0; i < Crystals.size(); i++)
         {
             if (Crystals[i].isCollected == false) {
@@ -2759,6 +2802,11 @@ void Draw()
 
                 window.draw(obstacles[i].collider);
             }
+        }
+        if (showlevelup) {
+            levelupsprite.setOrigin(levelupsprite.getLocalBounds().width / 2.0f, levelupsprite.getLocalBounds().height / 2.0f);
+            levelupsprite.setPosition(view.getCenter());
+            window.draw(levelupsprite);
         }
         window.draw(healthbar);
     }
