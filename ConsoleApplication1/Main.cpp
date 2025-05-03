@@ -10,6 +10,8 @@
 #include <cstdlib>
 #include <ctime>
 #include <random>
+#include <algorithm>
+#include <map>
 using namespace std;
 using namespace sf;
 
@@ -20,7 +22,9 @@ enum Gamestate
     settings,
     gameover,
     leaderboard,
-    credits
+    credits,
+    nameinput,
+    paused
 };
 
 enum CrystalState
@@ -57,25 +61,30 @@ enum monstertype
 };
 
 float deltaTime;
-Texture MainMenuButtons_Texture,MainMenuBackground_Texture,Map_Texture,healthbar_Texture, credits_Texture, credits_background
-        ,volume_up_Texture,volume_down_Texture;
 
 Text mathRevivalText;
 Text Quote;
+
+Texture MainMenuButtons_Texture,MainMenuBackground_Texture,Map_Texture,healthbar_Texture, credits_Texture, credits_background
+        ,volume_up_Texture,volume_down_Texture;
 Texture equationSpriteSheet;
 Texture swordspritesheet;
+Texture beasttexture,zombieTexture,batTexture,werewolfTexture;
+Texture BlueXP, GreenXP, RedXP;
 Sprite MainMenuButtons, MainMenuBackground,Map,healthbar, creditsbutton, creditback, volume_up, volume_down,settingsBackground;
 View view;
 Vector2i mouseScreenpos;
 Vector2f mouseWorldpos;
-
+int selectedGameOverOptionIndex = 0;
 RectangleShape StartButton(Vector2f(490, 110)),SettingsButton(Vector2f(490, 110)),LeaderboardButton(Vector2f(490, 110)),
                ExitButton(Vector2f(490, 110)), creditsButton(Vector2f(490, 110)),MathRevivlaButton(Vector2f(250, 50)) ,restartButton(Vector2f(250, 50));
+RectangleShape GiveUpButton(Vector2f(250, 50)); // *** Add shape for the Give Up button *** 
 RectangleShape equationAnsCellBox;
 RectangleShape gameOverOverlay; // red color in gameover background
 FloatRect StartButtonBounds,SettingsButtonBounds,LeaderboardButtonBounds,ExitButtonBounds, creditsButtonBounds,volumeUpBounds,
           volumeDownBounds;
 RectangleShape menuCursor;
+FloatRect MathRevivlaButtonBounds, RestartButtonBounds, GiveUpButtonBounds; // *** Add bounds for Give Up button ***
 Text nametext;
 Listener GameVolume;
 int selectedMenuButtonIndex = 0; // 0 for Start, 1 for Settings, 2 for Leaderboard, 3 for Exit
@@ -89,8 +98,6 @@ bool gameOverSoundPlayed = false;
 sf::VideoMode desktopMode = sf::VideoMode::getDesktopMode();
 RenderWindow window(desktopMode, "Vampire Survivors :The path to the legendary formula", sf::Style::Fullscreen);
 //fullscreen fix
-int mobCounter = 4;
-float spawnTime = 3.f;
 float healthRatio;
 float shootingtime = 0.f;
 float shootingrate = 3;
@@ -99,6 +106,8 @@ float menuInputDelay = 0.f;
 float attackDelay = 0.f;
 const float timeForAttack = 0.15f;
 const float MENU_INPUT_COOLDOWN = 0.2f; // Time in seconds between allowed inputs
+float postTransitionCooldown = 0.f;     // Make sure this is also declared (it is in your code around source 151)
+const float POST_TRANSITION_DELAY = 0.6f; // Define the delay duration in seconds
 float soundcontroller = 100;
 float beastspawntimer = 0;
 float batspawntimer = 0;
@@ -106,15 +115,15 @@ float werewolfspawntimer = 0;
 float zombiespawntimer = 0;
 float enemyAttackDelay = 1.0f;
 RectangleShape volumebar[10];
-Texture beasttexture,zombieTexture,batTexture,werewolfTexture;
-Texture BlueXP, GreenXP, RedXP;
-
+multimap<float, string> leaderboardEntriesMap; // Key: -score (float), Value: playerName (string)
 
 int BlueXPcValue = 10, GreenXPcValue = 30, RedXPcValue = 50;
 
-void creditsInit();
 Vector2f unitVector(Vector2f vector) {
     float magnitude = sqrt(vector.x * vector.x + vector.y * vector.y);
+    if (magnitude == 0) {
+        return Vector2f(0, 0); // Or handle as needed, perhaps return the zero vector
+    }
     Vector2f unit = Vector2f(vector.x / magnitude, vector.y / magnitude);
     return unit;
 }
@@ -123,6 +132,12 @@ void quoteUpdate();
 void quotesInit();
 void GetRandIndex(int &randomIndex);
 void MainMenuInput();
+void PauseMenuInit();
+void handleNameInput(sf::Event& event);
+void SaveLeaderboard();
+void LoadLeaderboard();
+void creditsInit();
+void MapInit();
 void Update();
 void Start();
 void Draw();
@@ -149,7 +164,9 @@ struct character
     int animationdelaytimer = 0;
     float AutoAttackTimer = 0;
     bool startattack = false;
-
+    // *** Add members for revival tracking and score calculation ***
+    bool hasRevived = false;
+    float timeAtFirstDeath = 0.f; // totalGameTime when the player first died
 
     void update()
     {
@@ -285,12 +302,11 @@ struct XPc
     CrystalState state = IDLE;
 
     // Animation parameters
-    float attractRange = 160.0f;
-    float attractSpeed = 90.0f;
-    float absorbSpeed = 200.0f;
-    float absorbDistance = 75.0f;
+    float absorbSpeed = 200.0f; // Speed during final absorption
+    float absorbDistance = 75.0f; // Distance at which absorption animation starts
+    float attractRange = 160.0f; // Range at which crystals start getting attracted
+    float attractSpeed = 90.0f; // Base speed for attraction
     float returnSpeed = 90.0f;
-    float repelTimer = 0.0f;
 
     Vector2f direction;
     Vector2f originalPosition;
@@ -300,6 +316,7 @@ struct XPc
         sprite.setTexture(tex);
         sprite.setPosition(x, y);
         sprite.setScale(0.2f, 0.4f);
+        // Center the origin for proper positioning
         sprite.setOrigin(tex.getSize().x / 2.0f, tex.getSize().y / 2.0f);
         sprite.setTextureRect(IntRect(0, 0, tex.getSize().x, tex.getSize().y));
         xpValue = xp;
@@ -309,6 +326,7 @@ struct XPc
 
     void update(float deltaTime, const Vector2f& playerPosition)
     {
+        // Update lifetime regardless of state
         lifetime -= deltaTime;
         if (lifetime <= 0.0f)
         {
@@ -316,9 +334,11 @@ struct XPc
             return;
         }
 
+        // Calculate distance to player
         Vector2f toPlayer = playerPosition - sprite.getPosition();
         float distToPlayer = sqrt(toPlayer.x * toPlayer.x + toPlayer.y * toPlayer.y);
 
+        // Normalize direction to player
         Vector2f normalizedToPlayer = toPlayer;
         if (distToPlayer > 0) {
             normalizedToPlayer.x /= distToPlayer;
@@ -355,7 +375,7 @@ struct XPc
             {
                 state = IDLE;
             }
-
+            // Move toward player with increasing speed based on distance
             else if (distToPlayer <= absorbDistance)
             {
                 // if it's close -> transition to final absorption
@@ -1096,7 +1116,20 @@ Font defgamefont; // default game font
 Text StartGameText, SettingsText, ExitText,LeaderboardText, CreditsText,volumeText,settingsmenuText;
 Text DEV_T, TEAMNAME, NAMES, prof, teamname;
 Text GameOverText, ScoreText, RestartText;
+Text nameInputPromptText; // For the next screen
+Text playerNameDisplayText; // For the next screen
+Text GiveUpText; // *** Add text for the Give Up option ***
 
+// *** Pause Menu Elements ***
+Text PauseText;
+Text ContinueText;
+Text PauseReturnToMenuText;
+RectangleShape ContinueButton;
+RectangleShape PauseReturnToMenuButton;
+FloatRect ContinueButtonBounds;
+FloatRect PauseReturnToMenuButtonBounds;
+
+string playerName = "";
 
 vector<sword> swords; 
 
@@ -1150,16 +1183,35 @@ int main()
         {
             if (event.type == sf::Event::Closed)
                 window.close();
-            if (Keyboard::isKeyPressed(Keyboard::Escape))
+            if (event.type == sf::Event::KeyPressed && event.key.code == sf::Keyboard::Escape && postTransitionCooldown <= 0)
+            {
+                if (gamestate == gameloop)
+                {
+                    gamestate = paused;
+                    // Pause game loop music if it's playing
+                    GameloopMusic.pause();
+                    postTransitionCooldown = POST_TRANSITION_DELAY; // Set cooldown
+                }
+                else if (gamestate == paused)
+                {
+                    gamestate = gameloop;
+                    // Resume game loop music
+                    GameloopMusic.play();
+                    postTransitionCooldown = POST_TRANSITION_DELAY; // Set cooldown
+                    selectedMenuButtonIndex = 0; // Reset pause menu selection
+                }
+            }
+            if (Keyboard::isKeyPressed(Keyboard::Tab)) // DEBUGGING BUTTON
             {
                 window.close();
             }
-            //
+            // --- Handle Text Entered event ---
             if (event.type == Event::TextEntered)
             {
-                if (gamestate == gameover)
+                if (gamestate == gameover && MathRevivalON) // Math Revival input (only when MathRevivalON is true)
                 {
-                    
+                    // ... existing Math Revival input logic using userInput ...
+                    // (Handle Backspace/Enter for Math Revival within this block or outside with isKeyPressed)
                     if (event.text.unicode == 8)// isKeyPressed::Backspace
                     {
                         if (!userInput.empty())
@@ -1172,41 +1224,224 @@ int main()
                             userInput += static_cast<char>(event.text.unicode);
                         }
                     }
+                    // Enter key for Math Revival answer submission is handled here in your provided code
                     else if (event.text.unicode == 13)// iskeypressed::Enter
                     {
                         if (!userInput.empty())
                         { 
                             if (stoi(userInput) == EquationsAns[randIndex]) // correct answer
                             {
-                                gamestate = gameloop;
+                                gamestate = gameloop;// Go back to gameloop
+                                postTransitionCooldown = POST_TRANSITION_DELAY; // Set cooldown
                                 GameOverSound.stop();
                                 gameOverSoundPlayed = false;
                                 GameloopMusic.play();
                                 MathRevivalON = false;
+                                userInput = ""; // Clear input
                                 quoteUpdate();
-                                shanoa.isDead = false;
-                                shanoa.health = shanoa.Maxhp;
+                                // *** Reset player state for revival ***
+                                shanoa.health = shanoa.Maxhp / 2.f; // Restore half health
+                                shanoa.isDead = false; // Player is no longer dead
+                                shanoa.hasRevived = true; // Mark that revival occurred
+                                // You might need to adjust player position away from enemies
                             }
                             else
                             {
-                                gamestate = mainmenu;
+                                // Math Revival failed
+                                gamestate = gameover;
+                                postTransitionCooldown = POST_TRANSITION_DELAY; // Set cooldown
+                                userInput = ""; // Clear input
                                 MainMenuMusic.play();
                                 MathRevivalON = false;
                                 gameOverSoundPlayed = false;
                                 GameOverSound.stop();
                                 menuInputDelay = 0.f;
+                                // Game over screen is skipped, so score won't be saved from here.
+                               // If you want to save score on Math Revival fail,
+                               // transition back to gameover options instead of mainmenu.
                             }
-                            userInput = "";
                         }
                     }
                 }
             }
+            else if (gamestate == nameinput) // Name input
+            {
+                handleNameInput(event);
+            }
             SurvivalEquation.userAnsText.setString(userInput);
-        }
+            // *** Add Name Input handling ***
+        }// End of while (window.pollEvent(event))
+        // --- Handle Keyboard::isKeyPressed checks (for continuous actions like Backspace/Enter on name input) ---
+        // These checks run every frame, outside the event polling loop.
+
         Update();
         Draw();
     }
+
     return 0;
+}
+
+// Function to handle name input
+void handleNameInput(sf::Event& event)
+{
+    if (event.type == sf::Event::TextEntered)
+    {
+        // Allow printable ASCII characters (adjust range if needed)
+        if (event.text.unicode >= 32 && event.text.unicode <= 126)
+        {
+            // Avoid Enter (13) and Backspace (8) as they are handled by KeyPressed
+            if (event.text.unicode != 13 && event.text.unicode != 8)
+            {
+                const int MAX_NAME_LENGTH = 20; // Define a max length
+                if (playerName.length() < MAX_NAME_LENGTH)
+                {
+                    playerName += static_cast<char>(event.text.unicode);
+                }
+            }
+        }
+        else if ((event.key.code == sf::Keyboard::Backspace || event.text.unicode == 8) && menuInputDelay >= MENU_INPUT_COOLDOWN / 3)
+        {
+            if (!playerName.empty())
+            {
+                playerName.pop_back();
+                menuInputDelay = 0.f; // Reset menu delay
+            }
+        }
+        else if (Keyboard::isKeyPressed(Keyboard::Enter) && menuInputDelay >= MENU_INPUT_COOLDOWN)
+        {
+            if (!playerName.empty()) // Only save if name is not empty
+            {
+                // *** Calculate Final Score ***
+                float finalScore = 0.f;
+                if (shanoa.hasRevived) {
+                    // Died after reviving
+                    finalScore = (shanoa.timeAtFirstDeath * 2.0f) + ((totalGameTime - shanoa.timeAtFirstDeath) * 1.0f);
+                }
+                else {
+                    // Died without reviving
+                    finalScore = totalGameTime * 2.0f;
+                }
+
+                // *** Create and add new leaderboard entry (using vector) ***
+                leaderboardEntriesMap.insert({ -finalScore, playerName });
+
+                const int MAX_LEADERBOARD_SIZE = 10;
+                if (leaderboardEntriesMap.size() > MAX_LEADERBOARD_SIZE)
+                {
+                    // The map is sorted by key (-score), so the elements *after* the first 10
+                    // are the ones with lower scores that should be removed.
+                    auto it = leaderboardEntriesMap.begin();
+                    std::advance(it, MAX_LEADERBOARD_SIZE); // Move iterator to the 11th element
+                    leaderboardEntriesMap.erase(it, leaderboardEntriesMap.end()); // Erase from 11th to the end
+                }
+
+                // *** Save the updated leaderboard to file ***
+                SaveLeaderboard();
+            }
+
+            // *** Transition to leaderboard state ***
+            gamestate = leaderboard; // Transition to the leaderboard display screen
+            menuInputDelay = 0.f; // Reset menu delay
+            playerName = ""; // Clear name input field
+
+            // Decide which music to play when entering leaderboard state
+            // MainMenuMusic.play();
+        }
+    }
+    // Update the displayed name text object string
+    playerNameDisplayText.setString(playerName);
+}
+
+void SaveLeaderboard()
+{
+    std::ofstream outputFile("leaderboard.txt");
+
+    if (outputFile.is_open())
+    {
+        // Iterate through the map. It's already sorted by key (-score).
+        for (const auto& pair : leaderboardEntriesMap) // pair.first is -score, pair.second is name
+        {
+            outputFile << pair.second << std::endl; // Write name
+            outputFile << std::fixed << std::setprecision(2) << -pair.first << std::endl; // Write positive score (-key)
+        }
+        outputFile.close();
+        // std::cout << "Leaderboard saved successfully." << std::endl;
+    }
+    else
+    {
+        std::cerr << "Error: Unable to open leaderboard.txt for saving!" << std::endl;
+    }
+}
+
+void LoadLeaderboard()
+{
+    leaderboardEntriesMap.clear(); // Clear any existing entries
+    std::ifstream inputFile("leaderboard.txt");
+
+    if (inputFile.is_open())
+    {
+        string name;
+        string scoreStr;
+
+        // Read pairs of lines (name and score)
+        while (std::getline(inputFile, name) && std::getline(inputFile, scoreStr))
+        {
+            try
+            {
+                float score = stof(scoreStr); // Convert score string to float
+                // Insert into multimap: key is negative score, value is name
+                leaderboardEntriesMap.insert({ -score, name });
+            }
+            catch (const invalid_argument& ia)
+            {
+                cerr << "Invalid score format in leaderboard file: " << ia.what() << std::endl;
+            }
+            catch (const std::out_of_range& oor)
+            {
+                cerr << "Score value out of range in leaderboard file: " << oor.what() << std::endl;
+            }
+        }
+        inputFile.close();
+
+        // Trim to top 10 after loading, in case the file has too many entries
+        const int MAX_LEADERBOARD_SIZE = 10;
+        // multimap is already sorted by key (negative score), so the first 10 are the top 10
+        // If there are more than 10, erase the elements beyond the 10th
+        if (leaderboardEntriesMap.size() > MAX_LEADERBOARD_SIZE)
+        {
+            auto it = leaderboardEntriesMap.begin();
+            std::advance(it, MAX_LEADERBOARD_SIZE); // Move iterator to the 11th element
+            leaderboardEntriesMap.erase(it, leaderboardEntriesMap.end()); // Erase from 11th to the end
+        }
+
+        // std::cout << "Leaderboard loaded successfully. Entries: " << leaderboardEntriesMap.size() << std::endl; // Optional: for debugging
+    }
+    // If the file doesn't exist, the map remains empty, which is correct.
+}
+
+void NameInputInit()
+{
+    // ... Initialize nameInputPromptText and playerNameDisplayText ...
+
+    // Initialize the player name string
+    playerName = "";
+    // Initialize the prompt text
+    nameInputPromptText.setFont(defgamefont);
+    nameInputPromptText.setCharacterSize(40); // Choose a suitable size
+    nameInputPromptText.setFillColor(sf::Color::White);
+    nameInputPromptText.setString("Enter Your Name:"); // Set the prompt message
+
+    // Initialize the player name display text
+    playerNameDisplayText.setFont(defgamefont);
+    playerNameDisplayText.setCharacterSize(40); // Match prompt size or adjust
+    playerNameDisplayText.setFillColor(sf::Color::Yellow); // Different color for input?
+    playerNameDisplayText.setString(playerName); // Start with an empty string
+
+    // You might also want a shape for the input box
+    equationAnsCellBox.setFillColor(sf::Color::Black);
+    equationAnsCellBox.setSize(sf::Vector2f(400, 60)); // Adjust size as needed
+    equationAnsCellBox.setOutlineColor(sf::Color::Blue); // Choose a color
+    equationAnsCellBox.setOutlineThickness(3); // Choose a thickness
 }
 
 void shooting()
@@ -1333,6 +1568,33 @@ void MainmenuInit() {
     healthbar_Texture.loadFromFile("Assets\\shanoahealthbar.png");
 }
 
+void PauseMenuInit()
+{
+    PauseText.setFont(defgamefont);
+    PauseText.setString("Paused");
+    PauseText.setCharacterSize(80);
+    PauseText.setFillColor(Color::White);
+
+    ContinueText.setFont(defgamefont);
+    ContinueText.setString("Continue");
+    ContinueText.setCharacterSize(20);
+    ContinueText.setFillColor(Color::White);
+
+    PauseReturnToMenuText.setFont(defgamefont);
+    PauseReturnToMenuText.setString("Main Menu");
+    PauseReturnToMenuText.setCharacterSize(20);
+    PauseReturnToMenuText.setFillColor(Color::White);
+
+    // Configure button shapes (reuse similar look from game over)
+    ContinueButton.setFillColor(Color(100, 0, 0));
+    ContinueButton.setOutlineColor(Color::Yellow);
+    ContinueButton.setSize(Vector2f(250, 50)); // Match other button sizes
+
+    PauseReturnToMenuButton.setFillColor(Color(100, 0, 0));
+    PauseReturnToMenuButton.setOutlineColor(Color::Yellow);
+    PauseReturnToMenuButton.setSize(Vector2f(250, 50)); // Match other button sizes
+}
+
 void creditsInit()
 {
     DEV_T.setPosition(9800, 9330);
@@ -1394,7 +1656,6 @@ void enemiesInAttackSpace(shared_ptr<ENEMY>& Enemy) {
         inRange(shanoa.MeleeDamage, Enemy);
     }
 }
-
 
 void MapInit() {
     Map_Texture.loadFromFile("Assets\\mapfinal.png");
@@ -1531,6 +1792,18 @@ void GameOverInit()
     mathRevivalText.setCharacterSize(25);
     mathRevivalText.setFillColor(Color::White);
 
+    // *** Initialize Give Up Text and Button ***
+    GiveUpText.setFont(defgamefont);
+    GiveUpText.setString("Give Up"); // Or "Submit Score"
+    GiveUpText.setCharacterSize(20); // Match other option text size
+    GiveUpText.setFillColor(Color::White);
+    // Position will be set in Draw()
+
+    GiveUpButton.setFillColor(Color(100, 0, 0)); // Match other button colors
+    GiveUpButton.setOutlineColor(Color::Yellow);
+    GiveUpButton.setSize(Vector2f(250, 50)); // Match other button sizes
+    // Position and bounds will be set in Draw() and Update()
+
     equationSpriteSheet.loadFromFile("Assets\\equationSpriteSheet.png");
     SurvivalEquation.sprite.setTexture(equationSpriteSheet);
     SurvivalEquation.sprite.setTextureRect(IntRect(0, 156 * randIndex, 600, 156));
@@ -1564,7 +1837,8 @@ void GameOverInit()
 
     gameOverSoundPlayed = false;
     
-
+    // Ensure MathRevivalON is false initially for the gameover screen
+    MathRevivalON = false;
 }
 
 void MainMenuButtonCheck()
@@ -1861,7 +2135,10 @@ void Start()
     MapInit();
     MainmenuInit();
     GameOverInit();
+    NameInputInit(); // Make sure name input init is called
+    PauseMenuInit();
     CharacterInit();
+    LoadLeaderboard(); // <-- Add this line
     MapInit();
     creditsInit();
     SettingsMenuInit();
@@ -2014,6 +2291,121 @@ void Update()
         meleeAttack();
         view.setCenter(shanoa.sprite.getPosition());
     }
+    else if (gamestate == paused) // <-- New Paused State Update
+    {
+        window.setMouseCursorVisible(true);
+        // Game logic is paused, only handle menu input
+
+        menuInputDelay += deltaTime;
+
+        // Position buttons relative to the view center
+        Vector2f viewCenter = view.getCenter();
+        ContinueButton.setPosition(viewCenter.x - ContinueButton.getLocalBounds().width / 2.f, viewCenter.y - 50.f);
+        PauseReturnToMenuButton.setPosition(viewCenter.x - PauseReturnToMenuButton.getLocalBounds().width / 2.f, viewCenter.y + 50.f);
+
+        // Update bounds after setting position
+        ContinueButtonBounds = ContinueButton.getGlobalBounds();
+        PauseReturnToMenuButtonBounds = PauseReturnToMenuButton.getGlobalBounds();
+
+        // --- Input Handling (Keyboard and Mouse) ---
+        // Use menuInputDelay for navigation
+        if (menuInputDelay >= MENU_INPUT_COOLDOWN)
+        {
+            bool moved = false;
+            // Keyboard Navigation
+            if (Keyboard::isKeyPressed(Keyboard::S) || Keyboard::isKeyPressed(Keyboard::Down))
+            {
+                selectedMenuButtonIndex++; // Use selectedMenuButtonIndex for pause menu (0: Continue, 1: Main Menu)
+                moved = true;
+            }
+            else if (Keyboard::isKeyPressed(Keyboard::W) || Keyboard::isKeyPressed(Keyboard::Up))
+            {
+                selectedMenuButtonIndex--;
+                moved = true;
+            }
+
+            if (moved)
+            {
+                // Wrap around options (0, 1)
+                if (selectedMenuButtonIndex < 0) {
+                    selectedMenuButtonIndex = 1;
+                }
+                else if (selectedMenuButtonIndex > 1) {
+                    selectedMenuButtonIndex = 0;
+                }
+                menuInputDelay = 0; // Reset delay
+            }
+
+            // Mouse Hover Highlighting (updates selectedMenuButtonIndex)
+            if (ContinueButtonBounds.contains(mouseWorldpos)) {
+                selectedMenuButtonIndex = 0;
+            }
+            else if (PauseReturnToMenuButtonBounds.contains(mouseWorldpos)) {
+                selectedMenuButtonIndex = 1;
+            }
+
+            // Selection (Enter Key or Mouse Click)
+            bool activateSelection = false;
+            if (Keyboard::isKeyPressed(Keyboard::Enter)) {
+                activateSelection = true;
+            }
+            // Check for Left mouse button press over the *currently selected* button
+            if (Mouse::isButtonPressed(Mouse::Left)) {
+                if (selectedMenuButtonIndex == 0 && ContinueButtonBounds.contains(mouseWorldpos)) activateSelection = true;
+                if (selectedMenuButtonIndex == 1 && PauseReturnToMenuButtonBounds.contains(mouseWorldpos)) activateSelection = true;
+            }
+
+            if (activateSelection && postTransitionCooldown <= 0) // Also check postTransitionCooldown
+            {
+                if (selectedMenuButtonIndex == 0) // Continue selected
+                {
+                    gamestate = gameloop; // Resume game
+                    GameloopMusic.play(); // Resume music
+                    postTransitionCooldown = POST_TRANSITION_DELAY; // Set cooldown
+                }
+                else if (selectedMenuButtonIndex == 1) // Return to Main Menu selected
+                {
+                    gamestate = mainmenu; // Go to main menu
+                    MainMenuMusic.play(); // Play main menu music
+                    GameloopMusic.stop(); // Stop game loop music if it was paused
+                    postTransitionCooldown = POST_TRANSITION_DELAY; // Set cooldown
+
+                    // Reset game state elements for a new game
+                    enemies.clear();
+                    swords.clear();
+                    Crystals.clear();
+                    shanoa.health = shanoa.Maxhp; // Reset player health
+                    shanoa.isDead = false;
+                    totalGameTime = 0.f;
+                    gameOverSoundPlayed = false;
+                    MathRevivalON = false;
+                    userInput = "";
+                    selectedMenuButtonIndex = 0; // Reset main menu selection
+                }
+                menuInputDelay = 0; // Reset delay after selection
+            }
+        }
+
+
+        // Update menu cursor position based on selected pause menu option
+        Vector2f selectedOptionPosition;
+        Vector2f selectedOptionSize;
+        float cursorAdjust = 3.f; // Adjust this value for cursor offset
+
+        if (selectedMenuButtonIndex == 0) {
+            selectedOptionPosition = ContinueButton.getPosition();
+            selectedOptionSize = ContinueButton.getSize();
+        }
+        else if (selectedMenuButtonIndex == 1) {
+            selectedOptionPosition = PauseReturnToMenuButton.getPosition();
+            selectedOptionSize = PauseReturnToMenuButton.getSize();
+        }
+        menuCursor.setPosition(selectedOptionPosition.x - cursorAdjust, selectedOptionPosition.y - cursorAdjust);
+        menuCursor.setSize(Vector2f(selectedOptionSize.x + cursorAdjust * 2.f, selectedOptionSize.y + cursorAdjust * 2.f));
+
+        view.setCenter(viewCenter); // Keep view centered on pause screen
+    }
+
 
     if (gamestate == settings)
     {
@@ -2049,9 +2441,8 @@ void Update()
 
     if (gamestate == leaderboard)
     {
-        // settings menu update
+        // leaderboard menu update
         window.setMouseCursorVisible(true);
-        cout << "we are in leaderboard menu ";
         if (Keyboard::isKeyPressed(Keyboard::R))
         {
             gamestate = mainmenu;
@@ -2063,33 +2454,154 @@ void Update()
     {
         // gameover screen update
         window.setMouseCursorVisible(true);
- 
-        
-        
-        if (Mouse::isButtonPressed(Mouse::Left) && restartButton.getGlobalBounds().contains(mouseWorldpos))/// change to keyboard
+
+        // Position buttons and get their bounds in Update() before handling input
+        // This is necessary because view.getCenter() is dynamic.
+        // (These positions are also calculated in Draw, but recalculating them here
+        // ensures mouse collision detection is accurate based on current frame's positions)  
+        Vector2f viewCenter = view.getCenter();
+        restartButton.setPosition(viewCenter.x - restartButton.getLocalBounds().width / 2.f, viewCenter.y + 90.f);
+        MathRevivlaButton.setPosition(viewCenter.x - MathRevivlaButton.getLocalBounds().width / 2.f, viewCenter.y + 175.f);
+        GiveUpButton.setPosition(viewCenter.x - GiveUpButton.getLocalBounds().width / 2.f, viewCenter.y + 260.f);
+
+        // Update bounds after setting position
+        RestartButtonBounds = restartButton.getGlobalBounds();
+        MathRevivlaButtonBounds = MathRevivlaButton.getGlobalBounds();
+        GiveUpButtonBounds = GiveUpButton.getGlobalBounds();
+
+        // --- Input Handling ---
+
+        // Only process menu input if Math Revival is NOT active    
+        if (!MathRevivalON)
         {
-            GameOverSound.stop();
-            GameOverSound.play();
-            gamestate = mainmenu;
-            view.setCenter(10000, 9800); // Center view back on main menu
-            //reset gameover sound so it works next time
-            gameOverSoundPlayed = false;
-            selectedMenuButtonIndex = 0;
-            menuInputDelay = 0.f;
+            // *** Mouse Hover Detection for Highlighting ***
+            // This should come before keyboard input so keyboard can override mouse
+            if (RestartButtonBounds.contains(mouseWorldpos)) {
+                selectedGameOverOptionIndex = 0;
+            }
+            else if (MathRevivlaButtonBounds.contains(mouseWorldpos)) {
+                selectedGameOverOptionIndex = 1;
+            }
+            else if (GiveUpButtonBounds.contains(mouseWorldpos)) {
+                selectedGameOverOptionIndex = 2;
+            }
+
+            // Handle Keyboard Navigation (Up/Down or W/S) - Keep this logic
+            if (menuInputDelay >= MENU_INPUT_COOLDOWN)
+            {
+                bool moved = false;
+                if (Keyboard::isKeyPressed(Keyboard::S) || Keyboard::isKeyPressed(Keyboard::Down))
+                {
+                    selectedGameOverOptionIndex++;
+                    moved = true;
+                }
+                else if (Keyboard::isKeyPressed(Keyboard::W) || Keyboard::isKeyPressed(Keyboard::Up))
+                {
+                    selectedGameOverOptionIndex--;
+                    moved = true;
+                }
+
+                if (moved)
+                {
+                    // Wrap around options (0, 1, 2)
+                    if (selectedGameOverOptionIndex < 0) {
+                        selectedGameOverOptionIndex = 2; // Wrap from top to bottom
+                    }
+                    else if (selectedGameOverOptionIndex > 2) {
+                        selectedGameOverOptionIndex = 0; // Wrap from bottom to top
+                    }
+                    menuInputDelay = 0.f; // Reset delay after movement
+                }
+
+                // Handle Selection (Enter Key or Mouse Click)
+                bool activateSelection = false;
+
+                // Check for Enter key press
+                if (Keyboard::isKeyPressed(Keyboard::Enter))
+                {
+                    activateSelection = true;
+                }
+                // Check for Left mouse button press over the *currently selected* button
+                // This makes click selection precise.
+                if (Mouse::isButtonPressed(Mouse::Left))
+                {
+                    if (selectedGameOverOptionIndex == 0 && RestartButtonBounds.contains(mouseWorldpos)) activateSelection = true;
+                    if (selectedGameOverOptionIndex == 1 && MathRevivlaButtonBounds.contains(mouseWorldpos)) activateSelection = true;
+                    if (selectedGameOverOptionIndex == 2 && GiveUpButtonBounds.contains(mouseWorldpos)) activateSelection = true;
+                }
+
+
+                if (activateSelection && menuInputDelay >= MENU_INPUT_COOLDOWN)
+                {
+                    if (selectedGameOverOptionIndex == 0) // Restart selected
+                    {
+                        GameOverSound.stop();
+                        menuInputDelay = 0.f; // Reset delay BEFORE state change
+                        gamestate = mainmenu; // Transition to main menu
+                        view.setCenter(10000, 9800); // Center view back on main menu
+                        MainMenuMusic.play();
+                        gameOverSoundPlayed = false;
+                        selectedMenuButtonIndex = 0; // Reset main menu selection
+                        // Reset game state elements (enemies, crystals, etc.) when going to main menu for a new game
+                        enemies.clear();
+                        Crystals.clear();
+                        shanoa.health = 120; // Or your starting health
+                        shanoa.isDead = false;
+                        totalGameTime = 0.f;
+                        swords.clear();
+                    }
+                    else if (selectedGameOverOptionIndex == 1) // Math Revival selected
+                    {
+                        MathRevivalON = true; // Activate Math Revival
+                        menuInputDelay = 0.f; // Reset delay
+                    }
+                    else if (selectedGameOverOptionIndex == 2) // Give Up selected
+                    {
+                        GameOverSound.stop();
+                        menuInputDelay = 0.f; // Reset delay BEFORE state change
+                        gamestate = nameinput; // Transition to name input state
+                        playerName = ""; // Clear name for new input
+                        // totalGameTime (score) is already stored globally
+                    }
+                    // menuInputDelay is reset above for each case
+                }
+            }
+            menuInputDelay += deltaTime; // Increment delay for gameover screen
+
+            // *** Update menuCursor position based on selectedGameOverOptionIndex ***
+            Vector2f selectedOptionPosition;
+            Vector2f selectedOptionSize;
+            float cursorAdjust = 3.f; // Adjust this value for cursor offset
+
+            if (selectedGameOverOptionIndex == 0) {
+                selectedOptionPosition = restartButton.getPosition();
+                selectedOptionSize = restartButton.getSize();
+            }
+            else if (selectedGameOverOptionIndex == 1) {
+                selectedOptionPosition = MathRevivlaButton.getPosition();
+                selectedOptionSize = MathRevivlaButton.getSize();
+            }
+            else if (selectedGameOverOptionIndex == 2) { // Position for Give Up option
+                selectedOptionPosition = GiveUpButton.getPosition();
+                selectedOptionSize = GiveUpButton.getSize();
+            }
+
+            // Position and size the cursor rectangle
+            menuCursor.setPosition(selectedOptionPosition.x - cursorAdjust, selectedOptionPosition.y - cursorAdjust);
+            menuCursor.setSize(Vector2f(selectedOptionSize.x + cursorAdjust * 2.f, selectedOptionSize.y + cursorAdjust * 2.f));
+
         }
-        if (Mouse::isButtonPressed(Mouse::Left) && MathRevivlaButton.getGlobalBounds().contains(mouseWorldpos) && shanoa.revivalCrystal) //// change to keyboard
+        // Handle Math Revival Input (if MathRevivalON is true)
+        else
         {
-            MathRevivalON = true;
+            // This part remains as you had it, likely handling input via event loop
+            // and updating MathRevivalON or gamestate based on the answer.
+            // Ensure menuInputDelay is also managed here if needed for Math Revival input timing.
+            // Math Revival input logic is currently in main's event loop.
+            // If you want to use menuInputDelay for that, you'd need to manage it here too.
         }
-    }
-    if (gamestate != gameover)
-    {
-        userInput = ""; // delete the last user input   
-        SurvivalEquation.userAnsText.setString("");
-        if(gameOverSoundPlayed)
-        {
-         GameOverSound.stop();
-        }
+
+
     }
 
     if (gamestate == credits) {
@@ -2098,6 +2610,27 @@ void Update()
         if (Keyboard::isKeyPressed(Keyboard::R))
         {
             gamestate = mainmenu;
+        }
+    }
+    else if (gamestate == nameinput)
+    {
+        menuInputDelay += deltaTime; // Increment delay for nameinput state
+
+        // *** Ensure background color is reset ***
+        if (creditback.getTexture() != nullptr) // Check if texture is loaded
+        {
+            creditback.setColor(Color::White); // Reset to default color (assuming white texture)
+        }
+
+        window.setMouseCursorVisible(true); // Make cursor visible
+        view.setCenter(10000, 9800); // Center view on static UI elements
+    }
+
+    // Decrement post-transition cooldown
+    if (postTransitionCooldown > 0) {
+        postTransitionCooldown -= deltaTime;
+        if (postTransitionCooldown < 0) {
+            postTransitionCooldown = 0;
         }
     }
 
@@ -2112,6 +2645,35 @@ void Draw()
     window.clear(); // clear every pixel on the screen
 
     // Draw your sprites here
+
+        // Draw elements that are visible in multiple states(like the game world)
+        // Draw the game scene if not in main menu, settings, credits, name input, or leaderboard
+
+    if (gamestate == paused || gamestate == gameover)
+    {
+        window.draw(Map);
+        for (size_t i = 0; i < swords.size(); i++)
+        {
+            window.draw(swords[i].shape);
+        }
+        window.draw(shanoa.sprite);
+        // Draw enemies
+        for (size_t i = 0; i < enemies.size(); ++i) {
+            //window.draw(enemies[i]->collider); // Usually don't draw colliders in final game
+            window.draw(enemies[i]->shape);
+        }
+        // Draw crystals
+        for (size_t i = 0; i < Crystals.size(); i++)
+        {
+            if (Crystals[i].isCollected == false) {
+                window.draw(Crystals[i].sprite);
+            }
+        }
+        if (gamestate == gameloop || gamestate == paused) // Draw healthbar in gameloop and paused
+        {
+            window.draw(healthbar);
+        }
+    }
 
     if (gamestate == mainmenu)
     {
@@ -2133,6 +2695,33 @@ void Draw()
         window.draw(CreditsText);
         window.draw(ExitText);
 
+    }
+    if (gamestate == paused) // <-- New Paused State Draw
+    {
+        // Game scene is already drawn above
+        gameOverOverlay.setPosition(view.getCenter()); // Center the overlay on the view
+        window.draw(gameOverOverlay); // Draw the dimming overlay
+
+        Vector2f viewCenter = view.getCenter();
+        // Position static text elements relative to view center
+        PauseText.setPosition(viewCenter.x - PauseText.getGlobalBounds().width / 2.f, viewCenter.y - 150.f);
+        window.draw(PauseText);
+
+        // Position the buttons relative to the view center
+        ContinueButton.setPosition(viewCenter.x - ContinueButton.getLocalBounds().width / 2.f, viewCenter.y - 50.f);
+        PauseReturnToMenuButton.setPosition(viewCenter.x - PauseReturnToMenuButton.getLocalBounds().width / 2.f, viewCenter.y + 50.f);
+
+        // Position the text on top of their corresponding buttons
+        ContinueText.setPosition(ContinueButton.getPosition().x + (ContinueButton.getSize().x - ContinueText.getLocalBounds().width) / 2.f,
+            ContinueButton.getPosition().y + (ContinueButton.getSize().y - ContinueText.getLocalBounds().height) / 2.f - 5.f); // Center text on button, adjust -5.f as needed
+        PauseReturnToMenuText.setPosition(PauseReturnToMenuButton.getPosition().x + (PauseReturnToMenuButton.getSize().x - PauseReturnToMenuText.getLocalBounds().width) / 2.f,
+            PauseReturnToMenuButton.getPosition().y + (PauseReturnToMenuButton.getSize().y - PauseReturnToMenuText.getLocalBounds().height) / 2.f - 5.f); // Center text on button
+
+        window.draw(ContinueButton);
+        window.draw(ContinueText);
+        window.draw(PauseReturnToMenuButton);
+        window.draw(PauseReturnToMenuText);
+        window.draw(menuCursor); // Draw menu cursor over selected button
     }
 
     if (gamestate == gameloop)
@@ -2185,58 +2774,59 @@ void Draw()
 
     if (gamestate == gameover)
     {
-        // gameover screen draw
-        window.draw(Map);
-
-        for (int i = 0; i < swords.size(); i++)
-        {
-            window.draw(swords[i].shape);
-        }
-        window.draw(shanoa.sprite);
-
-        //DRAW ENEMIES HERE AFTER IMPLEMENTING
-
-        gameOverOverlay.setPosition(view.getCenter());
+        // gameover screen draw (game scene already drawn above)
+        gameOverOverlay.setPosition(view.getCenter()); // Center the overlay on the view
         window.draw(gameOverOverlay);
 
         Vector2f viewCenter = view.getCenter();
         // Center horizontally by subtracting half of the text's width
         GameOverText.setPosition(viewCenter.x - GameOverText.getGlobalBounds().width / 2.f, viewCenter.y - 100.f);
         ScoreText.setPosition(viewCenter.x - ScoreText.getGlobalBounds().width / 2.f, viewCenter.y+10);
-
-        RestartText.setPosition(viewCenter.x - RestartText.getGlobalBounds().width / 2.f, viewCenter.y + 100.f);
-        restartButton.setPosition(viewCenter.x - restartButton.getGlobalBounds().width / 2.f, viewCenter.y + 90);//
-
-        MathRevivlaButton.setPosition(viewCenter.x - MathRevivlaButton.getGlobalBounds().width / 2.f, viewCenter.y + 175.f);//
-        mathRevivalText.setPosition(viewCenter.x - mathRevivalText.getGlobalBounds().width / 2.f, viewCenter.y + 185.f);//
-
-        Quote.setPosition(viewCenter.x, viewCenter.y + 275.f);
-
-
-        SurvivalEquation.sprite.setPosition(viewCenter.x - SurvivalEquation.sprite.getGlobalBounds().width / 2.f , viewCenter.y + 100.f);
-        equationAnsCellBox.setPosition(viewCenter.x - equationAnsCellBox.getGlobalBounds().width / 2.f , viewCenter.y + 160.f);
-        SurvivalEquation.userAnsText.setPosition(viewCenter.x - equationAnsCellBox.getGlobalBounds().width / 2.f +5, viewCenter.y + 163.f);//
-
         window.draw(GameOverText);
         window.draw(ScoreText);
 
+
         if (MathRevivalON)
         {
-             window.draw(SurvivalEquation.sprite);
-             window.draw(equationAnsCellBox);  
-             window.draw(SurvivalEquation.userAnsText);
-        } 
-        else
+            // Position and draw Math Revival elements when active
+            SurvivalEquation.sprite.setPosition(viewCenter.x - SurvivalEquation.sprite.getGlobalBounds().width / 2.f, viewCenter.y + 100.f);
+            equationAnsCellBox.setPosition(viewCenter.x - equationAnsCellBox.getGlobalBounds().width / 2.f, viewCenter.y + 160.f);
+            SurvivalEquation.userAnsText.setPosition(viewCenter.x - equationAnsCellBox.getGlobalBounds().width / 2.f + 5, viewCenter.y + 163.f); // Adjust +5 for padding
+
+            window.draw(SurvivalEquation.sprite);
+            window.draw(equationAnsCellBox);
+            window.draw(SurvivalEquation.userAnsText);
+        }
+        else // Draw the buttons/options when Math Revival is NOT active
         {
+            // Position the buttons relative to the view center
+            // Use getLocalBounds() for the button size itself when centering
+            restartButton.setPosition(viewCenter.x - restartButton.getLocalBounds().width / 2.f, viewCenter.y + 90.f);
+            MathRevivlaButton.setPosition(viewCenter.x - MathRevivlaButton.getLocalBounds().width / 2.f, viewCenter.y + 175.f);
+            GiveUpButton.setPosition(viewCenter.x - GiveUpButton.getLocalBounds().width / 2.f, viewCenter.y + 260.f); // Position below Math Revival button
+
+            // Position the text on top of their corresponding buttons
+            // Use getLocalBounds() for text size when centering on the button
+            RestartText.setPosition(restartButton.getPosition().x + (restartButton.getSize().x - RestartText.getLocalBounds().width) / 2.f, restartButton.getPosition().y + (restartButton.getSize().y - RestartText.getLocalBounds().height) / 2.f - 5.f); // Center text on button, adjust -5.f as needed
+            mathRevivalText.setPosition(MathRevivlaButton.getPosition().x + (MathRevivlaButton.getSize().x - mathRevivalText.getLocalBounds().width) / 2.f, MathRevivlaButton.getPosition().y + (MathRevivlaButton.getSize().y - mathRevivalText.getLocalBounds().height) / 2.f - 5.f); // Center text on button
+            // Position Give Up Text on its button
+            GiveUpText.setPosition(GiveUpButton.getPosition().x + (GiveUpButton.getSize().x - GiveUpText.getLocalBounds().width) / 2.f, GiveUpButton.getPosition().y + (GiveUpButton.getSize().y - GiveUpText.getLocalBounds().height) / 2.f - 5.f); // Center text on button
+
+
             window.draw(restartButton);
             window.draw(RestartText);
-            if (shanoa.revivalCrystal)
-            {
-                window.draw(MathRevivlaButton);
-                window.draw(mathRevivalText);
-            }
-            window.draw(Quote);
+            window.draw(MathRevivlaButton);
+            window.draw(mathRevivalText);
+            window.draw(GiveUpButton); // Draw Give Up button
+            window.draw(GiveUpText); // Draw Give Up text
+
+            // Draw the cursor when Math Revival is NOT active
+            // Cursor position is updated in the Update function
+            window.draw(menuCursor);
         }
+    
+        window.draw(Quote);
+        
     }
 
     if (gamestate == credits)
@@ -2259,6 +2849,82 @@ void Draw()
         }
 
     }
+    else if (gamestate == nameinput) // <-- Add this block
+    {
+        // Center the view on the UI elements for static states like this
+        sf::Vector2f viewCenter = view.getCenter();
+
+        // Draw background (using creditback or a dedicated name input background)
+        window.draw(creditback); // Or window.draw(nameInputBackgroundSprite);
+
+        // Position and draw the prompt text
+        nameInputPromptText.setPosition(viewCenter.x - nameInputPromptText.getGlobalBounds().width / 2.f, viewCenter.y - 100.f);
+        window.draw(nameInputPromptText);
+
+        // Position and draw the input box
+        equationAnsCellBox.setPosition(viewCenter.x - equationAnsCellBox.getGlobalBounds().width / 2.f, viewCenter.y - 20.f);
+        window.draw(equationAnsCellBox);
+
+        // Position and draw the player name text (inside the box)
+        // Adjust +5.f padding as needed
+        playerNameDisplayText.setPosition(equationAnsCellBox.getPosition().x + 5.f, equationAnsCellBox.getPosition().y + (equationAnsCellBox.getSize().y - playerNameDisplayText.getLocalBounds().height) / 2.f - 5.f);
+        window.draw(playerNameDisplayText);
+
+        // You might also want to draw a cursor hint or instructions like "Press Enter to confirm"
+    }
+    else if (gamestate == leaderboard)
+    {
+        // Draw background (using creditback)
+        window.draw(creditback);
+        Vector2f viewCenter = view.getCenter();
+        float startY = viewCenter.y - 180.f; // Starting Y position for the first entry
+        float lineHeight = 50.f; // Vertical space between entries
+        int rank = 1; // Start rank counter
+
+        // Add Leaderboard Title
+        Text leaderboardTitleText;
+        leaderboardTitleText.setFont(defgamefont);
+        leaderboardTitleText.setCharacterSize(50);
+        leaderboardTitleText.setFillColor(Color::Yellow);
+        leaderboardTitleText.setString("Leaderboard");
+        leaderboardTitleText.setPosition(viewCenter.x - leaderboardTitleText.getGlobalBounds().width / 2.f, viewCenter.y - 250.f);
+        window.draw(leaderboardTitleText);
+
+
+        // Multimap: Iterate through the map
+        for (const auto& pair : leaderboardEntriesMap)
+        {
+            // Stop after drawing the top 10
+            if (rank > 10) {
+                break;
+            }
+            sf::Text entryText;
+            entryText.setFont(defgamefont);
+            entryText.setCharacterSize(30);
+            entryText.setFillColor(sf::Color::White);
+            // Format the entry string (Rank. Name - Score)
+            std::stringstream ss;
+            ss << rank << ". " // Current rank
+                << pair.second // Player name (the value)
+                << " - "
+                << std::fixed << std::setprecision(2) << -pair.first; // Positive score (-key)
+            entryText.setString(ss.str());
+
+            // Position the entry text
+            entryText.setPosition(viewCenter.x - entryText.getGlobalBounds().width / 2.f, startY + (rank - 1) * lineHeight);
+            window.draw(entryText);
+            rank++; // Increment rank
+        }
+        // Add instruction to return
+        Text returnText;
+        returnText.setFont(defgamefont);
+        returnText.setCharacterSize(24);
+        returnText.setFillColor(Color::White);
+        returnText.setString("Press R to return to Main Menu");
+        returnText.setPosition(viewCenter.x - returnText.getGlobalBounds().width / 2.f, viewCenter.y + 300.f);
+        window.draw(returnText);
+    }
+
 
     window.display(); // Display sprites on screen
 }
