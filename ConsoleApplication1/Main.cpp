@@ -64,6 +64,7 @@ float deltaTime;
 
 Text mathRevivalText;
 Text Quote;
+Text xpBarText;
 
 Texture MainMenuButtons_Texture, MainMenuBackground_Texture, Map_Texture, healthbar_Texture, credits_Texture, credits_background
 , volume_up_Texture, volume_down_Texture;
@@ -87,6 +88,9 @@ ExitButton(Vector2f(490, 110)), creditsButton(Vector2f(490, 110)), MathRevivalBu
 RectangleShape GiveUpButton(Vector2f(250, 50)); // *** Add shape for the Give Up button *** 
 RectangleShape equationAnsCellBox;
 RectangleShape gameOverOverlay; // red color in gameover background
+RectangleShape xpBarHolder;
+RectangleShape xpBar;
+float xpBarWidth;
 FloatRect StartButtonBounds, SettingsButtonBounds, LeaderboardButtonBounds, ExitButtonBounds, creditsButtonBounds, volumeUpBounds,
 volumeDownBounds;
 RectangleShape menuCursor;
@@ -1267,6 +1271,7 @@ int main()
                                 GameOverSound.stop();
                                 GameloopMusic.play();
                                 gameOverSoundPlayed = false;
+                                shanoa.revivalCrystal = 0;
                                 MathRevivalON = false;
                                 userInput = ""; // Clear input
                                 // *** Reset player state for revival ***
@@ -1281,8 +1286,8 @@ int main()
                                 gamestate = gameover; // Go to main menu (or gameover options again?)
                                 postTransitionCooldown = POST_TRANSITION_DELAY; // Set cooldown
                                 TheLegendaryTutor.stop();
-                                MainMenuMusic.play();
                                 MathRevivalON = false; // Turn off Math Revival puzzle
+                                shanoa.revivalCrystal = 0;
                                 userInput = ""; // Clear input
                                 // Game over screen is skipped, so score won't be saved from here.
                                 // If you want to save score on Math Revival fail,
@@ -1601,7 +1606,33 @@ void MainmenuInit() {
     swordspritesheet.loadFromFile("Assets\\SWORDS.png");
     healthbar_Texture.loadFromFile("Assets\\shanoahealthbar.png");
 }
+void xpBarInit() {
+    xpBarHolder.setSize(Vector2f(180, 30));
+    xpBarHolder.setFillColor(Color::Black);
+    xpBarHolder.setOrigin(xpBarHolder.getLocalBounds().width / 2, xpBarHolder.getLocalBounds().height / 2);
+    xpBarWidth = 170;
+    xpBar.setSize(Vector2f(0, 20));
+    xpBar.setFillColor(Color::Red);
+    xpBar.setOrigin(85, xpBar.getLocalBounds().height / 2);
+    xpBarText.setString("LVL.");
+    xpBarText.setOrigin(xpBarText.getLocalBounds().width / 2, xpBarText.getLocalBounds().height / 2);
+}
+void xpBarUpdate() {
+    string currentLevel = to_string(shanoa.level);
+    xpBarHolder.setPosition(shanoa.sprite.getPosition().x - 260, shanoa.sprite.getPosition().y + 400);
+    xpBar.setPosition(xpBarHolder.getPosition());
+    xpBarText.setFont(defgamefont);
+    xpBarText.setCharacterSize(15);
+    xpBarText.setFillColor(Color::White);
+    xpBarText.setPosition(xpBarHolder.getPosition().x-13 , xpBarHolder.getPosition().y-10);
+    xpBarText.setString("LVl." + currentLevel);
+    xpBar.setSize(Vector2f(xpBarWidth * (float(shanoa.xp) / float(shanoa.MaxXp)), 20));
 
+}
+void xpFullReset() {
+    shanoa.xp = 0;
+    shanoa.level = 1;
+}
 void PauseMenuInit()
 {
     PauseText.setFont(defgamefont);
@@ -1887,6 +1918,14 @@ void MainMenuButtonCheck()
             gamestate = gameloop;
             MainMenuMusic.stop();
             GameloopMusic.play();
+
+            //RESETTING after death for next game
+            shanoa.sprite.setPosition(0, 0);
+            shanoa.health = 120; // <--replace 100 with your actual starting health
+            shanoa.isDead = false;
+            totalGameTime = 0.f;
+            swords.clear(); // Clear any old swords when starting a NEW game
+
         }
     }
     if (LeaderboardButtonBounds.contains(mouseWorldpos)) {
@@ -2143,6 +2182,10 @@ void globalCollsion() {
         if (obstacles[i].isActive == true)
         {
             generalCollision(shanoa.collider, obstacles[i].collider, shanoa.sprite);
+            for (int j = 0; j < enemies.size(); ++j) 
+            {
+               generalCollision(enemies[j]->collider, obstacles[i].collider, enemies[j]->shape);
+            }
         }
     }
     swordFullCollisionAndDamage();
@@ -2184,6 +2227,7 @@ void Start()
     MathRevivalLock.setScale(0.1, 0.1);
     MapInit();
     MainmenuInit();
+    xpBarInit();
     GameOverInit();
     NameInputInit(); // Make sure name input init is called
     PauseMenuInit();
@@ -2312,6 +2356,7 @@ void Update()
         shanoa.update();
         globalCollsion();
         healthbarhandling();
+        xpBarUpdate();
         for (int i = 0;i < swords.size();i++) {
             bool test = false;
             for (int j = 0;j < enemies.size();j++) {
@@ -2439,6 +2484,7 @@ void Update()
                     MathRevivalON = false;
                     userInput = "";
                     selectedMenuButtonIndex = 0; // Reset main menu selection
+                    xpFullReset();
                 }
                 menuInputDelay = 0; // Reset delay after selection
             }
@@ -2604,6 +2650,7 @@ void Update()
                         shanoa.isDead = false;
                         totalGameTime = 0.f;
                         swords.clear();
+                        xpFullReset();
                     }
                     else if (selectedGameOverOptionIndex == 1 && shanoa.revivalCrystal) // Math Revival selected
                     {
@@ -2615,6 +2662,7 @@ void Update()
                     {
                         GameOverSound.stop();
                         GameOverSound.play();
+                        xpFullReset(); // To Reset XP And Levels
                         gameOverSoundPlayed = false;
                         menuInputDelay = 0.f; // Reset delay BEFORE state change
                         gamestate = nameinput; // Transition to name input state
@@ -2731,6 +2779,9 @@ void Draw()
         if (gamestate == gameloop || gamestate == paused) // Draw healthbar in gameloop and paused
         {
             window.draw(healthbar);
+            window.draw(xpBarHolder);
+            window.draw(xpBar);
+            window.draw(xpBarText);
         }
     }
 
@@ -2821,9 +2872,12 @@ void Draw()
         }
         if (showLevelUp) {
             levelupsprite.setOrigin(levelupsprite.getLocalBounds().width / 2.0f, levelupsprite.getLocalBounds().height / 2.0f);
-            levelupsprite.setPosition(view.getCenter());
+            levelupsprite.setPosition(view.getCenter().x , view.getCenter().y - 125);
             window.draw(levelupsprite);
         }
+        window.draw(xpBarHolder);
+        window.draw(xpBar);
+        window.draw(xpBarText);
         window.draw(healthbar);
     }
 
