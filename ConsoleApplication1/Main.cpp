@@ -32,6 +32,15 @@ enum CrystalState
     IDLE, ATTRACT, ABSORB
 };
 
+enum droptype {
+    xpc,
+    magnet,
+    healthregain,
+    mathrevivalactivator,
+    speedboost
+};
+
+
 enum ObstacleType
 {
     tree,
@@ -65,6 +74,8 @@ float deltaTime;
 Text mathRevivalText;
 Text Quote;
 Text xpBarText;
+Text HMtext;
+Text HMindicator;
 
 Texture MainMenuButtons_Texture, MainMenuBackground_Texture, Map_Texture, healthbar_Texture, credits_Texture, credits_background
 , volume_up_Texture, volume_down_Texture;
@@ -74,11 +85,16 @@ Texture beasttexture, zombieTexture, batTexture, werewolfTexture;
 Texture BlueXP, GreenXP, RedXP;
 Texture levelup;
 Texture lock;
+Texture HMbuttonTexture;
+
+
 Sprite levelupsprite;
 bool showLevelUp = false;
 float levelUpDisplayTimer = 0.0f;
 Sprite MainMenuButtons, MainMenuBackground, Map, healthbar, creditsbutton, creditback, volume_up, volume_down, settingsBackground;
 Sprite MathRevivalLock;
+Sprite HMbutton;
+
 View view;
 Vector2i mouseScreenpos;
 Vector2f mouseWorldpos;
@@ -93,6 +109,7 @@ RectangleShape xpBar;
 float xpBarWidth;
 FloatRect StartButtonBounds, SettingsButtonBounds, LeaderboardButtonBounds, ExitButtonBounds, creditsButtonBounds, volumeUpBounds,
 volumeDownBounds;
+FloatRect HMbuttonbounds;
 RectangleShape menuCursor;
 FloatRect MathRevivlaButtonBounds, RestartButtonBounds, GiveUpButtonBounds; // *** Add bounds for Give Up button ***
 Text nametext;
@@ -100,6 +117,10 @@ Listener GameVolume;
 int selectedMenuButtonIndex = 0; // 0 for Start, 1 for Settings, 2 for Leaderboard, 3 for Exit
 float volumebarcontroller;
 int randIndex;// equations elements random index
+const int MAX_OBSTACLES = 25;
+
+
+
 
 Sound MainMenuMusic, GameOverSound, GameloopMusic, TheLegendaryTutor;
 SoundBuffer MainMenuMusic_source, GameOverSound_source, GameloopMusic_source,TheLegendaryTutor_voice;
@@ -114,6 +135,8 @@ float shootingrate = 3;
 float totalGameTime = 0.f;
 float menuInputDelay = 0.f;
 float attackDelay = 0.f;
+float HardmodeDelay = 0.09f;
+float HardmodeTimerDelay = 0.f;
 const float timeForAttack = 0.15f;
 const float MENU_INPUT_COOLDOWN = 0.2f; // Time in seconds between allowed inputs
 float postTransitionCooldown = 0.f;     // Make sure this is also declared (it is in your code around source 151)
@@ -124,11 +147,12 @@ float batspawntimer = 0;
 float werewolfspawntimer = 0;
 float zombiespawntimer = 0;
 float enemyAttackDelay = 1.0f;
+float HMfactor = 1;
 RectangleShape volumebar[10];
 multimap<float, string> leaderboardEntriesMap; // Key: -score (float), Value: playerName (string)
 
 int BlueXPcValue = 10, GreenXPcValue = 30, RedXPcValue = 50;
-
+bool HMactive = false;
 bool checklevel = false;
 
 Vector2f unitVector(Vector2f vector) {
@@ -444,6 +468,78 @@ struct XPc
 
 vector<XPc> Crystals;
 
+bool MagnetEffectActive = false;
+float MagnetEffectTimer = 0.0f;
+float EffectDuration = 10.0f;
+Texture PowerupsTexture[4];
+
+void PowerUPTexturesInit()
+{
+    PowerupsTexture[magnet].loadFromFile("magnet.png");
+    PowerupsTexture[healthregain].loadFromFile("healthregain.png");
+    PowerupsTexture[speedboost].loadFromFile("speedbooster.png");
+    PowerupsTexture[mathrevivalactivator].loadFromFile("mathrevival.png");
+};
+
+struct PowerUPs : public XPc
+{
+    droptype type;
+    bool effectApplied = false;
+
+    PowerUPs(float x, float y, Texture& tex, droptype powerType) : XPc(x, y, tex, 0)
+    {
+        type = powerType;
+        switch (type) {
+        case magnet:
+
+            break;
+
+        case healthregain:
+            sprite.setTexture(tex);
+            sprite.setScale(0.2f, 0.4f);
+            break;
+
+        case speedboost:
+            break;
+
+        case mathrevivalactivator:
+
+            break;
+        }
+    }
+
+    void PowerupEffects(character& player)
+    {
+        switch (type)
+        {
+        case magnet:
+
+            // The magnet code added here 
+            effectApplied = true;
+            break;
+
+        case healthregain:
+            player.health += 100;
+            effectApplied = true;
+            break;
+
+        case speedboost:
+
+            // ( The Death of all enemies around the player ) code will be added here
+            effectApplied = true;
+            break;
+
+        case mathrevivalactivator:
+
+            break;
+
+        }
+    }
+
+};
+
+
+
 struct BEAST :public ENEMY
 {
     float beastAttackTime = 0;
@@ -473,7 +569,7 @@ struct BEAST :public ENEMY
         health = 250;
         maxHealth = 250;
         speed = 100;
-        damage = 25;
+        damage = 25 * HMfactor;
         attackBox.setSize(Vector2f(130, 1));
         shape.setPosition(-200, -200);
         shape.setOrigin(64, 32);
@@ -573,7 +669,7 @@ struct ZOMBIE :public ENEMY
         health = 100;
         maxHealth = 100;
         speed = 120;
-        damage = 20;
+        damage = 20 * HMfactor;
         attackBox.setSize(Vector2f(65, 1));
         shape.setPosition(200, -200);
         shape.setOrigin(16, 16);
@@ -673,7 +769,7 @@ struct WEREWOLF :public ENEMY
         speed = 175;
         health = 150;
         maxHealth = 150;
-        damage = 10;
+        damage = 10 * HMfactor;
         AnimationState = walking;
         attackBox.setSize(Vector2f(70, 1));
         attackBox.setFillColor(Color::Red);
@@ -772,7 +868,7 @@ struct BAT :public ENEMY
         health = 50;
         maxHealth = 50;
         speed = 250;
-        damage = 5;
+        damage = 5 * HMfactor;
         attackBox.setSize(Vector2f(70, 1));
         shape.setPosition(200, -200);
         shape.setOrigin(24.1, 17.5);
@@ -842,6 +938,21 @@ struct BAT :public ENEMY
         }
     }
 }bat;
+
+void Hardmode()
+{
+    if (HMactive)
+    {
+        HMfactor = 1.5;
+        cout << "hard mode" << endl;
+    }
+    else
+    {
+        HMfactor = 1;
+        cout << "not hard" << endl;
+    }
+}
+
 
 struct sword {
     Sprite shape;
@@ -957,8 +1068,6 @@ struct Obstacle
         isOffCamera = false;
     }
 };
-
-const int MAX_OBSTACLES = 25;
 Obstacle obstacles[MAX_OBSTACLES];
 const float MinObstacleRadius = 200.0f; // Minimum distance from player
 const float MaxObstacleRadius = 2000.0f;
@@ -1960,6 +2069,33 @@ void MainMenuButtonCheck()
 
     }
 }
+void HardmodeButtonInput()
+{
+    HardmodeTimerDelay += deltaTime;
+    if (HardmodeTimerDelay >= HardmodeDelay)
+    {
+        if (HMbuttonbounds.contains(mouseWorldpos) && Mouse::isButtonPressed(Mouse::Left))
+        {
+            if (HMactive)
+            {
+                HMactive = 0;
+                HMbutton.setTextureRect(IntRect(0, 0, 393, 144));
+                HMbutton.setColor(Color::White);
+                /*HMactive = true;*/
+            }
+            else
+            {
+                HMactive = 1;
+                HMbutton.setTextureRect(IntRect(0, 1 * 140, 393, 144));
+                HMbutton.setColor(Color::Green);
+
+                /*HMactive = false;*/
+            }
+            HardmodeTimerDelay = 0.f;
+        }
+    }
+   
+}
 
 void MainMenuInput()
 {
@@ -2053,6 +2189,31 @@ void SettingsMenuInit() {
     settingsmenuText.setString("Settings");
     settingsmenuText.setPosition(680, 20100);
     settingsmenuText.setScale(1.8, 1.8);
+
+    HMbuttonTexture.loadFromFile("Assets\\HMcheckbox.png");
+    HMbutton.setTexture(HMbuttonTexture);
+    HMbutton.setTextureRect(IntRect(0, 0, 393, 144));
+    HMbutton.setPosition(800, 20380);
+    HMbutton.setScale(0.6, 0.6);
+    HMbuttonbounds = HMbutton.getGlobalBounds();
+
+    HMtext.setString("Hard mode");
+    HMtext.setFont(defgamefont);
+    HMtext.setPosition(520, 20400);
+    HMtext.setScale(1.2, 1.2);
+
+    HMindicator.setString("HARD MODE");
+    HMindicator.setFont(defgamefont);
+    HMindicator.setFillColor(Color::Red);
+    HMindicator.setOrigin(HMindicator.getLocalBounds().width / 2, HMindicator.getLocalBounds().height / 2);
+    HMindicator.setScale(1.5, 1.5);
+
+    
+   
+
+
+
+    
 
     {//volume bar init
         for (int i = 0;i < 10;i++) {
@@ -2185,6 +2346,14 @@ void globalCollsion() {
             for (int j = 0; j < enemies.size(); ++j) 
             {
                generalCollision(enemies[j]->collider, obstacles[i].collider, enemies[j]->shape);
+            }
+            for (int k = 0; k < swords.size(); ++k)
+            {
+               if(swords[k].collider.getGlobalBounds().intersects(obstacles[i].collider.getGlobalBounds()))
+               {
+                   swords.erase(swords.begin() + k);
+                   break;
+               }
             }
         }
     }
@@ -2351,12 +2520,17 @@ void Update()
                 levelUpDisplayTimer = 0.0f;
             }
         }
+
+     
+
+
         EnemySpawn();
         EnemyHandler();
         shanoa.update();
         globalCollsion();
         healthbarhandling();
         xpBarUpdate();
+        Hardmode();
         for (int i = 0;i < swords.size();i++) {
             bool test = false;
             for (int j = 0;j < enemies.size();j++) {
@@ -2479,6 +2653,7 @@ void Update()
                     Crystals.clear();
                     shanoa.health = shanoa.Maxhp; // Reset player health
                     shanoa.isDead = false;
+                    shanoa.revivalCrystal = true;
                     totalGameTime = 0.f;
                     gameOverSoundPlayed = false;
                     MathRevivalON = false;
@@ -2534,6 +2709,8 @@ void Update()
             soundcontroller = 100;
         else if (soundcontroller < 0)
             soundcontroller = 0;
+
+        HardmodeButtonInput();
 
         if (Keyboard::isKeyPressed(Keyboard::R))
         {
@@ -2648,6 +2825,7 @@ void Update()
                         Crystals.clear();
                         shanoa.health = 120; // Or your starting health
                         shanoa.isDead = false;
+                        shanoa.revivalCrystal = 1;
                         totalGameTime = 0.f;
                         swords.clear();
                         xpFullReset();
@@ -2665,6 +2843,7 @@ void Update()
                         xpFullReset(); // To Reset XP And Levels
                         gameOverSoundPlayed = false;
                         menuInputDelay = 0.f; // Reset delay BEFORE state change
+                        shanoa.revivalCrystal = 1;
                         gamestate = nameinput; // Transition to name input state
                         playerName = ""; // Clear name for new input
                         // totalGameTime (score) is already stored globally
@@ -2879,6 +3058,11 @@ void Draw()
         window.draw(xpBar);
         window.draw(xpBarText);
         window.draw(healthbar);
+        if (HMactive) // Hard Mode Indicator
+        {
+            HMindicator.setPosition(view.getCenter().x, view.getCenter().y - 450);
+            window.draw(HMindicator);
+        }
     }
 
     if (gamestate == settings)
@@ -2886,9 +3070,11 @@ void Draw()
         // settings menu draw
         window.draw(settingsBackground);
         window.draw(volume_down);
-        window.draw(volume_up);
+        window.draw(volume_up);                  
         window.draw(settingsmenuText);
         window.draw(volumeText);
+        window.draw(HMbutton);
+        window.draw(HMtext);
         for (int i = 0;i < (volumebarcontroller * 10);i++) {
             window.draw(volumebar[i]);
         }
