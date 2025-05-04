@@ -3078,6 +3078,15 @@ void Draw()
         for (int i = 0;i < (volumebarcontroller * 10);i++) {
             window.draw(volumebar[i]);
         }
+        Vector2f viewCenter = view.getCenter();
+        Text returnText;
+        returnText.setFont(defgamefont);
+        returnText.setCharacterSize(24);
+        returnText.setFillColor(Color::White);
+        returnText.setString("Press R to return to Main Menu");
+        returnText.setPosition(viewCenter.x - returnText.getGlobalBounds().width / 2.f, viewCenter.y + 300.f);
+        window.draw(returnText);
+        
     }
 
     if (gamestate == gameover)
@@ -3238,7 +3247,7 @@ void Draw()
         returnText.setCharacterSize(24);
         returnText.setFillColor(Color::White);
         returnText.setString("Press R to return to Main Menu");
-        returnText.setPosition(viewCenter.x - returnText.getGlobalBounds().width / 2.f, viewCenter.y + 300.f);
+        returnText.setPosition(viewCenter.x - returnText.getGlobalBounds().width / 2.f, viewCenter.y + 350.f);
         window.draw(returnText);
     }
 
