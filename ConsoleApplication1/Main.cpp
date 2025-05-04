@@ -1271,6 +1271,7 @@ int main()
                                 GameOverSound.stop();
                                 GameloopMusic.play();
                                 gameOverSoundPlayed = false;
+                                shanoa.revivalCrystal = 0;
                                 MathRevivalON = false;
                                 userInput = ""; // Clear input
                                 // *** Reset player state for revival ***
@@ -2778,6 +2779,9 @@ void Draw()
         if (gamestate == gameloop || gamestate == paused) // Draw healthbar in gameloop and paused
         {
             window.draw(healthbar);
+            window.draw(xpBarHolder);
+            window.draw(xpBar);
+            window.draw(xpBarText);
         }
     }
 
