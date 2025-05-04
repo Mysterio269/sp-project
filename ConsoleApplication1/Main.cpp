@@ -72,16 +72,18 @@ Texture swordspritesheet;
 Texture beasttexture, zombieTexture, batTexture, werewolfTexture;
 Texture BlueXP, GreenXP, RedXP;
 Texture levelup;
+Texture lock;
 Sprite levelupsprite;
-bool showlevelup = false;
-float levelupdisplaytimer = 0.0f;
+bool showLevelUp = false;
+float levelUpDisplayTimer = 0.0f;
 Sprite MainMenuButtons, MainMenuBackground, Map, healthbar, creditsbutton, creditback, volume_up, volume_down, settingsBackground;
+Sprite MathRevivalLock;
 View view;
 Vector2i mouseScreenpos;
 Vector2f mouseWorldpos;
 int selectedGameOverOptionIndex = 0;
 RectangleShape StartButton(Vector2f(490, 110)), SettingsButton(Vector2f(490, 110)), LeaderboardButton(Vector2f(490, 110)),
-ExitButton(Vector2f(490, 110)), creditsButton(Vector2f(490, 110)), MathRevivlaButton(Vector2f(250, 50)), restartButton(Vector2f(250, 50));
+ExitButton(Vector2f(490, 110)), creditsButton(Vector2f(490, 110)), MathRevivalButton(Vector2f(250, 50)), restartButton(Vector2f(250, 50));
 RectangleShape GiveUpButton(Vector2f(250, 50)); // *** Add shape for the Give Up button *** 
 RectangleShape equationAnsCellBox;
 RectangleShape gameOverOverlay; // red color in gameover background
@@ -95,8 +97,8 @@ int selectedMenuButtonIndex = 0; // 0 for Start, 1 for Settings, 2 for Leaderboa
 float volumebarcontroller;
 int randIndex;// equations elements random index
 
-Sound MainMenuMusic, GameOverSound, GameloopMusic;
-SoundBuffer MainMenuMusic_source, GameOverSound_source, GameloopMusic_source;
+Sound MainMenuMusic, GameOverSound, GameloopMusic, TheLegendaryTutor;
+SoundBuffer MainMenuMusic_source, GameOverSound_source, GameloopMusic_source,TheLegendaryTutor_voice;
 bool gameOverSoundPlayed = false;
 
 sf::VideoMode desktopMode = sf::VideoMode::getDesktopMode();
@@ -166,7 +168,7 @@ struct character
     Vector2f velocity;
     bool isDead, isAttacking;
     bool revivalCrystal;
-    bool canthrowsowrds = false;
+    bool canThrowSwords = false;
     animationstate AnimationState;
     playerDirection spriteDirection;
     int columnIndex = 0;
@@ -179,19 +181,19 @@ struct character
     float timeAtFirstDeath = 0.f; // totalGameTime when the player first died
     void updatelevel() {
         if (xp >= MaxXp) {
-            float excessxp = xp - MaxXp;
+            float excessXP = xp - MaxXp;
             level++;
             MaxXp += (level - 1) * 20 + 100;
-            xp = excessxp;
+            xp = excessXP;
             Maxhp += 5;
             health += 5;
-            showlevelup = true;
-            levelupdisplaytimer = 0.0f;
+            showLevelUp = true;
+            levelUpDisplayTimer = 0.0f;
         }
-        if (level >= 10) {
-            canthrowsowrds = true;
+        if (level >= 5) {
+            canThrowSwords = true;
         }
-        cout << xp << ' ' << level << endl;
+        cout << xp << ' ' << level <<" "<< "level up sprite : " <<  showLevelUp << '\n';
     }
 
     void update()
@@ -1260,8 +1262,11 @@ int main()
                             if (stoi(userInput) == EquationsAns[randIndex]) // correct answer
                             {
                                 gamestate = gameloop; // Go back to gameloop
-                                postTransitionCooldown = POST_TRANSITION_DELAY; // Set cooldown
+                                postTransitionCooldown = POST_TRANSITION_DELAY;  // Set cooldown
+                                TheLegendaryTutor.stop();
                                 GameOverSound.stop();
+                                GameloopMusic.play();
+                                gameOverSoundPlayed = false;
                                 MathRevivalON = false;
                                 userInput = ""; // Clear input
                                 // *** Reset player state for revival ***
@@ -1275,6 +1280,7 @@ int main()
                                 // Math Revival failed
                                 gamestate = gameover; // Go to main menu (or gameover options again?)
                                 postTransitionCooldown = POST_TRANSITION_DELAY; // Set cooldown
+                                TheLegendaryTutor.stop();
                                 MainMenuMusic.play();
                                 MathRevivalON = false; // Turn off Math Revival puzzle
                                 userInput = ""; // Clear input
@@ -1379,7 +1385,6 @@ void handleNameInput(sf::Event& event)
     // Update the displayed name text object string
     playerNameDisplayText.setString(playerName);
 }
-
 void SaveLeaderboard()
 {
     std::ofstream outputFile("leaderboard.txt");
@@ -1400,7 +1405,6 @@ void SaveLeaderboard()
         std::cerr << "Error: Unable to open leaderboard.txt for saving!" << std::endl;
     }
 }
-
 void LoadLeaderboard()
 {
     leaderboardEntriesMap.clear(); // Clear any existing entries
@@ -1474,7 +1478,7 @@ void NameInputInit()
 
 void shooting()
 {
-    if(shanoa.canthrowsowrds){
+    if(shanoa.canThrowSwords){
         shootingtime += deltaTime;
 
         if (shootingtime >= shootingrate)
@@ -1795,7 +1799,7 @@ void healthbarhandling() {
         healthbar.setTextureRect(IntRect(3552.2 + 42, 0, 445, 177));
     }
     else if (shanoa.health <= 0) {
-        gamestate = gameover;
+        shanoa.isDead = true;
     }
     healthbar.setPosition(shanoa.sprite.getPosition().x - 500, shanoa.sprite.getPosition().y + 285);
 }
@@ -1847,11 +1851,11 @@ void GameOverInit()
     restartButton.setFillColor(Color(100, 0, 0));
     restartButton.setOutlineColor(Color::Yellow);
 
-    MathRevivlaButton.setFillColor(Color(100, 0, 0));
-    MathRevivlaButton.setOutlineColor(Color::Yellow);
+    MathRevivalButton.setFillColor(Color(100, 0, 0));
+    MathRevivalButton.setOutlineColor(Color::Yellow);
 
     restartButton.setSize(Vector2f(250, 50)); // Example size
-    MathRevivlaButton.setSize(Vector2f(250, 50)); // Example size
+    MathRevivalButton.setSize(Vector2f(250, 50)); // Example size
 
 
     gameOverOverlay.setSize(view.getSize()); // Set size based on the view's size
@@ -2155,7 +2159,7 @@ void Start()
 
     //Game font initialization
     defgamefont.loadFromFile("VampireZone.ttf");
-
+    lock.loadFromFile("Assets\\lock.png");
     BlueXP.loadFromFile("Assets\\XPc.png");
     GreenXP.loadFromFile("Assets\\GreenXPc.png");
     RedXP.loadFromFile("Assets\\RedXPc.png");
@@ -2166,6 +2170,8 @@ void Start()
     swordspritesheet.loadFromFile("Assets\\SWORDS.png");
     shanoadamaged_source.loadFromFile("Assets\\shanoatakingdamage.ogg");
     shanoadamaged.setBuffer(shanoadamaged_source);
+    TheLegendaryTutor_voice.loadFromFile("Assets\\voiceActing.ogg");
+    TheLegendaryTutor.setBuffer(TheLegendaryTutor_voice);
     shanoadamaged.setVolume(50);
     sowrdsound_source.loadFromFile("Assets\\sowrdssound.ogg");
     sowrdsound.setBuffer(sowrdsound_source);
@@ -2173,6 +2179,9 @@ void Start()
     levelup.loadFromFile("Assets\\level_up.png");
     levelupsprite.setTexture(levelup);
     levelupsprite.setScale(0.3, 0.5);
+    MathRevivalLock.setTexture(lock);
+    MathRevivalLock.setOrigin(MathRevivalLock.getLocalBounds().width / 2, MathRevivalLock.getLocalBounds().height / 2);
+    MathRevivalLock.setScale(0.1, 0.1);
     MapInit();
     MainmenuInit();
     GameOverInit();
@@ -2240,7 +2249,6 @@ void Update()
 
 
     }
-
     else if (gamestate == gameloop)
     {
         // gameloop update
@@ -2269,7 +2277,7 @@ void Update()
         }
         if (Keyboard::isKeyPressed(Keyboard::Q) || shanoa.isDead)
         {
-
+            cout << "here";
             GetRandIndex(randIndex);
             SurvivalEquation.sprite.setTextureRect(IntRect(0, 156 * randIndex, 600, 156));
 
@@ -2286,18 +2294,17 @@ void Update()
                 GameOverSound.play();
                 gameOverSoundPlayed = true; //set the flag so it doesn't play again immediately
             }
-
             GameloopMusic.stop();
             gamestate = gameover;
             enemies.clear();
             swords.clear();
             selectedMenuButtonIndex = 0;
         }
-        if (showlevelup) {
-            levelupdisplaytimer += deltaTime;
-            if (levelupdisplaytimer >= 2.0f) {
-                showlevelup = false;
-                levelupdisplaytimer = 0.0f;
+        if (showLevelUp) {
+            levelUpDisplayTimer += deltaTime;
+            if (levelUpDisplayTimer >= 2.0f) {
+                showLevelUp = false;
+                levelUpDisplayTimer = 0.0f;
             }
         }
         EnemySpawn();
@@ -2339,6 +2346,7 @@ void Update()
         }
         meleeAttack();
         view.setCenter(shanoa.sprite.getPosition());
+        quoteUpdate();
     }
 
     else if (gamestate == paused) // <-- New Paused State Update
@@ -2447,10 +2455,10 @@ void Update()
             selectedOptionSize = ContinueButton.getSize();
         }
         else if (selectedMenuButtonIndex == 1) {
-            selectedOptionPosition = PauseReturnToMenuButton.getPosition();
+            selectedOptionPosition = (Vector2f(PauseReturnToMenuButton.getPosition().x, PauseReturnToMenuButton.getPosition().y - 25.f));
             selectedOptionSize = PauseReturnToMenuButton.getSize();
         }
-        menuCursor.setPosition(selectedOptionPosition.x - cursorAdjust, selectedOptionPosition.y - cursorAdjust);
+        menuCursor.setPosition(selectedOptionPosition.x - cursorAdjust, selectedOptionPosition.y - cursorAdjust );
         menuCursor.setSize(Vector2f(selectedOptionSize.x + cursorAdjust * 2.f, selectedOptionSize.y + cursorAdjust * 2.f));
 
         view.setCenter(viewCenter); // Keep view centered on pause screen
@@ -2510,12 +2518,12 @@ void Update()
         // ensures mouse collision detection is accurate based on current frame's positions)  
         Vector2f viewCenter = view.getCenter();
         restartButton.setPosition(viewCenter.x - restartButton.getLocalBounds().width / 2.f, viewCenter.y + 90.f);
-        MathRevivlaButton.setPosition(viewCenter.x - MathRevivlaButton.getLocalBounds().width / 2.f, viewCenter.y + 175.f);
+        MathRevivalButton.setPosition(viewCenter.x - MathRevivalButton.getLocalBounds().width / 2.f, viewCenter.y + 175.f);
         GiveUpButton.setPosition(viewCenter.x - GiveUpButton.getLocalBounds().width / 2.f, viewCenter.y + 260.f);
 
         // Update bounds after setting position
         RestartButtonBounds = restartButton.getGlobalBounds();
-        MathRevivlaButtonBounds = MathRevivlaButton.getGlobalBounds();
+        MathRevivlaButtonBounds = MathRevivalButton.getGlobalBounds();
         GiveUpButtonBounds = GiveUpButton.getGlobalBounds();
 
         // --- Input Handling ---
@@ -2597,14 +2605,17 @@ void Update()
                         totalGameTime = 0.f;
                         swords.clear();
                     }
-                    else if (selectedGameOverOptionIndex == 1) // Math Revival selected
+                    else if (selectedGameOverOptionIndex == 1 && shanoa.revivalCrystal) // Math Revival selected
                     {
                         MathRevivalON = true; // Activate Math Revival
+                        TheLegendaryTutor.play();
                         menuInputDelay = 0.f; // Reset delay
                     }
                     else if (selectedGameOverOptionIndex == 2) // Give Up selected
                     {
                         GameOverSound.stop();
+                        GameOverSound.play();
+                        gameOverSoundPlayed = false;
                         menuInputDelay = 0.f; // Reset delay BEFORE state change
                         gamestate = nameinput; // Transition to name input state
                         playerName = ""; // Clear name for new input
@@ -2625,8 +2636,8 @@ void Update()
                 selectedOptionSize = restartButton.getSize();
             }
             else if (selectedGameOverOptionIndex == 1) {
-                selectedOptionPosition = MathRevivlaButton.getPosition();
-                selectedOptionSize = MathRevivlaButton.getSize();
+                    selectedOptionPosition = MathRevivalButton.getPosition();
+                    selectedOptionSize = MathRevivalButton.getSize();
             }
             else if (selectedGameOverOptionIndex == 2) { // Position for Give Up option
                 selectedOptionPosition = GiveUpButton.getPosition();
@@ -2757,7 +2768,7 @@ void Draw()
 
         // Position the buttons relative to the view center
         ContinueButton.setPosition(viewCenter.x - ContinueButton.getLocalBounds().width / 2.f, viewCenter.y - 50.f);
-        PauseReturnToMenuButton.setPosition(viewCenter.x - PauseReturnToMenuButton.getLocalBounds().width / 2.f, viewCenter.y + 50.f);
+        PauseReturnToMenuButton.setPosition(viewCenter.x - PauseReturnToMenuButton.getLocalBounds().width / 2.f, viewCenter.y + 25.f);
 
         // Position the text on top of their corresponding buttons
         ContinueText.setPosition(ContinueButton.getPosition().x + (ContinueButton.getSize().x - ContinueText.getLocalBounds().width) / 2.f,
@@ -2765,11 +2776,16 @@ void Draw()
         PauseReturnToMenuText.setPosition(PauseReturnToMenuButton.getPosition().x + (PauseReturnToMenuButton.getSize().x - PauseReturnToMenuText.getLocalBounds().width) / 2.f,
             PauseReturnToMenuButton.getPosition().y + (PauseReturnToMenuButton.getSize().y - PauseReturnToMenuText.getLocalBounds().height) / 2.f - 5.f); // Center text on button
 
+
+        // For Adjusting The Position Of The Quote
+        Quote.setPosition(viewCenter.x, viewCenter.y + 120.f);
+
         window.draw(ContinueButton);
         window.draw(ContinueText);
         window.draw(PauseReturnToMenuButton);
         window.draw(PauseReturnToMenuText);
         window.draw(menuCursor); // Draw menu cursor over selected button
+        window.draw(Quote);
     }
 
     if (gamestate == gameloop)
@@ -2803,7 +2819,7 @@ void Draw()
                 window.draw(obstacles[i].collider);
             }
         }
-        if (showlevelup) {
+        if (showLevelUp) {
             levelupsprite.setOrigin(levelupsprite.getLocalBounds().width / 2.0f, levelupsprite.getLocalBounds().height / 2.0f);
             levelupsprite.setPosition(view.getCenter());
             window.draw(levelupsprite);
@@ -2854,26 +2870,35 @@ void Draw()
             // Position the buttons relative to the view center
             // Use getLocalBounds() for the button size itself when centering
             restartButton.setPosition(viewCenter.x - restartButton.getLocalBounds().width / 2.f, viewCenter.y + 90.f);
-            MathRevivlaButton.setPosition(viewCenter.x - MathRevivlaButton.getLocalBounds().width / 2.f, viewCenter.y + 175.f);
+            MathRevivalButton.setPosition(viewCenter.x - MathRevivalButton.getLocalBounds().width / 2.f, viewCenter.y + 175.f);
             GiveUpButton.setPosition(viewCenter.x - GiveUpButton.getLocalBounds().width / 2.f, viewCenter.y + 260.f); // Position below Math Revival button
-
+            Quote.setPosition(viewCenter.x , viewCenter.y + 350.f);
             // Position the text on top of their corresponding buttons
             // Use getLocalBounds() for text size when centering on the button
             RestartText.setPosition(restartButton.getPosition().x + (restartButton.getSize().x - RestartText.getLocalBounds().width) / 2.f, restartButton.getPosition().y + (restartButton.getSize().y - RestartText.getLocalBounds().height) / 2.f - 5.f); // Center text on button, adjust -5.f as needed
-            mathRevivalText.setPosition(MathRevivlaButton.getPosition().x + (MathRevivlaButton.getSize().x - mathRevivalText.getLocalBounds().width) / 2.f, MathRevivlaButton.getPosition().y + (MathRevivlaButton.getSize().y - mathRevivalText.getLocalBounds().height) / 2.f - 5.f); // Center text on button
+            mathRevivalText.setPosition(MathRevivalButton.getPosition().x + (MathRevivalButton.getSize().x - mathRevivalText.getLocalBounds().width) / 2.f, MathRevivalButton.getPosition().y + (MathRevivalButton.getSize().y - mathRevivalText.getLocalBounds().height) / 2.f - 5.f); // Center text on button
             // Position Give Up Text on its button
             GiveUpText.setPosition(GiveUpButton.getPosition().x + (GiveUpButton.getSize().x - GiveUpText.getLocalBounds().width) / 2.f, GiveUpButton.getPosition().y + (GiveUpButton.getSize().y - GiveUpText.getLocalBounds().height) / 2.f - 5.f); // Center text on button
 
+            MathRevivalLock.setPosition(viewCenter.x - MathRevivalButton.getLocalBounds().width / 2.f + 125 , viewCenter.y +200);
 
             window.draw(restartButton);
             window.draw(RestartText);
-            window.draw(MathRevivlaButton);
-            window.draw(mathRevivalText);
+            window.draw(MathRevivalButton);
+            if (!shanoa.revivalCrystal)
+            {
+                window.draw(MathRevivalLock);
+            }
+            if (shanoa.revivalCrystal)
+            {
+                window.draw(mathRevivalText);
+            }
             window.draw(GiveUpButton); // Draw Give Up button
             window.draw(GiveUpText); // Draw Give Up text
 
             // Draw the cursor when Math Revival is NOT active
             // Cursor position is updated in the Update function
+            if(!(selectedGameOverOptionIndex == 1 && !shanoa.revivalCrystal))
             window.draw(menuCursor);
         }
 
