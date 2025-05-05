@@ -76,6 +76,8 @@ Text Quote;
 Text xpBarText;
 Text HMtext;
 Text HMindicator;
+bool MathRevivalON;
+
 
 Texture MainMenuButtons_Texture, MainMenuBackground_Texture, Map_Texture, healthbar_Texture, credits_Texture, credits_background
 , volume_up_Texture, volume_down_Texture;
@@ -135,9 +137,9 @@ float shootingrate = 3;
 float totalGameTime = 0.f;
 float menuInputDelay = 0.f;
 float attackDelay = 0.f;
-float HardmodeDelay = 0.09f;
-float HardmodeTimerDelay = 0.f;
-const float timeForAttack = 0.15f;
+float HorrorModeDelay = 0.09f;
+float HorrorModeTimerDelay = 0.f;
+const float timeForAttack = 0.4f;
 const float MENU_INPUT_COOLDOWN = 0.2f; // Time in seconds between allowed inputs
 float postTransitionCooldown = 0.f;     // Make sure this is also declared (it is in your code around source 151)
 const float POST_TRANSITION_DELAY = 0.6f; // Define the delay duration in seconds
@@ -191,11 +193,12 @@ struct character
     float Maxhp = 120;
     int xp = 0 , MaxXp = 100;
     float speed;
+    float originalSpeed = 200;//this is used to stop speed boost from overlapping speeds if collected more than 1 at a time
     int level = 1;
     float MeleeDamage;
     Vector2f velocity;
     bool isDead, isAttacking;
-    bool revivalCrystal;
+    bool RevivalScrollAcquired;
     bool canThrowSwords = false;
     animationstate AnimationState;
     playerDirection spriteDirection;
@@ -215,13 +218,15 @@ struct character
             xp = excessXP;
             Maxhp += 5;
             health += 5;
+            speed += 5;
+            originalSpeed += 5;
             showLevelUp = true;
             levelUpDisplayTimer = 0.0f;
         }
         if (level >= 5) {
             canThrowSwords = true;
         }
-        cout << xp << ' ' << level <<" "<< "level up sprite : " <<  showLevelUp << '\n';
+        //cout << xp << ' ' << level <<" "<< "level up sprite : " <<  showLevelUp << '\n';
     }
 
     void update()
@@ -348,6 +353,12 @@ struct ENEMY
     virtual ~ENEMY() {}
 };
 
+//variables for power ups
+bool SpeedBoostEffectActive = false;
+float SpeedBoostEffectTimer = 0.0f;
+float EffectDuration = 10.0f;
+Texture PowerupsTexture[5];
+
 struct XPc
 {
     Sprite sprite;
@@ -356,6 +367,7 @@ struct XPc
     int xpValue;
     float lifetime = 35.0f;  // Crystal will exist for 35 seconds 
     CrystalState state = IDLE;
+    droptype DropType;
 
     // Animation parameters
     float absorbSpeed = 200.0f; // Speed during final absorption
@@ -367,10 +379,11 @@ struct XPc
     Vector2f direction;
     Vector2f originalPosition;
 
-    XPc(float x, float y, Texture& tex, int xp)
+    XPc(float x, float y, Texture& tex, int xp,droptype drop)
     {
         sprite.setTexture(tex);
         sprite.setPosition(x, y);
+        DropType = drop;
         sprite.setScale(0.2f, 0.4f);
         // Center the origin for proper positioning
         sprite.setOrigin(tex.getSize().x / 2.0f, tex.getSize().y / 2.0f);
@@ -452,6 +465,19 @@ struct XPc
             if (currentScale <= 0.05f)
             {
                 isCollected = true;
+                if (DropType == healthregain) {
+                    shanoa.health += 100;
+                    if (shanoa.health > shanoa.Maxhp) {
+                        shanoa.health = shanoa.Maxhp;
+                    }
+                }
+                else if (DropType == mathrevivalactivator) {
+                    shanoa.RevivalScrollAcquired = true;
+                }
+                else if(DropType == speedboost){
+                    SpeedBoostEffectTimer = 0;
+                    SpeedBoostEffectActive = true;
+                }
             }
             else
             {
@@ -459,8 +485,8 @@ struct XPc
             }
             break;
         }
-    }
 
+    }
     FloatRect getBounds() const {
         return sprite.getGlobalBounds();
     }
@@ -468,77 +494,12 @@ struct XPc
 
 vector<XPc> Crystals;
 
-bool MagnetEffectActive = false;
-float MagnetEffectTimer = 0.0f;
-float EffectDuration = 10.0f;
-Texture PowerupsTexture[4];
-
 void PowerUPTexturesInit()
 {
-    PowerupsTexture[magnet].loadFromFile("magnet.png");
-    PowerupsTexture[healthregain].loadFromFile("healthregain.png");
-    PowerupsTexture[speedboost].loadFromFile("speedbooster.png");
-    PowerupsTexture[mathrevivalactivator].loadFromFile("mathrevival.png");
+    PowerupsTexture[healthregain].loadFromFile("Assets\\HealthRegain.png");
+    PowerupsTexture[speedboost].loadFromFile("Assets\\SpeedBoost.png");
+    PowerupsTexture[mathrevivalactivator].loadFromFile("Assets\\mathrevivalscroll.png");
 };
-
-struct PowerUPs : public XPc
-{
-    droptype type;
-    bool effectApplied = false;
-
-    PowerUPs(float x, float y, Texture& tex, droptype powerType) : XPc(x, y, tex, 0)
-    {
-        type = powerType;
-        switch (type) {
-        case magnet:
-
-            break;
-
-        case healthregain:
-            sprite.setTexture(tex);
-            sprite.setScale(0.2f, 0.4f);
-            break;
-
-        case speedboost:
-            break;
-
-        case mathrevivalactivator:
-
-            break;
-        }
-    }
-
-    void PowerupEffects(character& player)
-    {
-        switch (type)
-        {
-        case magnet:
-
-            // The magnet code added here 
-            effectApplied = true;
-            break;
-
-        case healthregain:
-            player.health += 100;
-            effectApplied = true;
-            break;
-
-        case speedboost:
-
-            // ( The Death of all enemies around the player ) code will be added here
-            effectApplied = true;
-            break;
-
-        case mathrevivalactivator:
-
-            break;
-
-        }
-    }
-
-};
-
-
 
 struct BEAST :public ENEMY
 {
@@ -566,10 +527,9 @@ struct BEAST :public ENEMY
         MonsterType = Beast;
         shape.setTexture(beasttexture);
         shape.setScale(1.8, 2.5);
-        health = 250;
-        maxHealth = 250;
+        health = 400;
         speed = 100;
-        damage = 25 * HMfactor;
+        damage = 40 * HMfactor;
         attackBox.setSize(Vector2f(130, 1));
         shape.setPosition(-200, -200);
         shape.setOrigin(64, 32);
@@ -626,16 +586,29 @@ struct BEAST :public ENEMY
 
             // Randomly decide: 5% chance for Red crystal
             int randValue = (rand() + 1) % 100;
-            if (randValue < 5)
-                Crystals.push_back(XPc(position.x, position.y, RedXP, RedXPcValue));
+            if (randValue < 20)
+                Crystals.push_back(XPc(position.x, position.y, RedXP, RedXPcValue,xpc));
 
-            else if (randValue > 5 && randValue < 15)
-                Crystals.push_back(XPc(position.x, position.y, GreenXP, GreenXPcValue));
+            else if (randValue >=20 && randValue < 50)
+                Crystals.push_back(XPc(position.x, position.y, GreenXP, GreenXPcValue,xpc));
 
             else
-                Crystals.push_back(XPc(position.x, position.y, BlueXP, BlueXPcValue));
+                Crystals.push_back(XPc(position.x, position.y, BlueXP, BlueXPcValue,xpc));
 
             hasDroppedXP = true;
+        }
+        if (isDead) {
+            int randValue = (rand() + 1) % 100;
+            Vector2f position = shape.getPosition();
+            if (randValue < 10) {
+                Crystals.push_back(XPc(position.x, position.y, PowerupsTexture[healthregain], 0, healthregain));
+            }
+            else if (randValue >= 10 && randValue < 25) {
+                Crystals.push_back(XPc(position.x, position.y, PowerupsTexture[speedboost], 0,speedboost));
+            }
+            else if (randValue >= 25 && randValue < 40 && !shanoa.hasRevived && !shanoa.RevivalScrollAcquired) {
+                Crystals.push_back(XPc(position.x, position.y, PowerupsTexture[mathrevivalactivator], 0, mathrevivalactivator));
+            }
         }
     }
 }beast;
@@ -666,10 +639,9 @@ struct ZOMBIE :public ENEMY
         MonsterType = Zombie;
         shape.setTexture(zombieTexture);
         shape.setScale(2.52, 3.5);
-        health = 100;
-        maxHealth = 100;
-        speed = 120;
-        damage = 20 * HMfactor;
+        health = 250;
+        speed = 140;
+        damage = 15 * HMfactor;
         attackBox.setSize(Vector2f(65, 1));
         shape.setPosition(200, -200);
         shape.setOrigin(16, 16);
@@ -727,15 +699,28 @@ struct ZOMBIE :public ENEMY
             // Randomly decide: 5% chance for Red crystal
             int randValue = (rand() + 1) % 100;
             if (randValue < 5)
-                Crystals.push_back(XPc(position.x, position.y, RedXP, RedXPcValue));
+                Crystals.push_back(XPc(position.x, position.y, RedXP, RedXPcValue,xpc));
 
-            else if (randValue > 5 && randValue < 15)
-                Crystals.push_back(XPc(position.x, position.y, GreenXP, GreenXPcValue));
+            else if (randValue >= 5 && randValue < 15)
+                Crystals.push_back(XPc(position.x, position.y, GreenXP, GreenXPcValue,xpc));
 
             else
-                Crystals.push_back(XPc(position.x, position.y, BlueXP, BlueXPcValue));
+                Crystals.push_back(XPc(position.x, position.y, BlueXP, BlueXPcValue,xpc));
 
             hasDroppedXP = true;
+        }
+        if (isDead) {
+            int randValue = (rand() + 1) % 100;
+            Vector2f position = shape.getPosition();
+            if (randValue < 5) {
+                Crystals.push_back(XPc(position.x, position.y, PowerupsTexture[healthregain], 0, healthregain));
+            }
+            else if (randValue >= 5 && randValue < 10) {
+                Crystals.push_back(XPc(position.x, position.y, PowerupsTexture[speedboost], 0, speedboost));
+            }
+            else if (randValue >= 10 && randValue < 15 && !shanoa.hasRevived && !shanoa.RevivalScrollAcquired) {
+                Crystals.push_back(XPc(position.x, position.y, PowerupsTexture[mathrevivalactivator], 0, mathrevivalactivator));
+            }
         }
     }
 }zombie;
@@ -766,10 +751,9 @@ struct WEREWOLF :public ENEMY
         MonsterType = Werewolf;
         shape.setTexture(werewolfTexture);
         shape.setPosition(200, 200);
-        speed = 175;
-        health = 150;
-        maxHealth = 150;
-        damage = 10 * HMfactor;
+        speed = 200;
+        health = 300;
+        damage = 35 * HMfactor;
         AnimationState = walking;
         attackBox.setSize(Vector2f(70, 1));
         attackBox.setFillColor(Color::Red);
@@ -825,16 +809,29 @@ struct WEREWOLF :public ENEMY
 
             // Randomly decide: 5% chance for Red crystal
             int randValue = (rand() + 1) % 100;
-            if (randValue < 5)
-                Crystals.push_back(XPc(position.x, position.y, RedXP, RedXPcValue));
+            if (randValue < 10)
+                Crystals.push_back(XPc(position.x, position.y, RedXP, RedXPcValue,xpc));
 
-            else if (randValue > 5 && randValue < 15)
-                Crystals.push_back(XPc(position.x, position.y, GreenXP, GreenXPcValue));
+            else if (randValue >= 10 && randValue < 25)
+                Crystals.push_back(XPc(position.x, position.y, GreenXP, GreenXPcValue,xpc));
 
             else
-                Crystals.push_back(XPc(position.x, position.y, BlueXP, BlueXPcValue));
+                Crystals.push_back(XPc(position.x, position.y, BlueXP, BlueXPcValue,xpc));
 
             hasDroppedXP = true;
+        }
+        if (isDead) {
+            int randValue = (rand() + 1) % 100;
+            Vector2f position = shape.getPosition();
+            if (randValue < 10) {
+                Crystals.push_back(XPc(position.x, position.y, PowerupsTexture[healthregain], 0, healthregain));
+            }
+            else if (randValue >= 10 && randValue < 20) {
+                Crystals.push_back(XPc(position.x, position.y, PowerupsTexture[speedboost], 0, speedboost));
+            }
+            else if (randValue >= 20 && randValue < 30 && !shanoa.hasRevived && !shanoa.RevivalScrollAcquired) {
+                Crystals.push_back(XPc(position.x, position.y, PowerupsTexture[mathrevivalactivator], 0, mathrevivalactivator));
+            }
         }
     }
 }werewolf;
@@ -865,9 +862,8 @@ struct BAT :public ENEMY
         MonsterType = Bat;
         shape.setTexture(batTexture);
         shape.setScale(3, 3);
-        health = 50;
-        maxHealth = 50;
-        speed = 250;
+        health = 100;
+        speed = 200;
         damage = 5 * HMfactor;
         attackBox.setSize(Vector2f(70, 1));
         shape.setPosition(200, -200);
@@ -925,40 +921,35 @@ struct BAT :public ENEMY
 
             // Randomly decide: 5% chance for Red crystal
             int randValue = (rand() + 1) % 100;
-            if (randValue < 5)
-                Crystals.push_back(XPc(position.x, position.y, RedXP, RedXPcValue));
-
-            else if (randValue > 5 && randValue < 15)
-                Crystals.push_back(XPc(position.x, position.y, GreenXP, GreenXPcValue));
-
+            if (randValue ==1)
+                Crystals.push_back(XPc(position.x, position.y, RedXP, RedXPcValue,xpc));
+            else if (randValue > 1 && randValue < 10)
+                Crystals.push_back(XPc(position.x, position.y, GreenXP, GreenXPcValue,xpc));
             else
-                Crystals.push_back(XPc(position.x, position.y, BlueXP, BlueXPcValue));
+                Crystals.push_back(XPc(position.x, position.y, BlueXP, BlueXPcValue,xpc));
 
             hasDroppedXP = true;
+        }
+        if (isDead) {
+            int randValue = (rand() + 1) % 100;
+            Vector2f position = shape.getPosition();
+            if (randValue < 5) {
+                Crystals.push_back(XPc(position.x, position.y, PowerupsTexture[healthregain], 0, healthregain));
+            }
+            else if (randValue > 5 && randValue < 10) {
+                Crystals.push_back(XPc(position.x, position.y, PowerupsTexture[speedboost], 0, speedboost));
+            }
         }
     }
 }bat;
 
-void Hardmode()
-{
-    if (HMactive)
-    {
-        HMfactor = 1.5;
-        cout << "hard mode" << endl;
-    }
-    else
-    {
-        HMfactor = 1;
-        cout << "not hard" << endl;
-    }
-}
 
 
 struct sword {
     Sprite shape;
     RectangleShape collider;
     Vector2f velocity;
-    float damage = 50;
+    float damage = 70;
     float speed;
     float deletiontimer = 0;
 
@@ -981,19 +972,20 @@ struct Obstacle
     Sprite sprite;
     RectangleShape collider;
     bool isActive = false;
-    float timeOffCamera = 0.0f;
-    bool isOffCamera = false;
+    float timeOffCamera;
+    bool isOffCamera;
     ObstacleType type;
-
+    float health = 200;//used for luckystatue
+    bool hasdroppedScroll = false;
     Obstacle(const Texture& texture, ObstacleType obstacleType) {
         type = obstacleType;
         sprite.setTexture(texture);
 
         switch (type)
         {
-        case tree:
-            sprite.setScale(2.0f, 3.2f);
-            break;
+            /*case tree:
+                sprite.setScale(2.0f, 3.2f);
+                break;*/
 
         case rock:
             sprite.setScale(0.8f, 1.2f);
@@ -1003,9 +995,9 @@ struct Obstacle
             sprite.setScale(1.7f, 3.0f);
             break;
 
-        case objectwillbeadded:
-            sprite.setScale(2.0f, 1.0f);
-            break;
+            /*case objectwillbeadded:
+                sprite.setScale(2.0f, 1.0f);
+                break; */
 
         case wall:
             sprite.setScale(0.8f, 1.5f);
@@ -1014,7 +1006,7 @@ struct Obstacle
 
         sprite.setOrigin(texture.getSize().x / 2.0f, texture.getSize().y / 2.0f);
 
-        float Width, Height; // That's for the collider
+        float Width, Height; // That's for the collider ( The percent that will used )
 
         switch (type) {
         case wall:
@@ -1032,15 +1024,15 @@ struct Obstacle
             Height = 0.75f;
             break;
 
-        case objectwillbeadded:
-            Width = 0.9f;
-            Height = 0.5f;
-            break;
+            /*case objectwillbeadded:
+                Width = 0.9f;
+                Height = 0.5f;
+                break;*/
 
-        case tree:
-            Width = 0.5f;
-            Height = 0.9f;
-            break;
+                /*case tree:
+                    Width = 0.5f;
+                    Height = 0.9f;
+                    break;*/
         }
 
         float colliderWidth = texture.getSize().x * sprite.getScale().x * Width;
@@ -1052,9 +1044,6 @@ struct Obstacle
         collider.setOutlineColor(Color::Green);
         collider.setOutlineThickness(2.0f);
 
-        isActive = false;
-        timeOffCamera = 0.0f;
-        isOffCamera = false;
     }
 
     Obstacle() {}
@@ -1070,17 +1059,17 @@ struct Obstacle
 };
 Obstacle obstacles[MAX_OBSTACLES];
 const float MinObstacleRadius = 200.0f; // Minimum distance from player
-const float MaxObstacleRadius = 2000.0f;
+const float MaxObstacleRadius = 1200.0f;
 const float DespawnRadius = 1800.0f;   // Distance to remove obstacles
 const float ObstacleTimer = 25.0f;  // Time in seconds before respawning when off camera
 
 
 Texture obstacleTextures[5];
 void LoadObstacleTextures() {
-    obstacleTextures[tree].loadFromFile("Assets\\tree.png");
+    //obstacleTextures[tree].loadFromFile("Assets\\tree.png");
     obstacleTextures[rock].loadFromFile("Assets\\Rock1.png");
     obstacleTextures[statue].loadFromFile("Assets\\Statue.png");
-    obstacleTextures[objectwillbeadded].loadFromFile("Assets\\fence.png");
+    //obstacleTextures[objectwillbeadded].loadFromFile("Assets\\");
     obstacleTextures[wall].loadFromFile("Assets\\FirstObstacle.png");
 }
 
@@ -1089,7 +1078,8 @@ void InitObstacles()
 
     LoadObstacleTextures();
 
-    for (int i = 0; i < MAX_OBSTACLES; i++) {
+    for (int i = 0; i < MAX_OBSTACLES; i++)
+    {
         obstacles[i] = Obstacle();
     }
 }
@@ -1130,25 +1120,20 @@ Vector2f GetRandomObstaclePosition() {
 // Check if a position is valid for obstacle placement (not overlapping)
 bool IsValidPosition(const Vector2f& position, float radius) {
 
-    float distToPlayer = sqrt(pow(position.x - shanoa.sprite.getPosition().x, 2) +
+    float distToPlayer = sqrt(pow(shanoa.sprite.getPosition().x - position.x, 2) +
         pow(position.y - shanoa.sprite.getPosition().y, 2));
 
     if (distToPlayer < MinObstacleRadius)
-    {
         return false;
-    }
 
     for (int i = 0; i < MAX_OBSTACLES; i++)
     {
         if (obstacles[i].isActive)
         {
-            float distToObstacle = sqrt(pow(position.x - obstacles[i].sprite.getPosition().x, 2) +
+            float distToObstacle = sqrt(pow(obstacles[i].sprite.getPosition().x - position.x, 2) +
                 pow(position.y - obstacles[i].sprite.getPosition().y, 2));
 
-            if (distToObstacle < radius * 18)
-            {
-                return false;
-            }
+            if (distToObstacle < radius * 18) return false;
         }
     }
 
@@ -1158,82 +1143,75 @@ bool IsValidPosition(const Vector2f& position, float radius) {
 ObstacleType GetRandomObstacleType() {
     int randValue = (rand() % 100) + 1;
 
-    if (randValue < 35) return tree;
-    else if (randValue < 60) return rock;
-    else if (randValue < 80) return wall;
-    else if (randValue < 95) return objectwillbeadded;
+    //if (randValue < 35)      return tree;
+    if (randValue >= 60) return rock;
+    else if (randValue < 60 && randValue >= 10) return wall;
+    //else if (randValue < 95) return objectwillbeadded;
     else                     return statue;
 }
 
-void SpawnObstacle() {
+
+void SpawnObstacle()
+{
 
     for (int i = 0; i < MAX_OBSTACLES; i++)
     {
-        if (!obstacles[i].isActive) {
+        if (obstacles[i].isActive == false)
+        {
             Vector2f position;
             bool validPosition = false;
             int attempts = 0;
 
-            while (!validPosition && attempts < 20)
+            while (validPosition == false && attempts < 20)
             {
                 position = GetRandomObstaclePosition();
                 validPosition = IsValidPosition(position, 65.0f); // The radius between obstacles
                 attempts++;
             }
 
-            if (validPosition)
+            if (validPosition && IsInCameraView(position) == false)
             {
-
                 ObstacleType type = GetRandomObstacleType();
-
                 obstacles[i] = Obstacle(obstacleTextures[type], type);
-
                 obstacles[i].activate(position);
-                return;
+                break;
             }
         }
     }
 }
 
 // Check for despawn and spawn new ones
+// Check for despawn and spawn new ones
 void UpdateObstacles(float deltaTime) {
     Vector2f playerPos = shanoa.sprite.getPosition();
     int activeCount = 0;
 
-    for (int i = 0; i < MAX_OBSTACLES; i++) {
-        if (obstacles[i].isActive) {
+    for (int i = 0; i < MAX_OBSTACLES; i++)
+    {
+
+        if (obstacles[i].isActive == true)
+        {
 
             float distToPlayer = sqrt(pow(obstacles[i].sprite.getPosition().x - playerPos.x, 2) +
                 pow(obstacles[i].sprite.getPosition().y - playerPos.y, 2));
 
             if (distToPlayer > DespawnRadius)
-            {
                 obstacles[i].isActive = false;
-            }
             else
             {
                 activeCount++;
-
                 bool inView = IsInCameraView(obstacles[i].sprite.getPosition());
 
-                if (!inView) {
-                    if (!obstacles[i].isOffCamera)
-                    {
-                        obstacles[i].isOffCamera = true;
-                        obstacles[i].timeOffCamera = 0.0f;
-                    }
-                    else
-                    {
-                        obstacles[i].timeOffCamera += deltaTime;
+                if (inView == 0)
+                {
+                    obstacles[i].timeOffCamera += deltaTime;
 
-                        if (obstacles[i].timeOffCamera >= ObstacleTimer) {
-                            obstacles[i].isActive = false;
-                        }
-                    }
+                    if (obstacles[i].timeOffCamera >= ObstacleTimer)
+                        obstacles[i].isActive = false;
                 }
+
                 else
                 {
-
                     obstacles[i].isOffCamera = false;
                     obstacles[i].timeOffCamera = 0.0f;
                 }
@@ -1306,7 +1284,6 @@ struct MathEquation {
 MathEquation SurvivalEquation;
 int EquationsAns[8] = { 3,4,4,2,7,4,1,6 };
 string userInput = "";
-bool MathRevivalON;
 
 int main()
 {
@@ -1342,12 +1319,6 @@ int main()
                     selectedMenuButtonIndex = 0; // Reset pause menu selection
                 }
             }
-
-            if (Keyboard::isKeyPressed(Keyboard::Tab)) // DEBUGGING BUTTON
-            {
-                window.close();
-            }
-
             // --- Handle Text Entered event ---
             if (event.type == sf::Event::TextEntered)
             {
@@ -1380,7 +1351,7 @@ int main()
                                 GameOverSound.stop();
                                 GameloopMusic.play();
                                 gameOverSoundPlayed = false;
-                                shanoa.revivalCrystal = 0;
+                                shanoa.RevivalScrollAcquired = 0;
                                 MathRevivalON = false;
                                 userInput = ""; // Clear input
                                 // *** Reset player state for revival ***
@@ -1396,7 +1367,7 @@ int main()
                                 postTransitionCooldown = POST_TRANSITION_DELAY; // Set cooldown
                                 TheLegendaryTutor.stop();
                                 MathRevivalON = false; // Turn off Math Revival puzzle
-                                shanoa.revivalCrystal = 0;
+                                shanoa.RevivalScrollAcquired = 0;
                                 userInput = ""; // Clear input
                                 // Game over screen is skipped, so score won't be saved from here.
                                 // If you want to save score on Math Revival fail,
@@ -1499,6 +1470,7 @@ void handleNameInput(sf::Event& event)
     // Update the displayed name text object string
     playerNameDisplayText.setString(playerName);
 }
+
 void SaveLeaderboard()
 {
     std::ofstream outputFile("leaderboard.txt");
@@ -1519,6 +1491,7 @@ void SaveLeaderboard()
         std::cerr << "Error: Unable to open leaderboard.txt for saving!" << std::endl;
     }
 }
+
 void LoadLeaderboard()
 {
     leaderboardEntriesMap.clear(); // Clear any existing entries
@@ -1600,7 +1573,7 @@ void shooting()
             shootingtime = 0;
             float erasuretimer = 0;
             sword newSword;
-            newSword.speed = 5000 * deltaTime;
+            newSword.speed = 10000 * deltaTime;
             newSword.shape.setTexture(swordspritesheet);
             newSword.shape.setTextureRect(IntRect(1 * 32, 2 * 32, 32, 32));
             newSword.shape.setScale(2, 2);
@@ -1715,6 +1688,7 @@ void MainmenuInit() {
     swordspritesheet.loadFromFile("Assets\\SWORDS.png");
     healthbar_Texture.loadFromFile("Assets\\shanoahealthbar.png");
 }
+
 void xpBarInit() {
     xpBarHolder.setSize(Vector2f(180, 30));
     xpBarHolder.setFillColor(Color::Black);
@@ -1726,6 +1700,7 @@ void xpBarInit() {
     xpBarText.setString("LVL.");
     xpBarText.setOrigin(xpBarText.getLocalBounds().width / 2, xpBarText.getLocalBounds().height / 2);
 }
+
 void xpBarUpdate() {
     string currentLevel = to_string(shanoa.level);
     xpBarHolder.setPosition(shanoa.sprite.getPosition().x - 260, shanoa.sprite.getPosition().y + 400);
@@ -1738,10 +1713,12 @@ void xpBarUpdate() {
     xpBar.setSize(Vector2f(xpBarWidth * (float(shanoa.xp) / float(shanoa.MaxXp)), 20));
 
 }
+
 void xpFullReset() {
     shanoa.xp = 0;
     shanoa.level = 1;
 }
+
 void PauseMenuInit()
 {
     PauseText.setFont(defgamefont);
@@ -1803,11 +1780,11 @@ void CharacterInit() {
     shanoa.attackSpace.setSize(Vector2f(80, 45));
     shanoa.attackSpace.setFillColor(Color::Black);
     shanoa.attackSpace.setOrigin(0, shanoa.attackSpace.getLocalBounds().height / 2);
-    shanoa.MeleeDamage = 90;
+    shanoa.MeleeDamage = 120;
     shanoa.sprite.setOrigin(66, 74);
     shanoa.sprite.setScale(1, 1.5);
     shanoa.AnimationState = idle;
-    shanoa.revivalCrystal = 1;
+    shanoa.RevivalScrollAcquired = 1;
     healthbar.setTexture(healthbar_Texture);
     healthbar.setScale(0.84, 1.2);
 }
@@ -1841,12 +1818,16 @@ void MapInit() {
 
 void EnemySpawn() {
     Vector2f randomspawnpoint = Vector2f(shanoa.sprite.getPosition().x + (rand() % 2001 - 1000), shanoa.sprite.getPosition().y + (rand() % 2001 - 1000));
-    if (enemies.size() <= 25) {
+    int currentmonstercount = 10;
+    if ((int)totalGameTime % 5 == 0) {
+        currentmonstercount++;
+    }
+    if (enemies.size() <= currentmonstercount) {
         beastspawntimer += deltaTime;
         batspawntimer += deltaTime;
         werewolfspawntimer += deltaTime;
         zombiespawntimer += deltaTime;
-        if (beastspawntimer >= 4) {
+        if (beastspawntimer >= 4 && totalGameTime > 240) {
 
             auto newBeast = make_unique<BEAST>();
 
@@ -1858,7 +1839,7 @@ void EnemySpawn() {
 
             beastspawntimer = 0;
         }
-        if (zombiespawntimer >= 2) {
+        if (zombiespawntimer >= 2 && totalGameTime > 60) {
 
             auto newZombie = make_unique<ZOMBIE>();
 
@@ -1870,7 +1851,7 @@ void EnemySpawn() {
 
             zombiespawntimer = 0;
         }
-        if (werewolfspawntimer >= 3) {
+        if (werewolfspawntimer >= 3 && totalGameTime > 120) {
 
             auto newWerewolf = make_unique<WEREWOLF>();
 
@@ -1882,7 +1863,7 @@ void EnemySpawn() {
 
             werewolfspawntimer = 0;
         }
-        if (batspawntimer >= 1) {
+        if (batspawntimer >= 1 && totalGameTime < 300) {
 
             auto newBat = make_unique<BAT>();
 
@@ -2069,10 +2050,11 @@ void MainMenuButtonCheck()
 
     }
 }
-void HardmodeButtonInput()
+
+void HorrorModeButtonInput()
 {
-    HardmodeTimerDelay += deltaTime;
-    if (HardmodeTimerDelay >= HardmodeDelay)
+    HorrorModeTimerDelay += deltaTime;
+    if (HorrorModeTimerDelay >= HorrorModeDelay)
     {
         if (HMbuttonbounds.contains(mouseWorldpos) && Mouse::isButtonPressed(Mouse::Left))
         {
@@ -2091,7 +2073,7 @@ void HardmodeButtonInput()
 
                 /*HMactive = false;*/
             }
-            HardmodeTimerDelay = 0.f;
+            HorrorModeTimerDelay = 0.f;
         }
     }
    
@@ -2197,12 +2179,12 @@ void SettingsMenuInit() {
     HMbutton.setScale(0.6, 0.6);
     HMbuttonbounds = HMbutton.getGlobalBounds();
 
-    HMtext.setString("Hard mode");
+    HMtext.setString("Horror mode");
     HMtext.setFont(defgamefont);
     HMtext.setPosition(520, 20400);
     HMtext.setScale(1.2, 1.2);
 
-    HMindicator.setString("HARD MODE");
+    HMindicator.setString("HORROR MODE");
     HMindicator.setFont(defgamefont);
     HMindicator.setFillColor(Color::Red);
     HMindicator.setOrigin(HMindicator.getLocalBounds().width / 2, HMindicator.getLocalBounds().height / 2);
@@ -2221,6 +2203,20 @@ void SettingsMenuInit() {
             volumebar[i].setFillColor(Color::White);
             volumebar[i].setPosition(690 + (i * 20), 20307);
         }
+    }
+}
+
+void Horrormode()
+{
+    if (HMactive)
+    {
+        HMfactor = 1.5;
+        //cout << "Horror mode" << endl;
+    }
+    else
+    {
+        HMfactor = 1;
+        //cout << "not Horror" << endl;
     }
 }
 
@@ -2351,15 +2347,50 @@ void globalCollsion() {
             {
                if(swords[k].collider.getGlobalBounds().intersects(obstacles[i].collider.getGlobalBounds()))
                {
+                   if (obstacles[i].type == statue) {
+                       obstacles[i].health -= swords[k].damage;
+                       if (obstacles[i].health <= 0 && !obstacles[i].hasdroppedScroll) {
+                           Crystals.push_back(XPc(obstacles[i].sprite.getPosition().x, obstacles[i].sprite.getPosition().y, PowerupsTexture[mathrevivalactivator], 0, mathrevivalactivator));
+                           obstacles[i].sprite.setScale(0, 0);
+                           obstacles[i].collider.setScale(0, 0);
+                           obstacles[i].sprite.setPosition(20000, 20000);
+                           obstacles[i].collider.setScale(20000, 20000);
+                           obstacles[i].hasdroppedScroll;
+                       }
+                   }
                    swords.erase(swords.begin() + k);
                    break;
                }
+            }
+            if(obstacles[i].type == statue) {
+                if (shanoa.attackSpace.getGlobalBounds().intersects(obstacles[i].collider.getGlobalBounds())) {
+                    obstacles[i].health -= shanoa.MeleeDamage;
+                    if (obstacles[i].health <= 0 && !obstacles[i].hasdroppedScroll) {
+                        Crystals.push_back(XPc(obstacles[i].sprite.getPosition().x, obstacles[i].sprite.getPosition().y, PowerupsTexture[mathrevivalactivator], 0, mathrevivalactivator));
+                        obstacles[i].sprite.setScale(0, 0);
+                        obstacles[i].collider.setScale(0, 0);
+                        obstacles[i].sprite.setPosition(20000, 20000);
+                        obstacles[i].collider.setScale(20000, 20000);
+                        obstacles[i].hasdroppedScroll;
+                    }
+                }
             }
         }
     }
     swordFullCollisionAndDamage();
 }
 
+void SpeedBoostFunction() {
+    if (SpeedBoostEffectActive) {
+        if(shanoa.speed <= shanoa.originalSpeed)
+            shanoa.speed = shanoa.speed * 1.5;
+        if (SpeedBoostEffectTimer >= EffectDuration) {
+            SpeedBoostEffectActive = false;
+            shanoa.speed = shanoa.originalSpeed;
+        }
+
+    }
+}
 
 void Start()
 {
@@ -2407,6 +2438,7 @@ void Start()
     SettingsMenuInit();
     quotesInit();
     InitObstacles();
+    PowerUPTexturesInit();
     view.setCenter(10000, 9800);
     window.setView(view);
 }
@@ -2467,7 +2499,7 @@ void Update()
         // gameloop update
 
         window.setMouseCursorVisible(false); // get rid of the mouse
-
+        SpeedBoostEffectTimer += deltaTime;
         totalGameTime += deltaTime; // measure survival time
         UpdateObstacles(deltaTime);
         GameOverSound.stop();
@@ -2480,17 +2512,9 @@ void Update()
                 swords.erase(swords.begin() + i);
             }
         }
-        if (Keyboard::isKeyPressed(Keyboard::R))
+        if (shanoa.isDead)
         {
-            gamestate = mainmenu;
-            view.setCenter(10000, 9800);
-            GameloopMusic.stop();
-            MainMenuMusic.play();
-
-        }
-        if (Keyboard::isKeyPressed(Keyboard::Q) || shanoa.isDead)
-        {
-            cout << "here";
+            //cout << "here";
             GetRandIndex(randIndex);
             SurvivalEquation.sprite.setTextureRect(IntRect(0, 156 * randIndex, 600, 156));
 
@@ -2520,30 +2544,15 @@ void Update()
                 levelUpDisplayTimer = 0.0f;
             }
         }
-
-     
-
-
         EnemySpawn();
         EnemyHandler();
         shanoa.update();
         globalCollsion();
         healthbarhandling();
         xpBarUpdate();
-        Hardmode();
-        for (int i = 0;i < swords.size();i++) {
-            bool test = false;
-            for (int j = 0;j < enemies.size();j++) {
-                if (swords[i].collider.getGlobalBounds().intersects(enemies[j]->collider.getGlobalBounds())) {
-                    enemies[j]->health -= swords[i].damage;
-                    cout << swords[i].damage << endl;
-                    swords.erase(swords.begin() + i);
-                    test = true;
-                    break;
-                }
-            }
-
-        }
+        Horrormode();
+        SpeedBoostFunction();
+        
         for (int i = 0; i < Crystals.size(); i++) {
             // Pass player position to update function
             Crystals[i].update(deltaTime, shanoa.sprite.getPosition());
@@ -2653,7 +2662,7 @@ void Update()
                     Crystals.clear();
                     shanoa.health = shanoa.Maxhp; // Reset player health
                     shanoa.isDead = false;
-                    shanoa.revivalCrystal = true;
+                    shanoa.RevivalScrollAcquired = true;
                     totalGameTime = 0.f;
                     gameOverSoundPlayed = false;
                     MathRevivalON = false;
@@ -2710,7 +2719,7 @@ void Update()
         else if (soundcontroller < 0)
             soundcontroller = 0;
 
-        HardmodeButtonInput();
+        HorrorModeButtonInput();
 
         if (Keyboard::isKeyPressed(Keyboard::R))
         {
@@ -2825,12 +2834,12 @@ void Update()
                         Crystals.clear();
                         shanoa.health = 120; // Or your starting health
                         shanoa.isDead = false;
-                        shanoa.revivalCrystal = 1;
+                        shanoa.RevivalScrollAcquired = 1;
                         totalGameTime = 0.f;
                         swords.clear();
                         xpFullReset();
                     }
-                    else if (selectedGameOverOptionIndex == 1 && shanoa.revivalCrystal) // Math Revival selected
+                    else if (selectedGameOverOptionIndex == 1 && shanoa.RevivalScrollAcquired) // Math Revival selected
                     {
                         MathRevivalON = true; // Activate Math Revival
                         TheLegendaryTutor.play();
@@ -2843,7 +2852,7 @@ void Update()
                         xpFullReset(); // To Reset XP And Levels
                         gameOverSoundPlayed = false;
                         menuInputDelay = 0.f; // Reset delay BEFORE state change
-                        shanoa.revivalCrystal = 1;
+                        shanoa.RevivalScrollAcquired = 1;
                         gamestate = nameinput; // Transition to name input state
                         playerName = ""; // Clear name for new input
                         // totalGameTime (score) is already stored globally
@@ -3058,7 +3067,7 @@ void Draw()
         window.draw(xpBar);
         window.draw(xpBarText);
         window.draw(healthbar);
-        if (HMactive) // Hard Mode Indicator
+        if (HMactive) // Horror Mode Indicator
         {
             HMindicator.setPosition(view.getCenter().x, view.getCenter().y - 450);
             window.draw(HMindicator);
@@ -3134,11 +3143,11 @@ void Draw()
             window.draw(restartButton);
             window.draw(RestartText);
             window.draw(MathRevivalButton);
-            if (!shanoa.revivalCrystal)
+            if (!shanoa.RevivalScrollAcquired)
             {
                 window.draw(MathRevivalLock);
             }
-            if (shanoa.revivalCrystal)
+            if (shanoa.RevivalScrollAcquired)
             {
                 window.draw(mathRevivalText);
             }
@@ -3147,7 +3156,7 @@ void Draw()
 
             // Draw the cursor when Math Revival is NOT active
             // Cursor position is updated in the Update function
-            if(!(selectedGameOverOptionIndex == 1 && !shanoa.revivalCrystal))
+            if(!(selectedGameOverOptionIndex == 1 && !shanoa.RevivalScrollAcquired))
             window.draw(menuCursor);
         }
 
