@@ -165,8 +165,8 @@ Vector2f unitVector(Vector2f vector) {
     Vector2f unit = Vector2f(vector.x / magnitude, vector.y / magnitude);
     return unit;
 }
-Sound shanoadamaged, sowrdsound;
-SoundBuffer shanoadamaged_source, sowrdsound_source;
+Sound shanoadamaged, swordsound;
+SoundBuffer shanoadamaged_source, swordsound_source;
 void generalCollision(RectangleShape& objectTOBeMovedCollider, RectangleShape& Wall, Sprite& Object);
 void quoteUpdate();
 void quotesInit();
@@ -174,6 +174,7 @@ void GetRandIndex(int& randomIndex);
 void MainMenuInput();
 void PauseMenuInit();
 void handleNameInput(sf::Event& event);
+void stopSounds();
 void SaveLeaderboard();
 void LoadLeaderboard();
 void creditsInit();
@@ -189,6 +190,8 @@ struct character
     Sprite sprite;
     Texture texture;
     Texture playerspreadsheet;
+    Sound damageSFX;
+    SoundBuffer damageSound;
     float health = 120;
     float Maxhp = 120;
     int xp = 0 , MaxXp = 100;
@@ -518,6 +521,7 @@ struct BEAST :public ENEMY
                 beastAttackTime = 0;
                 AnimationState = attacking;
                 shanoa.health -= damage;
+                shanoa.damageSFX.play();
             }
         }
         else
@@ -527,7 +531,8 @@ struct BEAST :public ENEMY
         MonsterType = Beast;
         shape.setTexture(beasttexture);
         shape.setScale(1.8, 2.5);
-        health = 400;
+        health = 400 * HMfactor;
+        maxHealth = 400 * HMfactor;
         speed = 100;
         damage = 40 * HMfactor;
         attackBox.setSize(Vector2f(130, 1));
@@ -630,6 +635,7 @@ struct ZOMBIE :public ENEMY
                 zombieAttackTime = 0;
                 AnimationState = attacking;
                 shanoa.health -= damage;
+                shanoa.damageSFX.play();
             }
         }
         else
@@ -639,7 +645,8 @@ struct ZOMBIE :public ENEMY
         MonsterType = Zombie;
         shape.setTexture(zombieTexture);
         shape.setScale(2.52, 3.5);
-        health = 250;
+        health = 250 * HMfactor;
+        maxHealth = 250 * HMfactor;
         speed = 140;
         damage = 15 * HMfactor;
         attackBox.setSize(Vector2f(65, 1));
@@ -742,6 +749,7 @@ struct WEREWOLF :public ENEMY
                 werewolfAttackTime = 0;
                 AnimationState = attacking;
                 shanoa.health -= damage;
+                shanoa.damageSFX.play();
             }
         }
         else
@@ -752,7 +760,8 @@ struct WEREWOLF :public ENEMY
         shape.setTexture(werewolfTexture);
         shape.setPosition(200, 200);
         speed = 200;
-        health = 300;
+        health = 300 * HMfactor;
+        maxHealth = 300 * HMfactor;
         damage = 35 * HMfactor;
         AnimationState = walking;
         attackBox.setSize(Vector2f(70, 1));
@@ -853,6 +862,7 @@ struct BAT :public ENEMY
                 batAttacktime = 0;
                 AnimationState = attacking;
                 shanoa.health -= damage;
+                shanoa.damageSFX.play();
             }
         }
         else
@@ -862,7 +872,8 @@ struct BAT :public ENEMY
         MonsterType = Bat;
         shape.setTexture(batTexture);
         shape.setScale(3, 3);
-        health = 100;
+        health = 100 * HMfactor;
+        maxHealth = 100 * HMfactor;
         speed = 200;
         damage = 5 * HMfactor;
         attackBox.setSize(Vector2f(70, 1));
@@ -947,6 +958,8 @@ struct BAT :public ENEMY
 
 struct sword {
     Sprite shape;
+    Sound damageSFX;
+    SoundBuffer damageSound;
     RectangleShape collider;
     Vector2f velocity;
     float damage = 70;
@@ -1270,8 +1283,8 @@ string names[11] = {
 };
 string quotes[5] = {
     "Games don't make you violent, lag does.",
-    "It�s me, Mario!",
-    "Ah Shit, Here We Go Again.",
+    "It\'s me, Mario!",
+    "No Risk No Fun.",
     "Press F to Pay Respect.",
     "Nah, I'd Win."
 };
@@ -1308,6 +1321,7 @@ int main()
                     gamestate = paused;
                     // Pause game loop music if it's playing
                     GameloopMusic.pause();
+                    stopSounds();
                     postTransitionCooldown = POST_TRANSITION_DELAY; // Set cooldown
                 }
                 else if (gamestate == paused)
@@ -1562,7 +1576,10 @@ void NameInputInit()
     equationAnsCellBox.setOutlineColor(sf::Color::Blue); // Choose a color
     equationAnsCellBox.setOutlineThickness(3); // Choose a thickness
 }
-
+void stopSounds() {
+    shanoa.damageSFX.stop();
+    swordsound.stop();
+}
 void shooting()
 {
     if(shanoa.canThrowSwords){
@@ -1593,6 +1610,7 @@ void shooting()
                 newSword.shape.setRotation(45);
             }
             swords.push_back(newSword);
+            swordsound.play();
         }
     }
 
@@ -1771,6 +1789,8 @@ void creditsInit()
 
 void CharacterInit() {
     shanoa.texture.loadFromFile("Assets\\shanoa.png");
+    shanoa.damageSound.loadFromFile("Assets\\shanoatakingdamage.ogg");
+    shanoa.damageSFX.setBuffer(shanoa.damageSound);
     shanoa.sprite.setTexture(shanoa.texture);
     shanoa.speed = 200;
     shanoa.sprite.setPosition(0, 0);
@@ -1780,11 +1800,11 @@ void CharacterInit() {
     shanoa.attackSpace.setSize(Vector2f(80, 45));
     shanoa.attackSpace.setFillColor(Color::Black);
     shanoa.attackSpace.setOrigin(0, shanoa.attackSpace.getLocalBounds().height / 2);
-    shanoa.MeleeDamage = 120;
+    shanoa.MeleeDamage = 100;
     shanoa.sprite.setOrigin(66, 74);
     shanoa.sprite.setScale(1, 1.5);
     shanoa.AnimationState = idle;
-    shanoa.RevivalScrollAcquired = 1;
+    shanoa.RevivalScrollAcquired = 0;
     healthbar.setTexture(healthbar_Texture);
     healthbar.setScale(0.84, 1.2);
 }
@@ -2313,22 +2333,6 @@ void swordFullCollisionAndDamage() {
         if (SwordIsRemoved)
             break;
     }
-
-
-
-
-
-
-
-    /*------------------obstacles-----------------*/
-
-
-
-
-
-
-
-
 }
 
 // For All Game Collision
@@ -2416,9 +2420,9 @@ void Start()
     TheLegendaryTutor_voice.loadFromFile("Assets\\voiceActing.ogg");
     TheLegendaryTutor.setBuffer(TheLegendaryTutor_voice);
     shanoadamaged.setVolume(50);
-    sowrdsound_source.loadFromFile("Assets\\sowrdssound.ogg");
-    sowrdsound.setBuffer(sowrdsound_source);
-    sowrdsound.setVolume(50);
+    swordsound_source.loadFromFile("Assets\\swordsound.ogg");
+    swordsound.setBuffer(swordsound_source);
+    swordsound.setVolume(30);
     levelup.loadFromFile("Assets\\level_up.png");
     levelupsprite.setTexture(levelup);
     levelupsprite.setScale(0.3, 0.5);
@@ -2505,6 +2509,16 @@ void Update()
         GameOverSound.stop();
         MainMenuMusic.stop();
         shooting();
+
+
+        int minutes = static_cast<int>(totalGameTime) / 60; // time calculations for final score
+        int seconds = static_cast<int>(totalGameTime) % 60;
+
+        stringstream ss; // time formatting
+        ss << "Time: " << setw(2) << setfill('0') << minutes << ":" << setw(2) << setfill('0') << seconds;
+        ScoreText.setString(ss.str());
+
+
         for (int i = 0; i < swords.size(); i++)
         {
             swords[i].update();
@@ -2517,14 +2531,7 @@ void Update()
             //cout << "here";
             GetRandIndex(randIndex);
             SurvivalEquation.sprite.setTextureRect(IntRect(0, 156 * randIndex, 600, 156));
-
-            int minutes = static_cast<int>(totalGameTime) / 60; // time calculations for final score
-            int seconds = static_cast<int>(totalGameTime) % 60;
-
-            stringstream ss; // time formatting
-            ss << "Time: " << setw(2) << setfill('0') << minutes << ":" << setw(2) << setfill('0') << seconds;
-            ScoreText.setString(ss.str());
-
+            stopSounds();
             if (!gameOverSoundPlayed)
             {
                 //only play if it hasn't been played since the last reset
@@ -2662,7 +2669,7 @@ void Update()
                     Crystals.clear();
                     shanoa.health = shanoa.Maxhp; // Reset player health
                     shanoa.isDead = false;
-                    shanoa.RevivalScrollAcquired = true;
+                    shanoa.RevivalScrollAcquired = false;
                     totalGameTime = 0.f;
                     gameOverSoundPlayed = false;
                     MathRevivalON = false;
@@ -2834,7 +2841,7 @@ void Update()
                         Crystals.clear();
                         shanoa.health = 120; // Or your starting health
                         shanoa.isDead = false;
-                        shanoa.RevivalScrollAcquired = 1;
+                        shanoa.RevivalScrollAcquired = 0;
                         totalGameTime = 0.f;
                         swords.clear();
                         xpFullReset();
@@ -2852,7 +2859,7 @@ void Update()
                         xpFullReset(); // To Reset XP And Levels
                         gameOverSoundPlayed = false;
                         menuInputDelay = 0.f; // Reset delay BEFORE state change
-                        shanoa.RevivalScrollAcquired = 1;
+                        shanoa.RevivalScrollAcquired = 0;
                         gamestate = nameinput; // Transition to name input state
                         playerName = ""; // Clear name for new input
                         // totalGameTime (score) is already stored globally
@@ -2967,6 +2974,7 @@ void Draw()
         if (gamestate == gameloop || gamestate == paused) // Draw healthbar in gameloop and paused
         {
             window.draw(healthbar);
+            window.draw(ScoreText);
             window.draw(xpBarHolder);
             window.draw(xpBar);
             window.draw(xpBarText);
@@ -3063,6 +3071,15 @@ void Draw()
             levelupsprite.setPosition(view.getCenter().x , view.getCenter().y - 125);
             window.draw(levelupsprite);
         }
+        // Timer in Gameloop
+
+        ScoreText.setPosition(view.getCenter().x -490, view.getCenter().y -480);
+
+
+
+
+
+        window.draw(ScoreText);
         window.draw(xpBarHolder);
         window.draw(xpBar);
         window.draw(xpBarText);
