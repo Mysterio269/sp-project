@@ -1,9 +1,9 @@
 {
   "Version": 1,
-  "WorkspaceRootPath": "D:\\My Files\\Project\\sp-project\\",
+  "WorkspaceRootPath": "C:\\Users\\Future\\Downloads\\MyGit\\sp-project\\",
   "Documents": [
     {
-      "AbsoluteMoniker": "D:0:0:{AEAC8384-1F3B-4B46-B595-738C74C38920}|ConsoleApplication1\\ConsoleApplication1.vcxproj|D:\\My Files\\Project\\sp-project\\ConsoleApplication1\\Main.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
+      "AbsoluteMoniker": "D:0:0:{AEAC8384-1F3B-4B46-B595-738C74C38920}|ConsoleApplication1\\ConsoleApplication1.vcxproj|C:\\Users\\Future\\Downloads\\MyGit\\sp-project\\ConsoleApplication1\\Main.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
       "RelativeMoniker": "D:0:0:{AEAC8384-1F3B-4B46-B595-738C74C38920}|ConsoleApplication1\\ConsoleApplication1.vcxproj|solutionrelative:ConsoleApplication1\\Main.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
     }
   ],
@@ -14,7 +14,7 @@
       "DocumentGroups": [
         {
           "DockedWidth": 200,
-          "SelectedChildIndex": 2,
+          "SelectedChildIndex": 3,
           "Children": [
             {
               "$type": "Bookmark",
@@ -22,17 +22,21 @@
             },
             {
               "$type": "Bookmark",
-              "Name": "ST:0:0:{cce594b6-0c39-4442-ba28-10c64ac7e89f}"
+              "Name": "ST:0:0:{d78612c7-9962-4b83-95d9-268046dad23a}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:0:0:{34e76e81-ee4a-11d0-ae2e-00a0c90fffc3}"
             },
             {
               "$type": "Document",
               "DocumentIndex": 0,
               "Title": "Main.cpp",
-              "DocumentMoniker": "D:\\My Files\\Project\\sp-project\\ConsoleApplication1\\Main.cpp",
+              "DocumentMoniker": "C:\\Users\\Future\\Downloads\\MyGit\\sp-project\\ConsoleApplication1\\Main.cpp",
               "RelativeDocumentMoniker": "ConsoleApplication1\\Main.cpp",
-              "ToolTip": "D:\\My Files\\Project\\sp-project\\ConsoleApplication1\\Main.cpp",
+              "ToolTip": "C:\\Users\\Future\\Downloads\\MyGit\\sp-project\\ConsoleApplication1\\Main.cpp",
               "RelativeToolTip": "ConsoleApplication1\\Main.cpp",
-              "ViewState": "AgIAALsAAAAAAAAAAAAlwMUAAAAQAAAAAAAAAA==",
+              "ViewState": "AgIAAHsMAAAAAAAAAADwv5AMAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
               "WhenOpened": "2025-05-02T11:32:50.688Z",
               "EditorCaption": ""

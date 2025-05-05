@@ -105,7 +105,7 @@ RectangleShape StartButton(Vector2f(490, 110)), SettingsButton(Vector2f(490, 110
 ExitButton(Vector2f(490, 110)), creditsButton(Vector2f(490, 110)), MathRevivalButton(Vector2f(250, 50)), restartButton(Vector2f(250, 50));
 RectangleShape GiveUpButton(Vector2f(250, 50)); // *** Add shape for the Give Up button *** 
 RectangleShape equationAnsCellBox;
-RectangleShape gameOverOverlay; // red color in gameover background
+RectangleShape gameOverOverlay, LeaderboardOverlay; // red color in gameover background
 RectangleShape xpBarHolder;
 RectangleShape xpBar;
 float xpBarWidth;
@@ -125,7 +125,7 @@ const int MAX_OBSTACLES = 25;
 
 
 Sound MainMenuMusic, GameOverSound, GameloopMusic, TheLegendaryTutor;
-SoundBuffer MainMenuMusic_source, GameOverSound_source, GameloopMusic_source,TheLegendaryTutor_voice;
+SoundBuffer MainMenuMusic_source, GameOverSound_source, GameloopMusic_source, TheLegendaryTutor_voice;
 bool gameOverSoundPlayed = false;
 
 sf::VideoMode desktopMode = sf::VideoMode::getDesktopMode();
@@ -133,14 +133,14 @@ RenderWindow window(desktopMode, "Vampire Survivors :The path to the legendary f
 //fullscreen fix
 float healthRatio;
 float shootingtime = 0.f;
-float shootingrate = 3;
+float shootingrate = 2;
 float totalGameTime = 0.f;
 float menuInputDelay = 0.f;
 float attackDelay = 0.f;
-float HorrorModeDelay = 0.09f;
+float HorrorModeDelay = 0.4f;
 float HorrorModeTimerDelay = 0.f;
 const float timeForAttack = 0.4f;
-const float MENU_INPUT_COOLDOWN = 0.2f; // Time in seconds between allowed inputs
+const float MENU_INPUT_COOLDOWN = 0.5f; // Time in seconds between allowed inputs
 float postTransitionCooldown = 0.f;     // Make sure this is also declared (it is in your code around source 151)
 const float POST_TRANSITION_DELAY = 0.6f; // Define the delay duration in seconds
 float soundcontroller = 100;
@@ -192,11 +192,11 @@ struct character
     Texture playerspreadsheet;
     Sound damageSFX;
     SoundBuffer damageSound;
-    float health = 120;
-    float Maxhp = 120;
-    int xp = 0 , MaxXp = 100;
-    float speed;
-    float originalSpeed = 200;//this is used to stop speed boost from overlapping speeds if collected more than 1 at a time
+    float health = 200;
+    float Maxhp = 200;
+    int xp = 0, MaxXp = 100;
+    float speed = 250;
+    float originalSpeed = 250;//this is used to stop speed boost from overlapping speeds if collected more than 1 at a time
     int level = 1;
     float MeleeDamage;
     Vector2f velocity;
@@ -219,14 +219,15 @@ struct character
             level++;
             MaxXp += (level - 1) * 20 + 100;
             xp = excessXP;
-            Maxhp += 5;
-            health += 5;
+            Maxhp += 10;
+            health += 10;
+            MeleeDamage += 10;
             speed += 5;
             originalSpeed += 5;
             showLevelUp = true;
             levelUpDisplayTimer = 0.0f;
         }
-        if (level >= 5) {
+        if (level >= 2) {
             canThrowSwords = true;
         }
         //cout << xp << ' ' << level <<" "<< "level up sprite : " <<  showLevelUp << '\n';
@@ -283,7 +284,7 @@ struct character
                 }
 
             }
-            if (AutoAttackTimer >= 1.5) {
+            if (AutoAttackTimer >= 1) {
                 AnimationState = attacking;
                 if (startattack == false) {
                     columnIndex = 0;
@@ -382,7 +383,7 @@ struct XPc
     Vector2f direction;
     Vector2f originalPosition;
 
-    XPc(float x, float y, Texture& tex, int xp,droptype drop)
+    XPc(float x, float y, Texture& tex, int xp, droptype drop)
     {
         sprite.setTexture(tex);
         sprite.setPosition(x, y);
@@ -477,7 +478,7 @@ struct XPc
                 else if (DropType == mathrevivalactivator) {
                     shanoa.RevivalScrollAcquired = true;
                 }
-                else if(DropType == speedboost){
+                else if (DropType == speedboost) {
                     SpeedBoostEffectTimer = 0;
                     SpeedBoostEffectActive = true;
                 }
@@ -489,9 +490,6 @@ struct XPc
             break;
         }
 
-    }
-    FloatRect getBounds() const {
-        return sprite.getGlobalBounds();
     }
 };
 
@@ -513,15 +511,14 @@ struct BEAST :public ENEMY
         velocity = unitVector(velocity) * speed;
     }
     void AttackDetection() {
-        if (shanoa.sprite.getGlobalBounds().intersects(attackBox.getGlobalBounds()))
+        beastAttackTime += deltaTime;
+        if (shanoa.collider.getGlobalBounds().intersects(attackBox.getGlobalBounds()))
         {
-            beastAttackTime += deltaTime;
+            AnimationState = attacking;
             if (beastAttackTime >= enemyAttackDelay)
             {
                 beastAttackTime = 0;
-                AnimationState = attacking;
                 shanoa.health -= damage;
-                shanoa.damageSFX.play();
             }
         }
         else
@@ -534,7 +531,7 @@ struct BEAST :public ENEMY
         health = 400 * HMfactor;
         maxHealth = 400 * HMfactor;
         speed = 100;
-        damage = 40 * HMfactor;
+        damage = 30 * HMfactor;
         attackBox.setSize(Vector2f(130, 1));
         shape.setPosition(-200, -200);
         shape.setOrigin(64, 32);
@@ -592,13 +589,13 @@ struct BEAST :public ENEMY
             // Randomly decide: 5% chance for Red crystal
             int randValue = (rand() + 1) % 100;
             if (randValue < 20)
-                Crystals.push_back(XPc(position.x, position.y, RedXP, RedXPcValue,xpc));
+                Crystals.push_back(XPc(position.x, position.y, RedXP, RedXPcValue, xpc));
 
-            else if (randValue >=20 && randValue < 50)
-                Crystals.push_back(XPc(position.x, position.y, GreenXP, GreenXPcValue,xpc));
+            else if (randValue >= 20 && randValue < 50)
+                Crystals.push_back(XPc(position.x, position.y, GreenXP, GreenXPcValue, xpc));
 
             else
-                Crystals.push_back(XPc(position.x, position.y, BlueXP, BlueXPcValue,xpc));
+                Crystals.push_back(XPc(position.x, position.y, BlueXP, BlueXPcValue, xpc));
 
             hasDroppedXP = true;
         }
@@ -609,7 +606,7 @@ struct BEAST :public ENEMY
                 Crystals.push_back(XPc(position.x, position.y, PowerupsTexture[healthregain], 0, healthregain));
             }
             else if (randValue >= 10 && randValue < 25) {
-                Crystals.push_back(XPc(position.x, position.y, PowerupsTexture[speedboost], 0,speedboost));
+                Crystals.push_back(XPc(position.x, position.y, PowerupsTexture[speedboost], 0, speedboost));
             }
             else if (randValue >= 25 && randValue < 40 && !shanoa.hasRevived && !shanoa.RevivalScrollAcquired) {
                 Crystals.push_back(XPc(position.x, position.y, PowerupsTexture[mathrevivalactivator], 0, mathrevivalactivator));
@@ -627,15 +624,14 @@ struct ZOMBIE :public ENEMY
         velocity = unitVector(velocity) * speed;
     }
     void AttackDetection() {
-        if (shanoa.sprite.getGlobalBounds().intersects(attackBox.getGlobalBounds()))
+        zombieAttackTime += deltaTime;
+        if (shanoa.collider.getGlobalBounds().intersects(attackBox.getGlobalBounds()))
         {
-            zombieAttackTime += deltaTime;
+            AnimationState = attacking;
             if (zombieAttackTime >= enemyAttackDelay)
             {
                 zombieAttackTime = 0;
-                AnimationState = attacking;
                 shanoa.health -= damage;
-                shanoa.damageSFX.play();
             }
         }
         else
@@ -647,9 +643,9 @@ struct ZOMBIE :public ENEMY
         shape.setScale(2.52, 3.5);
         health = 250 * HMfactor;
         maxHealth = 250 * HMfactor;
-        speed = 140;
-        damage = 15 * HMfactor;
-        attackBox.setSize(Vector2f(65, 1));
+        speed = 120;
+        damage = 10 * HMfactor;
+        attackBox.setSize(Vector2f(30, 1));
         shape.setPosition(200, -200);
         shape.setOrigin(16, 16);
         AnimationState = walking;
@@ -706,13 +702,13 @@ struct ZOMBIE :public ENEMY
             // Randomly decide: 5% chance for Red crystal
             int randValue = (rand() + 1) % 100;
             if (randValue < 5)
-                Crystals.push_back(XPc(position.x, position.y, RedXP, RedXPcValue,xpc));
+                Crystals.push_back(XPc(position.x, position.y, RedXP, RedXPcValue, xpc));
 
             else if (randValue >= 5 && randValue < 15)
-                Crystals.push_back(XPc(position.x, position.y, GreenXP, GreenXPcValue,xpc));
+                Crystals.push_back(XPc(position.x, position.y, GreenXP, GreenXPcValue, xpc));
 
             else
-                Crystals.push_back(XPc(position.x, position.y, BlueXP, BlueXPcValue,xpc));
+                Crystals.push_back(XPc(position.x, position.y, BlueXP, BlueXPcValue, xpc));
 
             hasDroppedXP = true;
         }
@@ -741,15 +737,15 @@ struct WEREWOLF :public ENEMY
         velocity = unitVector(velocity) * speed;
     }
     void AttackDetection() {
-        if (shanoa.sprite.getGlobalBounds().intersects(attackBox.getGlobalBounds()))
+        werewolfAttackTime += deltaTime;
+        if (shanoa.collider.getGlobalBounds().intersects(attackBox.getGlobalBounds()))
         {
-            werewolfAttackTime += deltaTime;
+            AnimationState = attacking;
             if (werewolfAttackTime >= enemyAttackDelay)
             {
                 werewolfAttackTime = 0;
-                AnimationState = attacking;
                 shanoa.health -= damage;
-                shanoa.damageSFX.play();
+
             }
         }
         else
@@ -762,7 +758,7 @@ struct WEREWOLF :public ENEMY
         speed = 200;
         health = 300 * HMfactor;
         maxHealth = 300 * HMfactor;
-        damage = 35 * HMfactor;
+        damage = 25 * HMfactor;
         AnimationState = walking;
         attackBox.setSize(Vector2f(70, 1));
         attackBox.setFillColor(Color::Red);
@@ -819,13 +815,13 @@ struct WEREWOLF :public ENEMY
             // Randomly decide: 5% chance for Red crystal
             int randValue = (rand() + 1) % 100;
             if (randValue < 10)
-                Crystals.push_back(XPc(position.x, position.y, RedXP, RedXPcValue,xpc));
+                Crystals.push_back(XPc(position.x, position.y, RedXP, RedXPcValue, xpc));
 
             else if (randValue >= 10 && randValue < 25)
-                Crystals.push_back(XPc(position.x, position.y, GreenXP, GreenXPcValue,xpc));
+                Crystals.push_back(XPc(position.x, position.y, GreenXP, GreenXPcValue, xpc));
 
             else
-                Crystals.push_back(XPc(position.x, position.y, BlueXP, BlueXPcValue,xpc));
+                Crystals.push_back(XPc(position.x, position.y, BlueXP, BlueXPcValue, xpc));
 
             hasDroppedXP = true;
         }
@@ -854,15 +850,15 @@ struct BAT :public ENEMY
         velocity = unitVector(velocity) * speed;
     }
     void AttackDetection() {
-        if (shanoa.sprite.getGlobalBounds().intersects(attackBox.getGlobalBounds()))
+        batAttacktime += deltaTime;
+        if (shanoa.collider.getGlobalBounds().intersects(attackBox.getGlobalBounds()))
         {
-            batAttacktime += deltaTime;
+            AnimationState = attacking;
             if (batAttacktime >= enemyAttackDelay)
             {
                 batAttacktime = 0;
-                AnimationState = attacking;
                 shanoa.health -= damage;
-                shanoa.damageSFX.play();
+
             }
         }
         else
@@ -874,9 +870,9 @@ struct BAT :public ENEMY
         shape.setScale(3, 3);
         health = 100 * HMfactor;
         maxHealth = 100 * HMfactor;
-        speed = 200;
-        damage = 5 * HMfactor;
-        attackBox.setSize(Vector2f(70, 1));
+        speed = 240;
+        damage = 3 * HMfactor;
+        attackBox.setSize(Vector2f(20, 1));
         shape.setPosition(200, -200);
         shape.setOrigin(24.1, 17.5);
         AnimationState = walking;
@@ -932,12 +928,12 @@ struct BAT :public ENEMY
 
             // Randomly decide: 5% chance for Red crystal
             int randValue = (rand() + 1) % 100;
-            if (randValue ==1)
-                Crystals.push_back(XPc(position.x, position.y, RedXP, RedXPcValue,xpc));
+            if (randValue == 1)
+                Crystals.push_back(XPc(position.x, position.y, RedXP, RedXPcValue, xpc));
             else if (randValue > 1 && randValue < 10)
-                Crystals.push_back(XPc(position.x, position.y, GreenXP, GreenXPcValue,xpc));
+                Crystals.push_back(XPc(position.x, position.y, GreenXP, GreenXPcValue, xpc));
             else
-                Crystals.push_back(XPc(position.x, position.y, BlueXP, BlueXPcValue,xpc));
+                Crystals.push_back(XPc(position.x, position.y, BlueXP, BlueXPcValue, xpc));
 
             hasDroppedXP = true;
         }
@@ -962,7 +958,7 @@ struct sword {
     SoundBuffer damageSound;
     RectangleShape collider;
     Vector2f velocity;
-    float damage = 70;
+    float damage = 100;
     float speed;
     float deletiontimer = 0;
 
@@ -1157,10 +1153,15 @@ ObstacleType GetRandomObstacleType() {
     int randValue = (rand() % 100) + 1;
 
     //if (randValue < 35)      return tree;
-    if (randValue >= 60) return rock;
-    else if (randValue < 60 && randValue >= 10) return wall;
+    if (randValue >= 60)
+        return rock;
+
+    else if (randValue < 60 && randValue >= 10)
+        return wall;
+
     //else if (randValue < 95) return objectwillbeadded;
-    else                     return statue;
+    else
+        return statue;
 }
 
 
@@ -1312,9 +1313,9 @@ int main()
         Event event;
         while (window.pollEvent(event))
         {
-            if (event.type == sf::Event::Closed)
+            if (event.type == Event::Closed)
                 window.close();
-            if (event.type == sf::Event::KeyPressed && event.key.code == sf::Keyboard::Escape && postTransitionCooldown <= 0)
+            if (event.type == Event::KeyPressed && event.key.code == Keyboard::Escape && postTransitionCooldown <= 0)
             {
                 if (gamestate == gameloop)
                 {
@@ -1333,14 +1334,12 @@ int main()
                     selectedMenuButtonIndex = 0; // Reset pause menu selection
                 }
             }
-            // --- Handle Text Entered event ---
-            if (event.type == sf::Event::TextEntered)
+            if (event.type == Event::TextEntered)
             {
                 if (gamestate == gameover && MathRevivalON) // Math Revival input (only when MathRevivalON is true)
                 {
-                    // ... existing Math Revival input logic using userInput ...
-                    // (Handle Backspace/Enter for Math Revival within this block or outside with isKeyPressed)
-                    if (event.text.unicode == 8)// isKeyPressed::Backspace
+
+                    if (event.text.unicode == 8)
                     {
                         if (!userInput.empty())
                             userInput.pop_back();
@@ -1357,6 +1356,7 @@ int main()
                     {
                         if (!userInput.empty())
                         {
+                            //stoi= string to integer
                             if (stoi(userInput) == EquationsAns[randIndex]) // correct answer
                             {
                                 gamestate = gameloop; // Go back to gameloop
@@ -1415,9 +1415,9 @@ int main()
 
 // Function to handle name input
 
-void handleNameInput(sf::Event& event)
+void handleNameInput(Event& event)
 {
-    if (event.type == sf::Event::TextEntered)
+    if (event.type == Event::TextEntered)
     {
         // Allow printable ASCII characters (adjust range if needed)
         if (event.text.unicode >= 32 && event.text.unicode <= 126)
@@ -1432,7 +1432,7 @@ void handleNameInput(sf::Event& event)
                 }
             }
         }
-        else if ((event.key.code == sf::Keyboard::Backspace || event.text.unicode == 8) && menuInputDelay >= MENU_INPUT_COOLDOWN / 3)
+        else if ((event.key.code == Keyboard::Backspace || event.text.unicode == 8) && menuInputDelay >= MENU_INPUT_COOLDOWN / 3)
         {
             if (!playerName.empty())
             {
@@ -1448,7 +1448,7 @@ void handleNameInput(sf::Event& event)
                 float finalScore = 0.f;
                 if (shanoa.hasRevived) {
                     // Died after reviving
-                    finalScore = (shanoa.timeAtFirstDeath * 2.0f) + ((totalGameTime - shanoa.timeAtFirstDeath) * 1.0f);
+                    finalScore = (shanoa.timeAtFirstDeath * 2.0f) + ((totalGameTime - shanoa.timeAtFirstDeath));
                 }
                 else {
                     // Died without reviving
@@ -1464,52 +1464,44 @@ void handleNameInput(sf::Event& event)
                     // The map is sorted by key (-score), so the elements *after* the first 10
                     // are the ones with lower scores that should be removed.
                     auto it = leaderboardEntriesMap.begin();
-                    std::advance(it, MAX_LEADERBOARD_SIZE); // Move iterator to the 11th element
+                    advance(it, MAX_LEADERBOARD_SIZE); // Move iterator to the 11th element
                     leaderboardEntriesMap.erase(it, leaderboardEntriesMap.end()); // Erase from 11th to the end
                 }
-
-                // *** Save the updated leaderboard to file ***
                 SaveLeaderboard();
             }
 
-            // *** Transition to leaderboard state ***
-            gamestate = leaderboard; // Transition to the leaderboard display screen
-            menuInputDelay = 0.f; // Reset menu delay
+            gamestate = leaderboard;
+            menuInputDelay = 0.f;
             playerName = ""; // Clear name input field
-
-            // Decide which music to play when entering leaderboard state
-            // MainMenuMusic.play();
         }
     }
-    // Update the displayed name text object string
     playerNameDisplayText.setString(playerName);
 }
 
 void SaveLeaderboard()
 {
-    std::ofstream outputFile("leaderboard.txt");
+    ofstream outputFile("leaderboard.txt");
 
     if (outputFile.is_open())
     {
         // Iterate through the map. It's already sorted by key (-score).
         for (const auto& pair : leaderboardEntriesMap) // pair.first is -score, pair.second is name
         {
-            outputFile << pair.second << std::endl; // Write name
-            outputFile << std::fixed << std::setprecision(2) << -pair.first << std::endl; // Write positive score (-key)
+            outputFile << pair.second << endl; // Write name
+            outputFile << fixed << setprecision(2) << -pair.first << endl; // Write positive score (-key)
         }
         outputFile.close();
-        // std::cout << "Leaderboard saved successfully." << std::endl;
     }
     else
     {
-        std::cerr << "Error: Unable to open leaderboard.txt for saving!" << std::endl;
+        cerr << "Error: Unable to open leaderboard.txt" << endl;
     }
 }
 
 void LoadLeaderboard()
 {
     leaderboardEntriesMap.clear(); // Clear any existing entries
-    std::ifstream inputFile("leaderboard.txt");
+    ifstream inputFile("leaderboard.txt");
 
     if (inputFile.is_open())
     {
@@ -1517,72 +1509,55 @@ void LoadLeaderboard()
         string scoreStr;
 
         // Read pairs of lines (name and score)
-        while (std::getline(inputFile, name) && std::getline(inputFile, scoreStr))
+        while (getline(inputFile, name) && getline(inputFile, scoreStr))
         {
-            try
-            {
-                float score = stof(scoreStr); // Convert score string to float
-                // Insert into multimap: key is negative score, value is name
-                leaderboardEntriesMap.insert({ -score, name });
-            }
-            catch (const invalid_argument& ia)
-            {
-                cerr << "Invalid score format in leaderboard file: " << ia.what() << std::endl;
-            }
-            catch (const std::out_of_range& oor)
-            {
-                cerr << "Score value out of range in leaderboard file: " << oor.what() << std::endl;
-            }
+
+            float score = stof(scoreStr); // Convert score string to float
+            // Insert into multimap: key is negative score, value is name
+            leaderboardEntriesMap.insert({ -score, name });
+
         }
         inputFile.close();
 
-        // Trim to top 10 after loading, in case the file has too many entries
         const int MAX_LEADERBOARD_SIZE = 10;
-        // multimap is already sorted by key (negative score), so the first 10 are the top 10
-        // If there are more than 10, erase the elements beyond the 10th
+
         if (leaderboardEntriesMap.size() > MAX_LEADERBOARD_SIZE)
         {
             auto it = leaderboardEntriesMap.begin();
-            std::advance(it, MAX_LEADERBOARD_SIZE); // Move iterator to the 11th element
-            leaderboardEntriesMap.erase(it, leaderboardEntriesMap.end()); // Erase from 11th to the end
+            advance(it, MAX_LEADERBOARD_SIZE);
+            leaderboardEntriesMap.erase(it, leaderboardEntriesMap.end());
         }
 
-        // std::cout << "Leaderboard loaded successfully. Entries: " << leaderboardEntriesMap.size() << std::endl; // Optional: for debugging
     }
-    // If the file doesn't exist, the map remains empty, which is correct.
 }
 
 void NameInputInit()
 {
-    // ... Initialize nameInputPromptText and playerNameDisplayText ...
 
-    // Initialize the player name string
     playerName = "";
-    // Initialize the prompt text
     nameInputPromptText.setFont(defgamefont);
-    nameInputPromptText.setCharacterSize(40); // Choose a suitable size
+    nameInputPromptText.setCharacterSize(40);
     nameInputPromptText.setFillColor(sf::Color::White);
-    nameInputPromptText.setString("Enter Your Name:"); // Set the prompt message
+    nameInputPromptText.setString("Enter Your Name:");
 
-    // Initialize the player name display text
+
     playerNameDisplayText.setFont(defgamefont);
-    playerNameDisplayText.setCharacterSize(40); // Match prompt size or adjust
-    playerNameDisplayText.setFillColor(sf::Color::Yellow); // Different color for input?
-    playerNameDisplayText.setString(playerName); // Start with an empty string
+    playerNameDisplayText.setCharacterSize(40);
+    playerNameDisplayText.setFillColor(sf::Color::Yellow);
+    playerNameDisplayText.setString(playerName);
 
-    // You might also want a shape for the input box
     equationAnsCellBox.setFillColor(sf::Color::Black);
-    equationAnsCellBox.setSize(sf::Vector2f(400, 60)); // Adjust size as needed
-    equationAnsCellBox.setOutlineColor(sf::Color::Blue); // Choose a color
-    equationAnsCellBox.setOutlineThickness(3); // Choose a thickness
+    equationAnsCellBox.setSize(sf::Vector2f(400, 60));
+    equationAnsCellBox.setOutlineColor(sf::Color::Blue);
+    equationAnsCellBox.setOutlineThickness(3);
 }
+
 void stopSounds() {
-    shanoa.damageSFX.stop();
     swordsound.stop();
 }
 void shooting()
 {
-    if(shanoa.canThrowSwords){
+    if (shanoa.canThrowSwords) {
         shootingtime += deltaTime;
 
         if (shootingtime >= shootingrate)
@@ -1726,7 +1701,7 @@ void xpBarUpdate() {
     xpBarText.setFont(defgamefont);
     xpBarText.setCharacterSize(15);
     xpBarText.setFillColor(Color::White);
-    xpBarText.setPosition(xpBarHolder.getPosition().x-13 , xpBarHolder.getPosition().y-10);
+    xpBarText.setPosition(xpBarHolder.getPosition().x - 13, xpBarHolder.getPosition().y - 10);
     xpBarText.setString("LVl." + currentLevel);
     xpBar.setSize(Vector2f(xpBarWidth * (float(shanoa.xp) / float(shanoa.MaxXp)), 20));
 
@@ -1754,14 +1729,13 @@ void PauseMenuInit()
     PauseReturnToMenuText.setCharacterSize(20);
     PauseReturnToMenuText.setFillColor(Color::White);
 
-    // Configure button shapes (reuse similar look from game over)
     ContinueButton.setFillColor(Color(100, 0, 0));
     ContinueButton.setOutlineColor(Color::Yellow);
-    ContinueButton.setSize(Vector2f(250, 50)); // Match other button sizes
+    ContinueButton.setSize(Vector2f(250, 50));
 
     PauseReturnToMenuButton.setFillColor(Color(100, 0, 0));
     PauseReturnToMenuButton.setOutlineColor(Color::Yellow);
-    PauseReturnToMenuButton.setSize(Vector2f(250, 50)); // Match other button sizes
+    PauseReturnToMenuButton.setSize(Vector2f(250, 50));
 }
 
 void creditsInit()
@@ -1789,10 +1763,8 @@ void creditsInit()
 
 void CharacterInit() {
     shanoa.texture.loadFromFile("Assets\\shanoa.png");
-    shanoa.damageSound.loadFromFile("Assets\\shanoatakingdamage.ogg");
-    shanoa.damageSFX.setBuffer(shanoa.damageSound);
     shanoa.sprite.setTexture(shanoa.texture);
-    shanoa.speed = 200;
+    shanoa.speed = 250;
     shanoa.sprite.setPosition(0, 0);
     shanoa.collider.setSize(Vector2f(60, 125));
     shanoa.collider.setOrigin(shanoa.collider.getLocalBounds().width / 2, shanoa.collider.getLocalBounds().height / 2);
@@ -1800,7 +1772,7 @@ void CharacterInit() {
     shanoa.attackSpace.setSize(Vector2f(80, 45));
     shanoa.attackSpace.setFillColor(Color::Black);
     shanoa.attackSpace.setOrigin(0, shanoa.attackSpace.getLocalBounds().height / 2);
-    shanoa.MeleeDamage = 100;
+    shanoa.MeleeDamage = 120;
     shanoa.sprite.setOrigin(66, 74);
     shanoa.sprite.setScale(1, 1.5);
     shanoa.AnimationState = idle;
@@ -1831,9 +1803,9 @@ void enemiesInAttackSpace(shared_ptr<ENEMY>& Enemy) {
 void MapInit() {
     Map_Texture.loadFromFile("Assets\\mapfinal.png");
     Map_Texture.setRepeated(true);
-    Map.setTextureRect(IntRect(0, 0, 20000, 20000));
+    Map.setTextureRect(IntRect(0, 0, 160000, 160000));
     Map.setTexture(Map_Texture);
-    Map.setPosition(-10000, -10000);
+    Map.setPosition(-80000, -80000);
 }
 
 void EnemySpawn() {
@@ -1847,7 +1819,7 @@ void EnemySpawn() {
         batspawntimer += deltaTime;
         werewolfspawntimer += deltaTime;
         zombiespawntimer += deltaTime;
-        if (beastspawntimer >= 4 && totalGameTime > 240) {
+        if (beastspawntimer >= 4 && totalGameTime > 120) {
 
             auto newBeast = make_unique<BEAST>();
 
@@ -1859,7 +1831,7 @@ void EnemySpawn() {
 
             beastspawntimer = 0;
         }
-        if (zombiespawntimer >= 2 && totalGameTime > 60) {
+        if (zombiespawntimer >= 2 && totalGameTime > 30) {
 
             auto newZombie = make_unique<ZOMBIE>();
 
@@ -1871,7 +1843,7 @@ void EnemySpawn() {
 
             zombiespawntimer = 0;
         }
-        if (werewolfspawntimer >= 3 && totalGameTime > 120) {
+        if (werewolfspawntimer >= 3 && totalGameTime > 60) {
 
             auto newWerewolf = make_unique<WEREWOLF>();
 
@@ -1883,7 +1855,7 @@ void EnemySpawn() {
 
             werewolfspawntimer = 0;
         }
-        if (batspawntimer >= 1 && totalGameTime < 300) {
+        if (batspawntimer >= 1 && totalGameTime < 75) {
 
             auto newBat = make_unique<BAT>();
 
@@ -1967,17 +1939,15 @@ void GameOverInit()
     mathRevivalText.setCharacterSize(25);
     mathRevivalText.setFillColor(Color::White);
 
-    // *** Initialize Give Up Text and Button ***
     GiveUpText.setFont(defgamefont);
-    GiveUpText.setString("Give Up"); // Or "Submit Score"
-    GiveUpText.setCharacterSize(20); // Match other option text size
+    GiveUpText.setString("Give Up");
+    GiveUpText.setCharacterSize(20);
     GiveUpText.setFillColor(Color::White);
-    // Position will be set in Draw()
 
-    GiveUpButton.setFillColor(Color(100, 0, 0)); // Match other button colors
+
+    GiveUpButton.setFillColor(Color(100, 0, 0));
     GiveUpButton.setOutlineColor(Color::Yellow);
-    GiveUpButton.setSize(Vector2f(250, 50)); // Match other button sizes
-    // Position and bounds will be set in Draw() and Update()
+    GiveUpButton.setSize(Vector2f(250, 50));
 
     equationSpriteSheet.loadFromFile("Assets\\equationSpriteSheet.png");
     SurvivalEquation.sprite.setTexture(equationSpriteSheet);
@@ -1995,25 +1965,22 @@ void GameOverInit()
     MathRevivalButton.setFillColor(Color(100, 0, 0));
     MathRevivalButton.setOutlineColor(Color::Yellow);
 
-    restartButton.setSize(Vector2f(250, 50)); // Example size
-    MathRevivalButton.setSize(Vector2f(250, 50)); // Example size
+    restartButton.setSize(Vector2f(250, 50));
+    MathRevivalButton.setSize(Vector2f(250, 50));
 
 
     gameOverOverlay.setSize(view.getSize()); // Set size based on the view's size
     // Set its origin to the center, so position(view.getCenter()) works correctly
     gameOverOverlay.setOrigin(view.getSize().x / 2.f, view.getSize().y / 2.f);
 
-    // The fourth parameter (100) is the alpha channel (transparency), from 0 (fully transparent) to 255 (fully opaque)
     gameOverOverlay.setFillColor(Color(100, 0, 0, 120));
 
 
-    // REMEMBER TO REPLACE GAMEOVER SOUND WITH NEW ONE
     GameOverSound_source.loadFromFile("Assets\\MainMenuMusic.ogg");
     GameOverSound.setBuffer(GameOverSound_source);
 
     gameOverSoundPlayed = false;
 
-    // Ensure MathRevivalON is false initially for the gameover screen
     MathRevivalON = false;
 
 }
@@ -2031,10 +1998,10 @@ void MainMenuButtonCheck()
 
             //RESETTING after death for next game
             shanoa.sprite.setPosition(0, 0);
-            shanoa.health = 120; // <--replace 100 with your actual starting health
+            shanoa.health = 200;
             shanoa.isDead = false;
             totalGameTime = 0.f;
-            swords.clear(); // Clear any old swords when starting a NEW game
+            swords.clear();
 
         }
     }
@@ -2096,7 +2063,7 @@ void HorrorModeButtonInput()
             HorrorModeTimerDelay = 0.f;
         }
     }
-   
+
 }
 
 void MainMenuInput()
@@ -2139,12 +2106,11 @@ void MainMenuInput()
                 GameloopMusic.play();
 
                 //RESETTING after death for next game
-                shanoa.health = 120; // <--replace 100 with your actual starting health
+                shanoa.health = 200;
                 shanoa.isDead = false;
                 totalGameTime = 0.f;
-                swords.clear(); // Clear any old swords when starting a NEW game
+                swords.clear();
 
-                //RESET MONSTERS HERE WHEN IMPLEMENTED
 
             }
             else if (selectedMenuButtonIndex == 1) { // settings
@@ -2210,12 +2176,12 @@ void SettingsMenuInit() {
     HMindicator.setOrigin(HMindicator.getLocalBounds().width / 2, HMindicator.getLocalBounds().height / 2);
     HMindicator.setScale(1.5, 1.5);
 
-    
-   
 
 
 
-    
+
+
+
 
     {//volume bar init
         for (int i = 0;i < 10;i++) {
@@ -2343,30 +2309,30 @@ void globalCollsion() {
         if (obstacles[i].isActive == true)
         {
             generalCollision(shanoa.collider, obstacles[i].collider, shanoa.sprite);
-            for (int j = 0; j < enemies.size(); ++j) 
+            for (int j = 0; j < enemies.size(); ++j)
             {
-               generalCollision(enemies[j]->collider, obstacles[i].collider, enemies[j]->shape);
+                generalCollision(enemies[j]->collider, obstacles[i].collider, enemies[j]->shape);
             }
             for (int k = 0; k < swords.size(); ++k)
             {
-               if(swords[k].collider.getGlobalBounds().intersects(obstacles[i].collider.getGlobalBounds()))
-               {
-                   if (obstacles[i].type == statue) {
-                       obstacles[i].health -= swords[k].damage;
-                       if (obstacles[i].health <= 0 && !obstacles[i].hasdroppedScroll) {
-                           Crystals.push_back(XPc(obstacles[i].sprite.getPosition().x, obstacles[i].sprite.getPosition().y, PowerupsTexture[mathrevivalactivator], 0, mathrevivalactivator));
-                           obstacles[i].sprite.setScale(0, 0);
-                           obstacles[i].collider.setScale(0, 0);
-                           obstacles[i].sprite.setPosition(20000, 20000);
-                           obstacles[i].collider.setScale(20000, 20000);
-                           obstacles[i].hasdroppedScroll;
-                       }
-                   }
-                   swords.erase(swords.begin() + k);
-                   break;
-               }
+                if (swords[k].collider.getGlobalBounds().intersects(obstacles[i].collider.getGlobalBounds()))
+                {
+                    if (obstacles[i].type == statue) {
+                        obstacles[i].health -= swords[k].damage;
+                        if (obstacles[i].health <= 0 && !obstacles[i].hasdroppedScroll) {
+                            Crystals.push_back(XPc(obstacles[i].sprite.getPosition().x, obstacles[i].sprite.getPosition().y, PowerupsTexture[mathrevivalactivator], 0, mathrevivalactivator));
+                            obstacles[i].sprite.setScale(0, 0);
+                            obstacles[i].collider.setScale(0, 0);
+                            obstacles[i].sprite.setPosition(20000, 20000);
+                            obstacles[i].collider.setScale(20000, 20000);
+                            obstacles[i].hasdroppedScroll;
+                        }
+                    }
+                    swords.erase(swords.begin() + k);
+                    break;
+                }
             }
-            if(obstacles[i].type == statue) {
+            if (obstacles[i].type == statue) {
                 if (shanoa.attackSpace.getGlobalBounds().intersects(obstacles[i].collider.getGlobalBounds())) {
                     obstacles[i].health -= shanoa.MeleeDamage;
                     if (obstacles[i].health <= 0 && !obstacles[i].hasdroppedScroll) {
@@ -2386,7 +2352,7 @@ void globalCollsion() {
 
 void SpeedBoostFunction() {
     if (SpeedBoostEffectActive) {
-        if(shanoa.speed <= shanoa.originalSpeed)
+        if (shanoa.speed <= shanoa.originalSpeed)
             shanoa.speed = shanoa.speed * 1.5;
         if (SpeedBoostEffectTimer >= EffectDuration) {
             SpeedBoostEffectActive = false;
@@ -2433,11 +2399,10 @@ void Start()
     MainmenuInit();
     xpBarInit();
     GameOverInit();
-    NameInputInit(); // Make sure name input init is called
+    NameInputInit();
     PauseMenuInit();
     CharacterInit();
-    LoadLeaderboard(); // <-- Add this line
-    MapInit();
+    LoadLeaderboard();
     creditsInit();
     SettingsMenuInit();
     quotesInit();
@@ -2559,7 +2524,7 @@ void Update()
         xpBarUpdate();
         Horrormode();
         SpeedBoostFunction();
-        
+
         for (int i = 0; i < Crystals.size(); i++) {
             // Pass player position to update function
             Crystals[i].update(deltaTime, shanoa.sprite.getPosition());
@@ -2584,31 +2549,26 @@ void Update()
         quoteUpdate();
     }
 
-    else if (gamestate == paused) // <-- New Paused State Update
+    else if (gamestate == paused)
     {
         window.setMouseCursorVisible(true);
-        // Game logic is paused, only handle menu input
 
         menuInputDelay += deltaTime;
 
-        // Position buttons relative to the view center
         Vector2f viewCenter = view.getCenter();
         ContinueButton.setPosition(viewCenter.x - ContinueButton.getLocalBounds().width / 2.f, viewCenter.y - 50.f);
         PauseReturnToMenuButton.setPosition(viewCenter.x - PauseReturnToMenuButton.getLocalBounds().width / 2.f, viewCenter.y + 50.f);
 
-        // Update bounds after setting position
         ContinueButtonBounds = ContinueButton.getGlobalBounds();
         PauseReturnToMenuButtonBounds = PauseReturnToMenuButton.getGlobalBounds();
 
-        // --- Input Handling (Keyboard and Mouse) ---
-        // Use menuInputDelay for navigation
+
         if (menuInputDelay >= MENU_INPUT_COOLDOWN)
         {
             bool moved = false;
-            // Keyboard Navigation
             if (Keyboard::isKeyPressed(Keyboard::S) || Keyboard::isKeyPressed(Keyboard::Down))
             {
-                selectedMenuButtonIndex++; // Use selectedMenuButtonIndex for pause menu (0: Continue, 1: Main Menu)
+                selectedMenuButtonIndex++;
                 moved = true;
             }
             else if (Keyboard::isKeyPressed(Keyboard::W) || Keyboard::isKeyPressed(Keyboard::Up))
@@ -2619,7 +2579,7 @@ void Update()
 
             if (moved)
             {
-                // Wrap around options (0, 1)
+
                 if (selectedMenuButtonIndex < 0) {
                     selectedMenuButtonIndex = 1;
                 }
@@ -2629,7 +2589,6 @@ void Update()
                 menuInputDelay = 0; // Reset delay
             }
 
-            // Mouse Hover Highlighting (updates selectedMenuButtonIndex)
             if (ContinueButtonBounds.contains(mouseWorldpos)) {
                 selectedMenuButtonIndex = 0;
             }
@@ -2637,37 +2596,35 @@ void Update()
                 selectedMenuButtonIndex = 1;
             }
 
-            // Selection (Enter Key or Mouse Click)
             bool activateSelection = false;
             if (Keyboard::isKeyPressed(Keyboard::Enter)) {
                 activateSelection = true;
             }
-            // Check for Left mouse button press over the *currently selected* button
             if (Mouse::isButtonPressed(Mouse::Left)) {
                 if (selectedMenuButtonIndex == 0 && ContinueButtonBounds.contains(mouseWorldpos)) activateSelection = true;
                 if (selectedMenuButtonIndex == 1 && PauseReturnToMenuButtonBounds.contains(mouseWorldpos)) activateSelection = true;
             }
 
-            if (activateSelection && postTransitionCooldown <= 0) // Also check postTransitionCooldown
+            if (activateSelection && postTransitionCooldown <= 0)
             {
-                if (selectedMenuButtonIndex == 0) // Continue selected
+                if (selectedMenuButtonIndex == 0)
                 {
-                    gamestate = gameloop; // Resume game
-                    GameloopMusic.play(); // Resume music
-                    postTransitionCooldown = POST_TRANSITION_DELAY; // Set cooldown
+                    gamestate = gameloop;
+                    GameloopMusic.play();
+                    postTransitionCooldown = POST_TRANSITION_DELAY;
                 }
-                else if (selectedMenuButtonIndex == 1) // Return to Main Menu selected
+                else if (selectedMenuButtonIndex == 1)
                 {
-                    gamestate = mainmenu; // Go to main menu
-                    MainMenuMusic.play(); // Play main menu music
-                    GameloopMusic.stop(); // Stop game loop music if it was paused
-                    postTransitionCooldown = POST_TRANSITION_DELAY; // Set cooldown
+                    gamestate = mainmenu;
+                    MainMenuMusic.play();
+                    GameloopMusic.stop();
+                    postTransitionCooldown = POST_TRANSITION_DELAY;
 
-                    // Reset game state elements for a new game
+
                     enemies.clear();
                     swords.clear();
                     Crystals.clear();
-                    shanoa.health = shanoa.Maxhp; // Reset player health
+                    shanoa.health = shanoa.Maxhp; // Reset player 
                     shanoa.isDead = false;
                     shanoa.RevivalScrollAcquired = false;
                     totalGameTime = 0.f;
@@ -2677,15 +2634,14 @@ void Update()
                     selectedMenuButtonIndex = 0; // Reset main menu selection
                     xpFullReset();
                 }
-                menuInputDelay = 0; // Reset delay after selection
+                menuInputDelay = 0;
             }
         }
 
 
-        // Update menu cursor position based on selected pause menu option
         Vector2f selectedOptionPosition;
         Vector2f selectedOptionSize;
-        float cursorAdjust = 3.f; // Adjust this value for cursor offset
+        float cursorAdjust = 3.f;
 
         if (selectedMenuButtonIndex == 0) {
             selectedOptionPosition = ContinueButton.getPosition();
@@ -2695,7 +2651,7 @@ void Update()
             selectedOptionPosition = (Vector2f(PauseReturnToMenuButton.getPosition().x, PauseReturnToMenuButton.getPosition().y - 25.f));
             selectedOptionSize = PauseReturnToMenuButton.getSize();
         }
-        menuCursor.setPosition(selectedOptionPosition.x - cursorAdjust, selectedOptionPosition.y - cursorAdjust );
+        menuCursor.setPosition(selectedOptionPosition.x - cursorAdjust, selectedOptionPosition.y - cursorAdjust);
         menuCursor.setSize(Vector2f(selectedOptionSize.x + cursorAdjust * 2.f, selectedOptionSize.y + cursorAdjust * 2.f));
 
         view.setCenter(viewCenter); // Keep view centered on pause screen
@@ -2703,7 +2659,6 @@ void Update()
 
     else if (gamestate == settings)
     {
-        // settings menu update
         window.setMouseCursorVisible(true);
         volumebarcontroller = soundcontroller / 100;
         view.setCenter(800, 20500);
@@ -2737,7 +2692,6 @@ void Update()
 
     else if (gamestate == leaderboard)
     {
-        // leaderboard menu update
         window.setMouseCursorVisible(true);
         if (Keyboard::isKeyPressed(Keyboard::R))
         {
@@ -2748,26 +2702,18 @@ void Update()
 
     else if (gamestate == gameover)
     {
-        // gameover screen update
         window.setMouseCursorVisible(true);
 
-        // Position buttons and get their bounds in Update() before handling input
-        // This is necessary because view.getCenter() is dynamic.
-        // (These positions are also calculated in Draw, but recalculating them here
-        // ensures mouse collision detection is accurate based on current frame's positions)  
         Vector2f viewCenter = view.getCenter();
         restartButton.setPosition(viewCenter.x - restartButton.getLocalBounds().width / 2.f, viewCenter.y + 90.f);
         MathRevivalButton.setPosition(viewCenter.x - MathRevivalButton.getLocalBounds().width / 2.f, viewCenter.y + 175.f);
         GiveUpButton.setPosition(viewCenter.x - GiveUpButton.getLocalBounds().width / 2.f, viewCenter.y + 260.f);
 
-        // Update bounds after setting position
         RestartButtonBounds = restartButton.getGlobalBounds();
         MathRevivlaButtonBounds = MathRevivalButton.getGlobalBounds();
         GiveUpButtonBounds = GiveUpButton.getGlobalBounds();
 
-        // --- Input Handling ---
 
-        // Only process menu input if Math Revival is NOT active    
         if (!MathRevivalON)
         {
             // *** Mouse Hover Detection for Highlighting ***
@@ -2782,7 +2728,6 @@ void Update()
                 selectedGameOverOptionIndex = 2;
             }
 
-            // Handle Keyboard Navigation (Up/Down or W/S) - Keep this logic
             if (menuInputDelay >= MENU_INPUT_COOLDOWN)
             {
                 bool moved = false;
@@ -2799,20 +2744,17 @@ void Update()
 
                 if (moved)
                 {
-                    // Wrap around options (0, 1, 2)
                     if (selectedGameOverOptionIndex < 0) {
-                        selectedGameOverOptionIndex = 2; // Wrap from top to bottom
+                        selectedGameOverOptionIndex = 2;
                     }
                     else if (selectedGameOverOptionIndex > 2) {
-                        selectedGameOverOptionIndex = 0; // Wrap from bottom to top
+                        selectedGameOverOptionIndex = 0;
                     }
                     menuInputDelay = 0.f; // Reset delay after movement
                 }
 
-                // Handle Selection (Enter Key or Mouse Click)
                 bool activateSelection = false;
 
-                // Check for Enter key press
                 if (Keyboard::isKeyPressed(Keyboard::Enter))
                 {
                     activateSelection = true;
@@ -2835,11 +2777,10 @@ void Update()
                         MainMenuMusic.stop();
                         GameloopMusic.play();
                         gameOverSoundPlayed = false;
-                        selectedMenuButtonIndex = 0; // Reset main menu selection
-                        // Reset game state elements (enemies, crystals, etc.) when going to main menu for a new game
+                        selectedMenuButtonIndex = 0;
                         enemies.clear();
                         Crystals.clear();
-                        shanoa.health = 120; // Or your starting health
+                        shanoa.health = 200; // Or your starting health
                         shanoa.isDead = false;
                         shanoa.RevivalScrollAcquired = 0;
                         totalGameTime = 0.f;
@@ -2879,8 +2820,8 @@ void Update()
                 selectedOptionSize = restartButton.getSize();
             }
             else if (selectedGameOverOptionIndex == 1) {
-                    selectedOptionPosition = MathRevivalButton.getPosition();
-                    selectedOptionSize = MathRevivalButton.getSize();
+                selectedOptionPosition = MathRevivalButton.getPosition();
+                selectedOptionSize = MathRevivalButton.getSize();
             }
             else if (selectedGameOverOptionIndex == 2) { // Position for Give Up option
                 selectedOptionPosition = GiveUpButton.getPosition();
@@ -2942,14 +2883,11 @@ void Update()
 
 void Draw()
 {
-    // code here is executed every frame since the start of the program
 
-    window.clear(); // clear every pixel on the screen
+    window.clear();
 
-    // Draw your sprites here
 
-        // Draw elements that are visible in multiple states(like the game world)
-        // Draw the game scene if not in main menu, settings, credits, name input, or leaderboard
+
 
     if (gamestate == paused || gamestate == gameover)
     {
@@ -2983,11 +2921,7 @@ void Draw()
 
     if (gamestate == mainmenu)
     {
-        ////Debugging
-        //window.draw(StartButton);
-        //window.draw(SettingsButton);
-        //window.draw(LeaderboardButton);
-        //window.draw(ExitButton);
+
 
 
         // main menu draw
@@ -3002,42 +2936,42 @@ void Draw()
         window.draw(ExitText);
 
     }
-    if (gamestate == paused) // <-- New Paused State Draw
+    if (gamestate == paused)
     {
-        // Game scene is already drawn above
-        gameOverOverlay.setPosition(view.getCenter()); // Center the overlay on the view
-        window.draw(gameOverOverlay); // Draw the dimming overlay
+
+        gameOverOverlay.setPosition(view.getCenter());
+        window.draw(gameOverOverlay);
 
         Vector2f viewCenter = view.getCenter();
-        // Position static text elements relative to view center
+
         PauseText.setPosition(viewCenter.x - PauseText.getGlobalBounds().width / 2.f, viewCenter.y - 150.f);
         window.draw(PauseText);
 
-        // Position the buttons relative to the view center
+
         ContinueButton.setPosition(viewCenter.x - ContinueButton.getLocalBounds().width / 2.f, viewCenter.y - 50.f);
         PauseReturnToMenuButton.setPosition(viewCenter.x - PauseReturnToMenuButton.getLocalBounds().width / 2.f, viewCenter.y + 25.f);
 
-        // Position the text on top of their corresponding buttons
+
         ContinueText.setPosition(ContinueButton.getPosition().x + (ContinueButton.getSize().x - ContinueText.getLocalBounds().width) / 2.f,
             ContinueButton.getPosition().y + (ContinueButton.getSize().y - ContinueText.getLocalBounds().height) / 2.f - 5.f); // Center text on button, adjust -5.f as needed
         PauseReturnToMenuText.setPosition(PauseReturnToMenuButton.getPosition().x + (PauseReturnToMenuButton.getSize().x - PauseReturnToMenuText.getLocalBounds().width) / 2.f,
             PauseReturnToMenuButton.getPosition().y + (PauseReturnToMenuButton.getSize().y - PauseReturnToMenuText.getLocalBounds().height) / 2.f - 5.f); // Center text on button
 
 
-        // For Adjusting The Position Of The Quote
+
         Quote.setPosition(viewCenter.x, viewCenter.y + 120.f);
 
         window.draw(ContinueButton);
         window.draw(ContinueText);
         window.draw(PauseReturnToMenuButton);
         window.draw(PauseReturnToMenuText);
-        window.draw(menuCursor); // Draw menu cursor over selected button
+        window.draw(menuCursor);
         window.draw(Quote);
     }
 
     if (gamestate == gameloop)
     {
-        // gameloop draw
+
         window.draw(Map);
         //window.draw(shanoa.collider);
         for (int i = 0; i < swords.size(); i++)
@@ -3063,17 +2997,17 @@ void Draw()
             if (obstacles[i].isActive) {
                 window.draw(obstacles[i].sprite);
 
-                window.draw(obstacles[i].collider);
+                //  window.draw(obstacles[i].collider);
             }
         }
         if (showLevelUp) {
             levelupsprite.setOrigin(levelupsprite.getLocalBounds().width / 2.0f, levelupsprite.getLocalBounds().height / 2.0f);
-            levelupsprite.setPosition(view.getCenter().x , view.getCenter().y - 125);
+            levelupsprite.setPosition(view.getCenter().x, view.getCenter().y - 125);
             window.draw(levelupsprite);
         }
-        // Timer in Gameloop
 
-        ScoreText.setPosition(view.getCenter().x -490, view.getCenter().y -480);
+
+        ScoreText.setPosition(view.getCenter().x - 490, view.getCenter().y - 480);
 
 
 
@@ -3096,7 +3030,7 @@ void Draw()
         // settings menu draw
         window.draw(settingsBackground);
         window.draw(volume_down);
-        window.draw(volume_up);                  
+        window.draw(volume_up);
         window.draw(settingsmenuText);
         window.draw(volumeText);
         window.draw(HMbutton);
@@ -3112,17 +3046,16 @@ void Draw()
         returnText.setString("Press R to return to Main Menu");
         returnText.setPosition(viewCenter.x - returnText.getGlobalBounds().width / 2.f, viewCenter.y + 300.f);
         window.draw(returnText);
-        
+
     }
 
     if (gamestate == gameover)
     {
-        // gameover screen draw (game scene already drawn above)
-        gameOverOverlay.setPosition(view.getCenter()); // Center the overlay on the view
+
+        gameOverOverlay.setPosition(view.getCenter());
         window.draw(gameOverOverlay);
 
         Vector2f viewCenter = view.getCenter();
-        // Center horizontally by subtracting half of the text's width
         GameOverText.setPosition(viewCenter.x - GameOverText.getGlobalBounds().width / 2.f, viewCenter.y - 100.f);
         ScoreText.setPosition(viewCenter.x - ScoreText.getGlobalBounds().width / 2.f, viewCenter.y + 10);
         window.draw(GameOverText);
@@ -3131,7 +3064,6 @@ void Draw()
 
         if (MathRevivalON)
         {
-            // Position and draw Math Revival elements when active
             SurvivalEquation.sprite.setPosition(viewCenter.x - SurvivalEquation.sprite.getGlobalBounds().width / 2.f, viewCenter.y + 100.f);
             equationAnsCellBox.setPosition(viewCenter.x - equationAnsCellBox.getGlobalBounds().width / 2.f, viewCenter.y + 160.f);
             SurvivalEquation.userAnsText.setPosition(viewCenter.x - equationAnsCellBox.getGlobalBounds().width / 2.f + 5, viewCenter.y + 163.f); // Adjust +5 for padding
@@ -3140,14 +3072,14 @@ void Draw()
             window.draw(equationAnsCellBox);
             window.draw(SurvivalEquation.userAnsText);
         }
-        else // Draw the buttons/options when Math Revival is NOT active
+        else
         {
             // Position the buttons relative to the view center
             // Use getLocalBounds() for the button size itself when centering
             restartButton.setPosition(viewCenter.x - restartButton.getLocalBounds().width / 2.f, viewCenter.y + 90.f);
             MathRevivalButton.setPosition(viewCenter.x - MathRevivalButton.getLocalBounds().width / 2.f, viewCenter.y + 175.f);
             GiveUpButton.setPosition(viewCenter.x - GiveUpButton.getLocalBounds().width / 2.f, viewCenter.y + 260.f); // Position below Math Revival button
-            Quote.setPosition(viewCenter.x , viewCenter.y + 350.f);
+            Quote.setPosition(viewCenter.x, viewCenter.y + 350.f);
             // Position the text on top of their corresponding buttons
             // Use getLocalBounds() for text size when centering on the button
             RestartText.setPosition(restartButton.getPosition().x + (restartButton.getSize().x - RestartText.getLocalBounds().width) / 2.f, restartButton.getPosition().y + (restartButton.getSize().y - RestartText.getLocalBounds().height) / 2.f - 5.f); // Center text on button, adjust -5.f as needed
@@ -3155,7 +3087,7 @@ void Draw()
             // Position Give Up Text on its button
             GiveUpText.setPosition(GiveUpButton.getPosition().x + (GiveUpButton.getSize().x - GiveUpText.getLocalBounds().width) / 2.f, GiveUpButton.getPosition().y + (GiveUpButton.getSize().y - GiveUpText.getLocalBounds().height) / 2.f - 5.f); // Center text on button
 
-            MathRevivalLock.setPosition(viewCenter.x - MathRevivalButton.getLocalBounds().width / 2.f + 125 , viewCenter.y +200);
+            MathRevivalLock.setPosition(viewCenter.x - MathRevivalButton.getLocalBounds().width / 2.f + 125, viewCenter.y + 200);
 
             window.draw(restartButton);
             window.draw(RestartText);
@@ -3173,8 +3105,8 @@ void Draw()
 
             // Draw the cursor when Math Revival is NOT active
             // Cursor position is updated in the Update function
-            if(!(selectedGameOverOptionIndex == 1 && !shanoa.RevivalScrollAcquired))
-            window.draw(menuCursor);
+            if (!(selectedGameOverOptionIndex == 1 && !shanoa.RevivalScrollAcquired))
+                window.draw(menuCursor);
         }
 
         window.draw(Quote);
@@ -3201,19 +3133,16 @@ void Draw()
         }
 
     }
-    else if (gamestate == nameinput) // <-- Add this block
+
+    if (gamestate == nameinput) // <-- Add this block
     {
-        // Center the view on the UI elements for static states like this
         sf::Vector2f viewCenter = view.getCenter();
 
-        // Draw background (using creditback or a dedicated name input background)
-        window.draw(creditback); // Or window.draw(nameInputBackgroundSprite);
+        window.draw(creditback);
 
-        // Position and draw the prompt text
         nameInputPromptText.setPosition(viewCenter.x - nameInputPromptText.getGlobalBounds().width / 2.f, viewCenter.y - 100.f);
         window.draw(nameInputPromptText);
 
-        // Position and draw the input box
         equationAnsCellBox.setPosition(viewCenter.x - equationAnsCellBox.getGlobalBounds().width / 2.f, viewCenter.y - 20.f);
         window.draw(equationAnsCellBox);
 
@@ -3222,18 +3151,26 @@ void Draw()
         playerNameDisplayText.setPosition(equationAnsCellBox.getPosition().x + 5.f, equationAnsCellBox.getPosition().y + (equationAnsCellBox.getSize().y - playerNameDisplayText.getLocalBounds().height) / 2.f - 5.f);
         window.draw(playerNameDisplayText);
 
-        // You might also want to draw a cursor hint or instructions like "Press Enter to confirm"
     }
-    else if (gamestate == leaderboard)
+
+    if (gamestate == leaderboard)
     {
-        // Draw background (using creditback)
+
+        LeaderboardOverlay.setSize(view.getSize()); // Set size based on the view's size
+        // Set its origin to the center, so position(view.getCenter()) works correctly
+        LeaderboardOverlay.setOrigin(view.getSize().x / 2.f, view.getSize().y / 2.f);
+
+        LeaderboardOverlay.setFillColor(Color(0, 0, 0, 190));
+
+
         window.draw(creditback);
         Vector2f viewCenter = view.getCenter();
-        float startY = viewCenter.y - 180.f; // Starting Y position for the first entry
-        float lineHeight = 50.f; // Vertical space between entries
-        int rank = 1; // Start rank counter
+        LeaderboardOverlay.setPosition(viewCenter);
+        window.draw(LeaderboardOverlay);
+        float startY = viewCenter.y - 180.f;
+        float lineHeight = 50.f;
+        int rank = 1;
 
-        // Add Leaderboard Title
         Text leaderboardTitleText;
         leaderboardTitleText.setFont(defgamefont);
         leaderboardTitleText.setCharacterSize(50);
@@ -3243,7 +3180,6 @@ void Draw()
         window.draw(leaderboardTitleText);
 
 
-        // Multimap: Iterate through the map
         for (const auto& pair : leaderboardEntriesMap)
         {
             // Stop after drawing the top 10
@@ -3254,20 +3190,18 @@ void Draw()
             entryText.setFont(defgamefont);
             entryText.setCharacterSize(30);
             entryText.setFillColor(sf::Color::White);
-            // Format the entry string (Rank. Name - Score)
-            std::stringstream ss;
-            ss << rank << ". " // Current rank
-                << pair.second // Player name (the value)
+            stringstream ss;
+            ss << rank << ". "
+                << pair.second
                 << " - "
-                << std::fixed << std::setprecision(2) << -pair.first; // Positive score (-key)
+                << fixed << setprecision(2) << -pair.first;
             entryText.setString(ss.str());
 
-            // Position the entry text
+
             entryText.setPosition(viewCenter.x - entryText.getGlobalBounds().width / 2.f, startY + (rank - 1) * lineHeight);
             window.draw(entryText);
-            rank++; // Increment rank
+            rank++;
         }
-        // Add instruction to return
         Text returnText;
         returnText.setFont(defgamefont);
         returnText.setCharacterSize(24);
@@ -3278,5 +3212,5 @@ void Draw()
     }
 
 
-    window.display(); // Display sprites on screen
+    window.display();
 }
