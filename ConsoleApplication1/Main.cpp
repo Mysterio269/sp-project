@@ -24,7 +24,8 @@ enum Gamestate
     leaderboard,
     credits,
     nameinput,
-    paused
+    paused,
+    levelupscreen
 };
 
 enum CrystalState
@@ -78,7 +79,8 @@ enum inventoryitem {
     reinforced,
     thorns,
     vitality,
-    swiftness
+    swiftness,
+    mathrevivalscroll
 };
 
 float deltaTime;
@@ -165,7 +167,7 @@ float HMfactor = 1;
 RectangleShape volumebar[10];
 multimap<float, string> leaderboardEntriesMap; // Key: -score (float), Value: playerName (string)
 
-int BlueXPcValue = 10, GreenXPcValue = 30, RedXPcValue = 50;
+int BlueXPcValue = 20, GreenXPcValue = 50, RedXPcValue = 70;
 bool HMactive = false;
 bool checklevel = false;
 
@@ -1084,7 +1086,8 @@ struct inventoryitems
         isActive == false;
     }
 }inventory[2][4];
-
+Texture inventorytextures[10], inventoryBackground_Texture;
+Sprite inventoryBackground;
 void LoadObstacleTextures() {
     //obstacleTextures[tree].loadFromFile("Assets\\tree.png");
     obstacleTextures[rock].loadFromFile("Assets\\Rock1.png");
@@ -1565,6 +1568,20 @@ void NameInputInit()
 
 void stopSounds() {
     swordsound.stop();
+}
+
+void inventoryinit() {
+    inventoryBackground_Texture.loadFromFile("Assets\\inventory.png");
+    inventoryBackground.setTexture(inventoryBackground_Texture);
+    inventorytextures[bloodSword].loadFromFile("Assets\\bloodswordicon.png");
+    inventorytextures[thrownsword].loadFromFile("Assets\\swordicon.png");
+    inventorytextures[lightningbolt].loadFromFile("Assets\\lightningicon.png");
+    inventorytextures[garlic].loadFromFile("Assets\\Garlicicon.png");
+    inventorytextures[reinforced].loadFromFile("Assets\\reinforcedicon.png");
+    inventorytextures[thorns].loadFromFile("Assets\\thornsicon.png");
+    inventorytextures[swiftness].loadFromFile("Assets\\speedboosticon.png");
+    inventorytextures[vitality].loadFromFile("Assets\\vitalityicon.png");
+    inventorytextures[mathrevivalscroll].loadFromFile("Assets\\mathrevivalicon.png");
 }
 
 void shooting()
@@ -2407,6 +2424,7 @@ void Start()
     MathRevivalLock.setTexture(lock);
     MathRevivalLock.setOrigin(MathRevivalLock.getLocalBounds().width / 2, MathRevivalLock.getLocalBounds().height / 2);
     MathRevivalLock.setScale(0.1, 0.1);
+    inventoryinit();
     MapInit();
     MainmenuInit();
     xpBarInit();
