@@ -5,7 +5,6 @@
 #include <string>
 #include <fstream>
 #include <SFML/Audio.hpp>
-#include <sstream>
 #include <iomanip>
 #include <cstdlib>
 #include <ctime>
@@ -102,11 +101,15 @@ Texture BlueXP, GreenXP, RedXP;
 Texture levelup;
 Texture lock;
 Texture HMbuttonTexture;
+Texture UpgradeMenuBackground;
 
 
 Sprite levelupsprite;
+Sprite levelupMenuSprite[2];
 bool showLevelUp = false;
+bool inventoryactive = false;
 float levelUpDisplayTimer = 0.0f;
+float inventoryinputdelaytimer = 0.0f;
 Sprite MainMenuButtons, MainMenuBackground, Map, healthbar, creditsbutton, creditback, volume_up, volume_down, settingsBackground;
 Sprite MathRevivalLock;
 Sprite HMbutton;
@@ -138,8 +141,8 @@ const int MAX_OBSTACLES = 25;
 
 
 
-Sound MainMenuMusic, GameOverSound, GameloopMusic, TheLegendaryTutor;
-SoundBuffer MainMenuMusic_source, GameOverSound_source, GameloopMusic_source, TheLegendaryTutor_voice;
+Sound MainMenuMusic, GameOverSound, GameloopMusic, TheLegendaryTutor,levelupsfx;
+SoundBuffer MainMenuMusic_source, GameOverSound_source, GameloopMusic_source, TheLegendaryTutor_voice,levelupsource;
 bool gameOverSoundPlayed = false;
 
 sf::VideoMode desktopMode = sf::VideoMode::getDesktopMode();
@@ -197,6 +200,7 @@ void Update();
 void Start();
 void Draw();
 
+Gamestate gamestate = mainmenu;
 struct character
 {
     RectangleShape collider;// Sprite collider
@@ -240,6 +244,9 @@ struct character
             originalSpeed += 5;
             showLevelUp = true;
             levelUpDisplayTimer = 0.0f;
+            GameloopMusic.pause();
+            levelupsfx.play();
+            gamestate = levelupscreen;
         }
         if (level >= 2) {
             canThrowSwords = true;
@@ -1071,20 +1078,8 @@ struct inventoryitems
 {
     int Level;
     inventoryitem Type;
-    Texture texture;
     Sprite sprite;
     bool isActive = false;
-    inventoryitems(Texture texture, Sprite sprite,inventoryitem type) {
-        sprite.setTexture(texture);
-        sprite.setOrigin(texture.getSize().x / 2.0f, texture.getSize().y / 2.0f);
-        Type = type;
-        Level = 1;
-        isActive = true;
-    }
-    inventoryitems() {
-        Level = 0;
-        isActive == false;
-    }
 }inventory[2][4];
 Texture inventorytextures[10], inventoryBackground_Texture;
 Sprite inventoryBackground;
@@ -1255,7 +1250,6 @@ void UpdateObstacles(float deltaTime) {
 }
 
 
-Gamestate gamestate = mainmenu;
 
 Font defgamefont; // default game font
 
@@ -1573,6 +1567,7 @@ void stopSounds() {
 void inventoryinit() {
     inventoryBackground_Texture.loadFromFile("Assets\\inventory.png");
     inventoryBackground.setTexture(inventoryBackground_Texture);
+    inventoryBackground.setScale(1, 1.25);
     inventorytextures[bloodSword].loadFromFile("Assets\\bloodswordicon.png");
     inventorytextures[thrownsword].loadFromFile("Assets\\swordicon.png");
     inventorytextures[lightningbolt].loadFromFile("Assets\\lightningicon.png");
@@ -1582,6 +1577,26 @@ void inventoryinit() {
     inventorytextures[swiftness].loadFromFile("Assets\\speedboosticon.png");
     inventorytextures[vitality].loadFromFile("Assets\\vitalityicon.png");
     inventorytextures[mathrevivalscroll].loadFromFile("Assets\\mathrevivalicon.png");
+    inventory[0][0].isActive = true;
+    inventory[0][0].Level = 1;
+    inventory[0][0].sprite.setTexture(inventorytextures[bloodSword]);
+    inventory[0][0].sprite.setOrigin(20,16);
+    inventory[0][0].Type = bloodSword;
+    inventory[0][1].isActive = true;
+    inventory[0][1].Level = 1;
+    inventory[0][1].sprite.setTexture(inventorytextures[thrownsword]);
+    inventory[0][1].sprite.setOrigin(16,16);
+    inventory[0][1].Type = thrownsword;
+}
+
+void levelupmenuinit() {
+    UpgradeMenuBackground.loadFromFile("Assets\\stoneplate.png");
+    levelupMenuSprite[0].setTexture(UpgradeMenuBackground);
+    levelupMenuSprite[1].setTexture(UpgradeMenuBackground);
+    levelupMenuSprite[0].setOrigin(272, 340);
+    levelupMenuSprite[1].setOrigin(272, 340);
+    levelupMenuSprite[0].setScale(0.7, 1.2);
+    levelupMenuSprite[1].setScale(0.7, 1.2);
 }
 
 void shooting()
@@ -2424,6 +2439,9 @@ void Start()
     MathRevivalLock.setTexture(lock);
     MathRevivalLock.setOrigin(MathRevivalLock.getLocalBounds().width / 2, MathRevivalLock.getLocalBounds().height / 2);
     MathRevivalLock.setScale(0.1, 0.1);
+    levelupsource.loadFromFile("Assets\\levelupsound.ogg");
+    levelupsfx.setBuffer(levelupsource);
+    levelupmenuinit();
     inventoryinit();
     MapInit();
     MainmenuInit();
@@ -2863,19 +2881,19 @@ void Update()
             menuCursor.setSize(Vector2f(selectedOptionSize.x + cursorAdjust * 2.f, selectedOptionSize.y + cursorAdjust * 2.f));
 
         }
-        // Handle Math Revival Input (if MathRevivalON is true)
-        else
-        {
-            // This part remains as you had it, likely handling input via event loop
-            // and updating MathRevivalON or gamestate based on the answer.
-            // Ensure menuInputDelay is also managed here if needed for Math Revival input timing.
-            // Math Revival input logic is currently in main's event loop.
-            // If you want to use menuInputDelay for that, you'd need to manage it here too.
-        }
 
 
     }
-
+    else if (gamestate == levelupscreen) {
+        if (Keyboard::isKeyPressed(Keyboard::Q)) {
+            gamestate = gameloop;
+            GameloopMusic.play();
+        }
+        else if (Keyboard::isKeyPressed(Keyboard::E)) {
+            gamestate = gameloop;
+            GameloopMusic.play();
+        }
+    }
     else if (gamestate == credits) {
         creditback.setColor(Color(70, 70, 70));
         view.setCenter(10000, 9800);
@@ -2915,11 +2933,7 @@ void Draw()
 {
 
     window.clear();
-
-
-
-
-    if (gamestate == paused || gamestate == gameover)
+    if (gamestate == paused || gamestate == gameover || gamestate == levelupscreen)
     {
         window.draw(Map);
         for (size_t i = 0; i < swords.size(); i++)
@@ -3001,7 +3015,16 @@ void Draw()
 
     if (gamestate == gameloop)
     {
-
+        inventoryinputdelaytimer += deltaTime;
+        if (Keyboard::isKeyPressed(Keyboard::Tab) && inventoryinputdelaytimer > 0.4f) {
+            inventoryinputdelaytimer = 0;
+            if (inventoryactive) {
+                inventoryactive = false;
+            }
+            else {
+                inventoryactive = true;
+            }
+        }
         window.draw(Map);
         //window.draw(shanoa.collider);
         for (int i = 0; i < swords.size(); i++)
@@ -3052,6 +3075,22 @@ void Draw()
         {
             HMindicator.setPosition(view.getCenter().x, view.getCenter().y - 450);
             window.draw(HMindicator);
+        }
+        inventoryBackground.setPosition(view.getCenter().x + 305, view.getCenter().y - 450);
+        inventory[0][0].sprite.setPosition(view.getCenter().x + 335, view.getCenter().y - 410);
+        if(inventoryactive){
+            window.draw(inventoryBackground);
+            for (int i = 0;i < 2;i++) {
+                for (int j = 0;j < 4;j++) {
+                    if (inventory[i][j].isActive) {
+                        if (inventory[i][j].Type != bloodSword) {
+                            inventory[i][j].sprite.setPosition(inventory[0][0].sprite.getPosition().x + (j * 36), inventory[0][0].sprite.getPosition().y + (i * 32));
+                        }
+                        inventory[i][j].sprite.setScale(1, 1.25);
+                        window.draw(inventory[i][j].sprite);
+                    }
+                }
+            }
         }
     }
 
@@ -3239,6 +3278,12 @@ void Draw()
         returnText.setString("Press R to return to Main Menu");
         returnText.setPosition(viewCenter.x - returnText.getGlobalBounds().width / 2.f, viewCenter.y + 350.f);
         window.draw(returnText);
+    }
+    if (gamestate == levelupscreen) {
+        levelupMenuSprite[0].setPosition(view.getCenter().x - 200, view.getCenter().y);
+        levelupMenuSprite[1].setPosition(view.getCenter().x + 200, view.getCenter().y);
+        window.draw(levelupMenuSprite[0]);
+        window.draw(levelupMenuSprite[1]);
     }
 
 
