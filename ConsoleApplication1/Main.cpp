@@ -69,6 +69,18 @@ enum monstertype
     Bat
 };
 
+enum inventoryitem {
+    empty,
+    bloodSword,
+    thrownsword,
+    lightningbolt,
+    garlic,
+    reinforced,
+    thorns,
+    vitality,
+    swiftness
+};
+
 float deltaTime;
 
 Text mathRevivalText;
@@ -992,22 +1004,12 @@ struct Obstacle
 
         switch (type)
         {
-            /*case tree:
-                sprite.setScale(2.0f, 3.2f);
-                break;*/
-
         case rock:
             sprite.setScale(0.8f, 1.2f);
             break;
-
         case statue:
             sprite.setScale(1.7f, 3.0f);
             break;
-
-            /*case objectwillbeadded:
-                sprite.setScale(2.0f, 1.0f);
-                break; */
-
         case wall:
             sprite.setScale(0.8f, 1.5f);
             break;
@@ -1032,16 +1034,6 @@ struct Obstacle
             Width = 0.7f;
             Height = 0.75f;
             break;
-
-            /*case objectwillbeadded:
-                Width = 0.9f;
-                Height = 0.5f;
-                break;*/
-
-                /*case tree:
-                    Width = 0.5f;
-                    Height = 0.9f;
-                    break;*/
         }
 
         float colliderWidth = texture.getSize().x * sprite.getScale().x * Width;
@@ -1071,9 +1063,28 @@ const float MinObstacleRadius = 200.0f; // Minimum distance from player
 const float MaxObstacleRadius = 1200.0f;
 const float DespawnRadius = 1800.0f;   // Distance to remove obstacles
 const float ObstacleTimer = 25.0f;  // Time in seconds before respawning when off camera
-
-
 Texture obstacleTextures[5];
+
+struct inventoryitems
+{
+    int Level;
+    inventoryitem Type;
+    Texture texture;
+    Sprite sprite;
+    bool isActive = false;
+    inventoryitems(Texture texture, Sprite sprite,inventoryitem type) {
+        sprite.setTexture(texture);
+        sprite.setOrigin(texture.getSize().x / 2.0f, texture.getSize().y / 2.0f);
+        Type = type;
+        Level = 1;
+        isActive = true;
+    }
+    inventoryitems() {
+        Level = 0;
+        isActive == false;
+    }
+}inventory[2][4];
+
 void LoadObstacleTextures() {
     //obstacleTextures[tree].loadFromFile("Assets\\tree.png");
     obstacleTextures[rock].loadFromFile("Assets\\Rock1.png");
@@ -1555,6 +1566,7 @@ void NameInputInit()
 void stopSounds() {
     swordsound.stop();
 }
+
 void shooting()
 {
     if (shanoa.canThrowSwords) {
