@@ -66,7 +66,8 @@ enum monstertype
     Beast,
     Werewolf,
     Zombie,
-    Bat
+    Bat,
+    Boss
 };
 
 float deltaTime;
@@ -83,7 +84,7 @@ Texture MainMenuButtons_Texture, MainMenuBackground_Texture, Map_Texture, health
 , volume_up_Texture, volume_down_Texture;
 Texture equationSpriteSheet;
 Texture swordspritesheet;
-Texture beasttexture, zombieTexture, batTexture, werewolfTexture;
+Texture beasttexture, zombieTexture, batTexture, werewolfTexture, aresWalkTexture,aresAttackTexture;
 Texture BlueXP, GreenXP, RedXP;
 Texture levelup;
 Texture lock;
@@ -92,6 +93,11 @@ Texture HMbuttonTexture;
 
 Sprite levelupsprite;
 bool showLevelUp = false;
+bool BossthemeIsPlayed = 0;
+bool preBossThemeIsPlayed = 0;
+bool bossHasSpawned = 0;
+bool isday = true;
+
 float levelUpDisplayTimer = 0.0f;
 Sprite MainMenuButtons, MainMenuBackground, Map, healthbar, creditsbutton, creditback, volume_up, volume_down, settingsBackground;
 Sprite MathRevivalLock;
@@ -108,6 +114,7 @@ RectangleShape equationAnsCellBox;
 RectangleShape gameOverOverlay, LeaderboardOverlay; // red color in gameover background
 RectangleShape xpBarHolder;
 RectangleShape xpBar;
+RectangleShape DN_overlay;
 float xpBarWidth;
 FloatRect StartButtonBounds, SettingsButtonBounds, LeaderboardButtonBounds, ExitButtonBounds, creditsButtonBounds, volumeUpBounds,
 volumeDownBounds;
@@ -124,14 +131,15 @@ const int MAX_OBSTACLES = 25;
 
 
 
-Sound MainMenuMusic, GameOverSound, GameloopMusic, TheLegendaryTutor;
-SoundBuffer MainMenuMusic_source, GameOverSound_source, GameloopMusic_source, TheLegendaryTutor_voice;
+Sound MainMenuMusic, GameOverSound, GameloopMusic, TheLegendaryTutor,preBossSpawnSound,BossTheme;
+SoundBuffer MainMenuMusic_source, GameOverSound_source, GameloopMusic_source, TheLegendaryTutor_voice, preBossSpawnSoundBuffer,BossThemeBuffer;
 bool gameOverSoundPlayed = false;
 
 sf::VideoMode desktopMode = sf::VideoMode::getDesktopMode();
 RenderWindow window(desktopMode, "Vampire Survivors :The path to the legendary formula", sf::Style::Fullscreen);
 //fullscreen fix
 float healthRatio;
+float freezeTimeForBossSpawning = 0.f;
 float shootingtime = 0.f;
 float shootingrate = 2;
 float totalGameTime = 0.f;
@@ -146,17 +154,20 @@ const float POST_TRANSITION_DELAY = 0.6f; // Define the delay duration in second
 float soundcontroller = 100;
 float beastspawntimer = 0;
 float batspawntimer = 0;
+float aresspawntimer = 0;
 float werewolfspawntimer = 0;
 float zombiespawntimer = 0;
 float enemyAttackDelay = 1.0f;
 float HMfactor = 1;
+float DN_timer = 0.0f;
+float DN_duration = 30.0f;
 RectangleShape volumebar[10];
 multimap<float, string> leaderboardEntriesMap; // Key: -score (float), Value: playerName (string)
 
 int BlueXPcValue = 10, GreenXPcValue = 30, RedXPcValue = 50;
 bool HMactive = false;
 bool checklevel = false;
-
+bool freezeTimeIsOn = false;
 Vector2f unitVector(Vector2f vector) {
     float magnitude = sqrt(vector.x * vector.x + vector.y * vector.y);
     if (magnitude == 0) {
@@ -346,7 +357,7 @@ struct ENEMY
     Texture enemyspreadsheet;
     animationstate AnimationState;
     float speed, animationdelaytimer;
-    float healthBarWidth;
+    float healthBarWidth , healthBarHeight;
     int columnindex = 0, rowindex;
     int health, damage, maxHealth;
     bool isAttacking = false, isDead = false, hasDroppedXP = false;
@@ -361,6 +372,7 @@ struct ENEMY
 bool SpeedBoostEffectActive = false;
 float SpeedBoostEffectTimer = 0.0f;
 float EffectDuration = 10.0f;
+float freezeDuration = 4.1f;
 Texture PowerupsTexture[5];
 
 struct XPc
@@ -548,6 +560,7 @@ struct BEAST :public ENEMY
         healthBarOfEnemy.setFillColor(Color::Green);
         healthBarOfEnemy.setSize(Vector2f(60, 10));
         healthBarWidth = 60;
+        healthBarHeight = 10;
         healthBarOfEnemy.setOrigin(healthBarHolder.getLocalBounds().width / 2, healthBarHolder.getLocalBounds().height / 2);
     }
     void update() override {
@@ -555,7 +568,11 @@ struct BEAST :public ENEMY
         attackBox.setPosition(shape.getPosition().x, shape.getPosition().y - 40);
         healthBarHolder.setPosition(shape.getPosition().x, shape.getPosition().y - 70);
         healthBarOfEnemy.setPosition(shape.getPosition().x, shape.getPosition().y - 70);
-        AttackDetection();
+        if (!freezeTimeIsOn)
+        {
+            AttackDetection();
+            playertargeting();
+        }
         animationdelaytimer++;
         if (animationdelaytimer >= 2) {
             columnindex++;
@@ -564,6 +581,7 @@ struct BEAST :public ENEMY
         if (AnimationState == walking) {
             rowindex = 1;
             columnindex = columnindex % 4;
+            if (!freezeTimeIsOn)
             shape.move(velocity * deltaTime);
         }
         else if (AnimationState == attacking) {
@@ -571,7 +589,6 @@ struct BEAST :public ENEMY
             columnindex = columnindex % 8;
         }
         shape.setTextureRect(IntRect(128 * columnindex + 10, 64 * rowindex, 128, 64));
-        playertargeting();
         if (shape.getPosition().x > shanoa.sprite.getPosition().x) {
             shape.setScale(-1.8, 2.5);
         }
@@ -614,8 +631,7 @@ struct BEAST :public ENEMY
             }
         }
     }
-}beast;
-
+};
 struct ZOMBIE :public ENEMY
 {
     float zombieAttackTime = 0;
@@ -662,6 +678,7 @@ struct ZOMBIE :public ENEMY
         healthBarOfEnemy.setFillColor(Color::Green);
         healthBarOfEnemy.setSize(Vector2f(40, 10));
         healthBarWidth = 40;
+        healthBarHeight = 10;
         healthBarOfEnemy.setOrigin(healthBarHolder.getLocalBounds().width / 2, healthBarHolder.getLocalBounds().height / 2);
     }
     void update() override {
@@ -669,7 +686,11 @@ struct ZOMBIE :public ENEMY
         attackBox.setPosition(shape.getPosition().x, shape.getPosition().y - 40);
         healthBarHolder.setPosition(shape.getPosition().x, shape.getPosition().y - 50);
         healthBarOfEnemy.setPosition(shape.getPosition().x, shape.getPosition().y - 50);
-        AttackDetection();
+        if (!freezeTimeIsOn)
+        {
+            AttackDetection();
+            playertargeting();
+        }
         animationdelaytimer++;
         if (animationdelaytimer >= 2) {
             columnindex++;
@@ -678,6 +699,7 @@ struct ZOMBIE :public ENEMY
         if (AnimationState == walking) {
             rowindex = 2;
             columnindex = columnindex % 8;
+            if (!freezeTimeIsOn)
             shape.move(velocity * deltaTime);
         }
         else if (AnimationState == attacking) {
@@ -685,7 +707,7 @@ struct ZOMBIE :public ENEMY
             columnindex = columnindex % 7;
         }
         shape.setTextureRect(IntRect(32 * columnindex, 32 * rowindex, 32, 32));
-        playertargeting();
+       
         if (shape.getPosition().x > shanoa.sprite.getPosition().x) {
             shape.setScale(-2.52, 3.5);
         }
@@ -728,7 +750,7 @@ struct ZOMBIE :public ENEMY
             }
         }
     }
-}zombie;
+};
 
 struct WEREWOLF :public ENEMY
 {
@@ -775,10 +797,15 @@ struct WEREWOLF :public ENEMY
         healthBarOfEnemy.setFillColor(Color::Green);
         healthBarOfEnemy.setSize(Vector2f(50, 10));
         healthBarWidth = 50;
+        healthBarHeight = 10;
         healthBarOfEnemy.setOrigin(healthBarHolder.getLocalBounds().width / 2, healthBarHolder.getLocalBounds().height / 2);
     }
     void update() override {
-        AttackDetection();
+        if (!freezeTimeIsOn)
+        {
+            AttackDetection();
+            playertargeting();
+        }
         collider.setPosition(shape.getPosition());
         attackBox.setPosition(shape.getPosition().x, shape.getPosition().y - 40);
         healthBarHolder.setPosition(shape.getPosition().x, shape.getPosition().y - 40);
@@ -791,6 +818,7 @@ struct WEREWOLF :public ENEMY
         if (AnimationState == walking) {
             rowindex = 1;
             columnindex = columnindex % 8;
+            if (!freezeTimeIsOn)
             shape.move(velocity * deltaTime);
         }
         else if (AnimationState == attacking) {
@@ -804,7 +832,6 @@ struct WEREWOLF :public ENEMY
         else {
             shape.setScale(1, 1);
         }
-        playertargeting();
         if (health <= 0) {
             isDead = true;
             health = 0;
@@ -841,7 +868,7 @@ struct WEREWOLF :public ENEMY
             }
         }
     }
-}werewolf;
+};
 
 struct BAT :public ENEMY
 {
@@ -889,6 +916,7 @@ struct BAT :public ENEMY
         healthBarOfEnemy.setFillColor(Color::Green);
         healthBarOfEnemy.setSize(Vector2f(30, 10));
         healthBarWidth = 30;
+        healthBarHeight = 10;
         healthBarOfEnemy.setOrigin(healthBarHolder.getLocalBounds().width / 2, healthBarHolder.getLocalBounds().height / 2);
     }
     void update() override {
@@ -896,7 +924,11 @@ struct BAT :public ENEMY
         attackBox.setPosition(shape.getPosition().x, shape.getPosition().y - 40);
         healthBarHolder.setPosition(shape.getPosition().x + 5, shape.getPosition().y - 45);
         healthBarOfEnemy.setPosition(shape.getPosition().x + 5, shape.getPosition().y - 45);
-        AttackDetection();
+        if (!freezeTimeIsOn)
+        {
+            AttackDetection();
+            playertargeting();
+        }
         animationdelaytimer++;
         if (animationdelaytimer >= 2) {
             columnindex++;
@@ -905,6 +937,7 @@ struct BAT :public ENEMY
         if (AnimationState == walking) {
             rowindex = 0;
             columnindex = columnindex % 3;
+            if (!freezeTimeIsOn)
             shape.move(velocity * deltaTime);
         }
         else if (AnimationState == attacking) {
@@ -912,7 +945,6 @@ struct BAT :public ENEMY
             columnindex = columnindex % 10;
         }
         shape.setTextureRect(IntRect(48.2 * columnindex, 35 * rowindex, 48.2, 35));
-        playertargeting();
         if (shape.getPosition().x > shanoa.sprite.getPosition().x) {
             shape.setScale(3, 3);
         }
@@ -950,10 +982,192 @@ struct BAT :public ENEMY
             }
         }
     }
-}bat;
+};
+struct Ares :public ENEMY
+{
+    float aresAttacktime = 0;
+    void playertargeting()
+    {
+        velocity = shanoa.sprite.getPosition() - shape.getPosition();
+        velocity = unitVector(velocity) * speed;
+    }
+    void AttackDetection() {
+        aresAttacktime += deltaTime;
+        if (shanoa.collider.getGlobalBounds().intersects(attackBox.getGlobalBounds()))
+        {
+            AnimationState = attacking;
+            if (aresAttacktime >= enemyAttackDelay)
+            {
+                aresAttacktime = 0;
+                shanoa.health -= damage;
+
+            }
+        }
+        else
+            AnimationState = walking;
+    }
+    void start() override {
+        MonsterType = Boss;
+        shape.setScale(4.5, 5);
+        health = 3000 * HMfactor;
+        maxHealth = 3000 * HMfactor;
+        speed = 100;
+        damage = 55 * HMfactor;
+        attackBox.setSize(Vector2f(150, 1));
+        shape.setPosition(200, -200);
+        shape.setOrigin(83/2,(float(263) / float(3))/2);
+        AnimationState = walking;
+        collider.setFillColor(Color::Yellow);
+        collider.setSize(Vector2f(100, 200));
+        collider.setOrigin(collider.getLocalBounds().width / 2 , collider.getLocalBounds().height / 2 );
+        attackBox.setFillColor(Color::Red);
+        attackBox.setOrigin(attackBox.getLocalBounds().width / 2, attackBox.getLocalBounds().height / 2);
+        healthBarHolder.setFillColor(Color::Black);
+        healthBarHolder.setSize(Vector2f(100,30));
+        healthBarHolder.setOrigin(healthBarHolder.getLocalBounds().width / 2, healthBarHolder.getLocalBounds().height / 2);
+        healthBarOfEnemy.setFillColor(Color::Green);
+        healthBarOfEnemy.setSize(Vector2f(100, 30));
+        healthBarWidth = 100;
+        healthBarHeight = 30;
+        healthBarOfEnemy.setOrigin(healthBarHolder.getLocalBounds().width / 2, healthBarHolder.getLocalBounds().height / 2);
+    }
+    void update() override {
+        collider.setPosition(shape.getPosition().x+20 , shape.getPosition().y+50);
+        attackBox.setPosition(shape.getPosition().x, shape.getPosition().y - 10);
+        healthBarHolder.setPosition(shape.getPosition().x , shape.getPosition().y - 90);
+        healthBarOfEnemy.setPosition(healthBarHolder.getPosition());
+        if(!freezeTimeIsOn)
+        AttackDetection();
+        animationdelaytimer++;
+        if (animationdelaytimer >= 4) {
+            columnindex++;
+            animationdelaytimer = 0;
+        }
+        if (AnimationState == walking) {
+            shape.setTexture(aresWalkTexture);
+            rowindex = 0;
+            columnindex = columnindex % 4;
+            shape.setOrigin(50/2, 96/2);
+            shape.setTextureRect(IntRect(47 * columnindex, 0, 47, 96));
+            if (columnindex == 3)
+            {
+                shape.setOrigin(50 / 2-5, 96 / 2);
+                shape.setTextureRect(IntRect(47 * columnindex, 0, 47, 96));
+            }
+            shape.move(velocity * deltaTime);
+        }
+        else if (AnimationState == attacking) {
+            shape.setTexture(aresAttackTexture);
+            rowindex = 2;
+            columnindex = columnindex % 9;
 
 
+            if (columnindex == 0)
+            {
+                shape.setOrigin((83 / 2) + 22, (float(263) / float(3)) / 2);
+                shape.setTextureRect(IntRect(83 * columnindex - 4, (double(263) / double(3)) * rowindex - 5, 83, (double(263) / double(3)) + 5));
+            }
+            else if (columnindex == 1)
+            {
+                shape.setOrigin((83 / 2) + 10, (float(263) / float(3)) / 2);
+                shape.setTextureRect(IntRect(83 * columnindex - 4, (double(263) / double(3)) * rowindex - 5, 83, (double(263) / double(3)) + 5));
+            }
+            else if (columnindex == 2)
+            {
+                shape.setOrigin((83 / 2) + 17, (float(263) / float(3)) / 2);
+                shape.setTextureRect(IntRect(83 * columnindex - 17, (double(263) / double(3)) * rowindex - 5, 83, (double(263) / double(3)) + 5));
+            }
+            else if (columnindex == 3)
+            {
+                shape.setOrigin((83 / 2)-10 , (float(263) / float(3)) / 2);
+                shape.setTextureRect(IntRect(83 * columnindex - 17, (double(263) / double(3)) * rowindex - 5, 83, (double(263) / double(3)) + 5));
+            }
+            else if (columnindex == 4)
+            {
+                shape.setOrigin((83 / 2)-17 , (float(263) / float(3)) / 2);
+                shape.setTextureRect(IntRect(83 * columnindex - 9, (double(263) / double(3)) * rowindex - 5, 83, (double(263) / double(3)) + 5));
+            }
+            else if (columnindex == 5)
+            {
+                shape.setOrigin((83 / 2) - 19, (float(263) / float(3)) / 2);
+                shape.setTextureRect(IntRect(83 * columnindex - 4, (double(263) / double(3)) * rowindex - 5, 83, (double(263) / double(3)) + 5));
+            }
+            else if (columnindex == 6)
+            {
+                shape.setOrigin((83 / 2)-10 , (float(263) / float(3)) / 2);
+                shape.setTextureRect(IntRect(83 * columnindex - 10, (double(263) / double(3)) * rowindex - 5, 83, (double(263) / double(3)) + 5));
+            }
+            else if (columnindex == 7)
+            {
+                shape.setOrigin((83 / 2) +5, (float(263) / float(3)) / 2);
+                shape.setTextureRect(IntRect(83 * columnindex - 4, (double(263) / double(3)) * rowindex - 5, 83, (double(263) / double(3)) + 5));
+            }
+            else if (columnindex == 8)
+            {
+                shape.setOrigin((83 / 2)+20 , (float(263) / float(3)) / 2);
+                shape.setTextureRect(IntRect(83 * columnindex - 4, (double(263) / double(3)) * rowindex - 5, 83, (double(263) / double(3)) + 5));
+            }
+            else if (columnindex == 9)
+            {
+                shape.setOrigin((83 / 2) + 20, (float(263) / float(3)) / 2);
+                shape.setTextureRect(IntRect(83 * columnindex - 4, (double(263) / double(3)) * rowindex - 5, 83, (double(263) / double(3)) + 5));
+            }
+        }
+        playertargeting();
+        if (shape.getPosition().x > shanoa.sprite.getPosition().x) {
+            shape.setScale(-4.5, 5);
+            collider.setPosition(shape.getPosition().x-10 , shape.getPosition().y + 50);
+            healthBarHolder.setPosition(shape.getPosition().x-10, shape.getPosition().y - 90);
+            attackBox.setPosition(shape.getPosition().x+15, shape.getPosition().y +50);
+            healthBarOfEnemy.setPosition(healthBarHolder.getPosition());
+           
+        }
+        else {
+            shape.setScale(4.5, 5);
+            collider.setPosition(shape.getPosition().x + 20, shape.getPosition().y + 50);
+            healthBarHolder.setPosition(shape.getPosition().x +20, shape.getPosition().y - 90);
+            attackBox.setPosition(shape.getPosition().x, shape.getPosition().y+50 );
+            healthBarOfEnemy.setPosition(healthBarHolder.getPosition());
+        }
+        if (health <= 0) {
+            isDead = true;
+            health = 0;
+            shape.setScale(0, 0);
+            bossHasSpawned = 0;
+            aresspawntimer = 0;
+            BossTheme.stop();
+            BossthemeIsPlayed = 0;
+            GameloopMusic.play();
+            shanoa.level += 1;
+            showLevelUp = true;
+        }
+        if (isDead && hasDroppedXP == false)
+        {
+            Vector2f position = shape.getPosition();
 
+            // Randomly decide: 5% chance for Red crystal
+            int randValue = (rand() + 1) % 100;
+            if (randValue == 1)
+                Crystals.push_back(XPc(position.x, position.y, RedXP, RedXPcValue, xpc));
+            else if (randValue > 1 && randValue < 10)
+                Crystals.push_back(XPc(position.x, position.y, GreenXP, GreenXPcValue, xpc));
+            else
+                Crystals.push_back(XPc(position.x, position.y, BlueXP, BlueXPcValue, xpc));
+
+            hasDroppedXP = true;
+        }
+        if (isDead) {
+            int randValue = (rand() + 1) % 100;
+            Vector2f position = shape.getPosition();
+            if (randValue <= 50) {
+                Crystals.push_back(XPc(position.x, position.y, PowerupsTexture[healthregain], 0, healthregain));
+            }
+            else if (randValue >=50) {
+                Crystals.push_back(XPc(position.x, position.y, PowerupsTexture[speedboost], 0, speedboost));
+            }
+        }
+    }
+};
 struct sword {
     Sprite shape;
     Sound damageSFX;
@@ -1322,16 +1536,25 @@ int main()
                 if (gamestate == gameloop)
                 {
                     gamestate = paused;
+                    BossTheme.pause();
+                    preBossSpawnSound.stop();
+                    preBossThemeIsPlayed = 0;
                     // Pause game loop music if it's playing
                     GameloopMusic.pause();
-                    stopSounds();
                     postTransitionCooldown = POST_TRANSITION_DELAY; // Set cooldown
                 }
                 else if (gamestate == paused)
                 {
                     gamestate = gameloop;
                     // Resume game loop music
-                    GameloopMusic.play();
+                    if (!BossthemeIsPlayed)
+                        GameloopMusic.play();
+                    else
+                        BossTheme.play();
+                    
+                    cout << BossthemeIsPlayed;
+                    cout << " " << "done";
+                    
                     postTransitionCooldown = POST_TRANSITION_DELAY; // Set cooldown
                     selectedMenuButtonIndex = 0; // Reset pause menu selection
                 }
@@ -1365,7 +1588,11 @@ int main()
                                 postTransitionCooldown = POST_TRANSITION_DELAY;  // Set cooldown
                                 TheLegendaryTutor.stop();
                                 GameOverSound.stop();
-                                GameloopMusic.play();
+                                if (!BossthemeIsPlayed)
+                                    GameloopMusic.play();
+                                else
+                                    BossTheme.play();
+                                shanoa.sprite.setPosition(0, 0);
                                 gameOverSoundPlayed = false;
                                 shanoa.RevivalScrollAcquired = 0;
                                 MathRevivalON = false;
@@ -1380,9 +1607,11 @@ int main()
                             {
                                 // Math Revival failed
                                 gamestate = gameover; // Go to main menu (or gameover options again?)
+                                stopSounds();
                                 postTransitionCooldown = POST_TRANSITION_DELAY; // Set cooldown
                                 TheLegendaryTutor.stop();
                                 MathRevivalON = false; // Turn off Math Revival puzzle
+                                bossHasSpawned = 0;
                                 shanoa.RevivalScrollAcquired = 0;
                                 userInput = ""; // Clear input
                                 // Game over screen is skipped, so score won't be saved from here.
@@ -1556,6 +1785,9 @@ void NameInputInit()
 
 void stopSounds() {
     swordsound.stop();
+    BossTheme.stop();
+    preBossThemeIsPlayed = 0;
+    preBossSpawnSound.stop();
 }
 void shooting()
 {
@@ -1683,7 +1915,6 @@ void MainmenuInit() {
     swordspritesheet.loadFromFile("Assets\\SWORDS.png");
     healthbar_Texture.loadFromFile("Assets\\shanoahealthbar.png");
 }
-
 void xpBarInit() {
     xpBarHolder.setSize(Vector2f(180, 30));
     xpBarHolder.setFillColor(Color::Black);
@@ -1695,20 +1926,17 @@ void xpBarInit() {
     xpBarText.setString("LVL.");
     xpBarText.setOrigin(xpBarText.getLocalBounds().width / 2, xpBarText.getLocalBounds().height / 2);
 }
-
-void xpBarUpdate() {
+void xpBarDraw() {
     string currentLevel = to_string(shanoa.level);
-    xpBarHolder.setPosition(shanoa.sprite.getPosition().x - 260, shanoa.sprite.getPosition().y + 400);
+    xpBarHolder.setPosition(view.getCenter().x - 260, view.getCenter().y + 400);
     xpBar.setPosition(xpBarHolder.getPosition());
     xpBarText.setFont(defgamefont);
     xpBarText.setCharacterSize(15);
     xpBarText.setFillColor(Color::White);
-    xpBarText.setPosition(xpBarHolder.getPosition().x - 13, xpBarHolder.getPosition().y - 10);
+    xpBarText.setPosition(xpBarHolder.getPosition().x-14 , xpBarHolder.getPosition().y -8);
     xpBarText.setString("LVl." + currentLevel);
     xpBar.setSize(Vector2f(xpBarWidth * (float(shanoa.xp) / float(shanoa.MaxXp)), 20));
-
 }
-
 void xpFullReset() {
     shanoa.xp = 0;
     shanoa.level = 1;
@@ -1788,7 +2016,7 @@ void inRange(float& damage, shared_ptr< ENEMY>& Enemy) {
     {
         Enemy->health -= damage;
         float decreaseRatio = float(Enemy->health) / float(Enemy->maxHealth);
-        Enemy->healthBarOfEnemy.setSize(Vector2f(Enemy->healthBarWidth * (decreaseRatio), 10));
+        Enemy->healthBarOfEnemy.setSize(Vector2f(Enemy->healthBarWidth * (decreaseRatio), Enemy->healthBarHeight));
     }
     else
         Enemy->health = 0;
@@ -1813,6 +2041,7 @@ void MapInit() {
 void EnemySpawn() {
     Vector2f randomspawnpoint = Vector2f(shanoa.sprite.getPosition().x + (rand() % 2001 - 1000), shanoa.sprite.getPosition().y + (rand() % 2001 - 1000));
     int currentmonstercount = 10;
+        aresspawntimer += deltaTime;
     if ((int)totalGameTime % 5 == 0) {
         currentmonstercount++;
     }
@@ -1821,7 +2050,7 @@ void EnemySpawn() {
         batspawntimer += deltaTime;
         werewolfspawntimer += deltaTime;
         zombiespawntimer += deltaTime;
-        if (beastspawntimer >= 4 && totalGameTime > 120) {
+       if (beastspawntimer >= 4 && totalGameTime > 120 && !bossHasSpawned) {
 
             auto newBeast = make_unique<BEAST>();
 
@@ -1833,7 +2062,7 @@ void EnemySpawn() {
 
             beastspawntimer = 0;
         }
-        if (zombiespawntimer >= 2 && totalGameTime > 30) {
+        if (zombiespawntimer >= 2 && totalGameTime > 30 && !bossHasSpawned) {
 
             auto newZombie = make_unique<ZOMBIE>();
 
@@ -1845,7 +2074,7 @@ void EnemySpawn() {
 
             zombiespawntimer = 0;
         }
-        if (werewolfspawntimer >= 3 && totalGameTime > 60) {
+        if (werewolfspawntimer >= 3 && totalGameTime > 60 && !bossHasSpawned) {
 
             auto newWerewolf = make_unique<WEREWOLF>();
 
@@ -1857,7 +2086,7 @@ void EnemySpawn() {
 
             werewolfspawntimer = 0;
         }
-        if (batspawntimer >= 1 && totalGameTime < 75) {
+        if (batspawntimer >= 1 && totalGameTime < 75 && !bossHasSpawned) {
 
             auto newBat = make_unique<BAT>();
 
@@ -1869,11 +2098,23 @@ void EnemySpawn() {
 
             batspawntimer = 0;
         }
+        if (aresspawntimer >= 110 && totalGameTime > 120 && !bossHasSpawned) {
+          
+                auto newBoss = make_unique<Ares>();
+                newBoss->start();
+                newBoss->shape.setPosition(randomspawnpoint);
+                enemies.push_back(move(newBoss));
+                bossHasSpawned = 1;
+                freezeTimeIsOn = 1;
+                freezeTimeForBossSpawning = 0;
+        }
     }
 }
-
 void EnemyHandler() {
     for (int i = 0;i < enemies.size();i++) {
+        if (enemies[i]->MonsterType == Boss && freezeTimeIsOn) {
+            view.setCenter(enemies[i]->shape.getPosition());
+        }
         if (enemies[i]->isDead) {
             enemies.erase(enemies.begin() + i);
             continue;
@@ -1883,7 +2124,6 @@ void EnemyHandler() {
         }
     }
 }
-
 void healthbarhandling() {
     healthRatio = shanoa.health / shanoa.Maxhp;
     if (healthRatio > 0.9) {
@@ -1916,7 +2156,6 @@ void healthbarhandling() {
     else if (shanoa.health <= 0) {
         shanoa.isDead = true;
     }
-    healthbar.setPosition(shanoa.sprite.getPosition().x - 500, shanoa.sprite.getPosition().y + 285);
 }
 
 void GameOverInit()
@@ -2004,7 +2243,8 @@ void MainMenuButtonCheck()
             shanoa.isDead = false;
             totalGameTime = 0.f;
             swords.clear();
-
+            isday = true;
+            DN_timer = 0.0f;
         }
     }
     if (LeaderboardButtonBounds.contains(mouseWorldpos)) {
@@ -2106,14 +2346,16 @@ void MainMenuInput()
                 shanoa.sprite.setPosition(0, 0);
                 MainMenuMusic.stop();
                 GameloopMusic.play();
-
                 //RESETTING after death for next game
+                bossHasSpawned = 0;
+                BossthemeIsPlayed = 0;
+                enemies.clear();
                 shanoa.health = 200;
                 shanoa.isDead = false;
                 totalGameTime = 0.f;
                 swords.clear();
-
-
+                isday = true;
+                DN_timer = 0.0f;
             }
             else if (selectedMenuButtonIndex == 1) { // settings
                 gamestate = settings;
@@ -2292,7 +2534,7 @@ void swordFullCollisionAndDamage() {
             if (swords[i].collider.getGlobalBounds().intersects(enemies[j]->collider.getGlobalBounds())) {
                 enemies[j]->health -= swords[i].damage;
                 float decreaseRatio = float(enemies[j]->health) / float(enemies[j]->maxHealth);
-                enemies[j]->healthBarOfEnemy.setSize(Vector2f(enemies[j]->healthBarWidth * (decreaseRatio), 10));
+                enemies[j]->healthBarOfEnemy.setSize(Vector2f(enemies[j]->healthBarWidth * (decreaseRatio), enemies[j]->healthBarHeight));
                 swords.erase(swords.begin() + i);
                 SwordIsRemoved = true;
                 break;
@@ -2363,6 +2605,30 @@ void SpeedBoostFunction() {
 
     }
 }
+void freezeTimeFunction() {
+    if (freezeTimeIsOn)
+    {
+        if (!preBossThemeIsPlayed)
+        {
+            GameloopMusic.stop();
+            preBossSpawnSound.setVolume(100);
+            preBossSpawnSound.play();
+            preBossThemeIsPlayed = 1;
+        }
+        if (freezeTimeForBossSpawning >= freezeDuration) {
+            freezeTimeIsOn = 0;
+            preBossThemeIsPlayed = 0;
+            preBossSpawnSound.stop();
+            if (!BossthemeIsPlayed)
+            {
+                BossthemeIsPlayed = 1;
+                BossTheme.setLoop(true);
+                BossTheme.play();
+            }
+
+        }
+    }
+}
 
 void Start()
 {
@@ -2381,6 +2647,8 @@ void Start()
     beasttexture.loadFromFile("Assets\\beastTexture.png");
     zombieTexture.loadFromFile("Assets\\Zombie.png");
     batTexture.loadFromFile("Assets\\Bat.png");
+    aresAttackTexture.loadFromFile("Assets\\Boss.png");
+    aresWalkTexture.loadFromFile("Assets\\BossWalk.png");
     werewolfTexture.loadFromFile("Assets\\werewolfwhite.png");
     swordspritesheet.loadFromFile("Assets\\SWORDS.png");
     shanoadamaged_source.loadFromFile("Assets\\shanoatakingdamage.ogg");
@@ -2389,6 +2657,10 @@ void Start()
     TheLegendaryTutor.setBuffer(TheLegendaryTutor_voice);
     shanoadamaged.setVolume(50);
     swordsound_source.loadFromFile("Assets\\swordsound.ogg");
+    preBossSpawnSoundBuffer.loadFromFile("Assets\\prespawnsound.ogg");
+    preBossSpawnSound.setBuffer(preBossSpawnSoundBuffer);
+    BossThemeBuffer.loadFromFile("Assets\\bosstheme.ogg");
+    BossTheme.setBuffer(BossThemeBuffer);
     swordsound.setBuffer(swordsound_source);
     swordsound.setVolume(30);
     levelup.loadFromFile("Assets\\level_up.png");
@@ -2397,6 +2669,9 @@ void Start()
     MathRevivalLock.setTexture(lock);
     MathRevivalLock.setOrigin(MathRevivalLock.getLocalBounds().width / 2, MathRevivalLock.getLocalBounds().height / 2);
     MathRevivalLock.setScale(0.1, 0.1);
+    DN_overlay.setSize(view.getSize());
+    DN_overlay.setOrigin(view.getSize().x / 2.f, view.getSize().y / 2.f);
+    DN_timer = 0.0f;
     MapInit();
     MainmenuInit();
     xpBarInit();
@@ -2471,6 +2746,7 @@ void Update()
 
         window.setMouseCursorVisible(false); // get rid of the mouse
         SpeedBoostEffectTimer += deltaTime;
+        freezeTimeForBossSpawning += deltaTime;
         totalGameTime += deltaTime; // measure survival time
         UpdateObstacles(deltaTime);
         GameOverSound.stop();
@@ -2507,7 +2783,6 @@ void Update()
             }
             GameloopMusic.stop();
             gamestate = gameover;
-            enemies.clear();
             swords.clear();
             selectedMenuButtonIndex = 0;
         }
@@ -2523,7 +2798,7 @@ void Update()
         shanoa.update();
         globalCollsion();
         healthbarhandling();
-        xpBarUpdate();
+        freezeTimeFunction();
         Horrormode();
         SpeedBoostFunction();
 
@@ -2547,7 +2822,9 @@ void Update()
             }
         }
         meleeAttack();
-        view.setCenter(shanoa.sprite.getPosition());
+        if (!freezeTimeIsOn)
+            view.setCenter(shanoa.sprite.getPosition());
+      
         quoteUpdate();
     }
 
@@ -2612,7 +2889,10 @@ void Update()
                 if (selectedMenuButtonIndex == 0)
                 {
                     gamestate = gameloop;
-                    GameloopMusic.play();
+                    if (!BossthemeIsPlayed)
+                        GameloopMusic.play();
+                    else
+                        BossTheme.play();
                     postTransitionCooldown = POST_TRANSITION_DELAY;
                 }
                 else if (selectedMenuButtonIndex == 1)
@@ -2620,9 +2900,8 @@ void Update()
                     gamestate = mainmenu;
                     MainMenuMusic.play();
                     GameloopMusic.stop();
+                    BossthemeIsPlayed = 0;
                     postTransitionCooldown = POST_TRANSITION_DELAY;
-
-
                     enemies.clear();
                     swords.clear();
                     Crystals.clear();
@@ -2785,9 +3064,12 @@ void Update()
                         shanoa.health = 200; // Or your starting health
                         shanoa.isDead = false;
                         shanoa.RevivalScrollAcquired = 0;
+                        bossHasSpawned = 0;
                         totalGameTime = 0.f;
                         swords.clear();
                         xpFullReset();
+                        isday = true;
+                        DN_timer = 0.0f;
                     }
                     else if (selectedGameOverOptionIndex == 1 && shanoa.RevivalScrollAcquired) // Math Revival selected
                     {
@@ -2799,6 +3081,10 @@ void Update()
                     {
                         GameOverSound.stop();
                         GameOverSound.play();
+                        enemies.clear();
+                        bossHasSpawned = 0;
+                        BossthemeIsPlayed = 0;
+                        swords.clear();
                         xpFullReset(); // To Reset XP And Levels
                         gameOverSoundPlayed = false;
                         menuInputDelay = 0.f; // Reset delay BEFORE state change
@@ -2806,6 +3092,8 @@ void Update()
                         gamestate = nameinput; // Transition to name input state
                         playerName = ""; // Clear name for new input
                         // totalGameTime (score) is already stored globally
+                        isday = true;
+                        DN_timer = 0.0f;
                     }
                     // menuInputDelay is reset above for each case
                 }
@@ -2901,7 +3189,7 @@ void Draw()
         window.draw(shanoa.sprite);
         // Draw enemies
         for (size_t i = 0; i < enemies.size(); ++i) {
-            //window.draw(enemies[i]->collider); // Usually don't draw colliders in final game
+           /* window.draw(enemies[i]->collider);*/ // Usually don't draw colliders in final game
             window.draw(enemies[i]->shape);
         }
         // Draw crystals
@@ -2973,7 +3261,8 @@ void Draw()
 
     if (gamestate == gameloop)
     {
-
+        healthbar.setPosition(view.getCenter().x - 500, view.getCenter().y + 285);
+        xpBarDraw();
         window.draw(Map);
         //window.draw(shanoa.collider);
         for (int i = 0; i < swords.size(); i++)
@@ -2990,7 +3279,6 @@ void Draw()
             }
         }
         for (int i = 0;i < enemies.size();i++) {
-            /* window.draw(enemies[i]->collider);*/
             window.draw(enemies[i]->healthBarHolder);
             window.draw(enemies[i]->healthBarOfEnemy);
             window.draw(enemies[i]->shape);
@@ -3002,19 +3290,35 @@ void Draw()
                 //  window.draw(obstacles[i].collider);
             }
         }
+
+        //For Day/Night Cycle
+        if (!isday) {
+            if (HMactive) {
+                DN_overlay.setFillColor(Color(100, 0, 0, 50));
+            }
+            else {
+                DN_overlay.setFillColor(Color(0, 0, 0, 60));
+            }
+            DN_overlay.setPosition(view.getCenter());
+            window.draw(DN_overlay);
+        }
+
         if (showLevelUp) {
             levelupsprite.setOrigin(levelupsprite.getLocalBounds().width / 2.0f, levelupsprite.getLocalBounds().height / 2.0f);
-            levelupsprite.setPosition(view.getCenter().x, view.getCenter().y - 125);
+            levelupsprite.setPosition(shanoa.sprite.getPosition().x, shanoa.sprite.getPosition().y - 125);
             window.draw(levelupsprite);
         }
 
 
         ScoreText.setPosition(view.getCenter().x - 490, view.getCenter().y - 480);
 
+        // Day/Night Cycle
 
-
-
-
+        DN_timer += deltaTime;
+        if (DN_timer >= DN_duration) {
+            isday = !isday;
+            DN_timer = 0.0f;
+        }
         window.draw(ScoreText);
         window.draw(xpBarHolder);
         window.draw(xpBar);
