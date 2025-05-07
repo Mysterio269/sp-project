@@ -172,7 +172,7 @@ multimap<float, string> leaderboardEntriesMap; // Key: -score (float), Value: pl
 
 string levelupnames[8], levelupdescription[8];
 
-int BlueXPcValue = 20, GreenXPcValue = 50, RedXPcValue = 70;
+int BlueXPcValue = 40, GreenXPcValue = 70, RedXPcValue = 100;
 bool HMactive = false;
 bool checklevel = false;
 
@@ -1083,7 +1083,7 @@ struct inventoryitems
     Sprite sprite;
     bool isActive = false;
 }inventory[2][4];
-Texture inventorytextures[8],levelupselectionicons[8], inventoryBackground_Texture;
+Texture inventorytextures[9],levelupselectionicons[8], inventoryBackground_Texture;
 Sprite inventoryBackground;
 void LoadObstacleTextures() {
     //obstacleTextures[tree].loadFromFile("Assets\\tree.png");
@@ -1609,24 +1609,24 @@ void levelupmenuinit() {
     levelupselectionicons[thorns].loadFromFile("Assets\\largethornsicon.png");
     levelupselectionicons[vitality].loadFromFile("Assets\\largevitalityicon.png");
 
-    levelupdescription[bloodSword] = "Blood Sword";
-    levelupdescription[thrownsword] = "Thrown Sword";
-    levelupdescription[lightningbolt] = "Lightning Bolt";
-    levelupdescription[garlic] = "Garlic";
-    levelupdescription[reinforced] = "Reinforced";
-    levelupdescription[thorns] = "Thorns";
-    levelupdescription[vitality] = "Vitality";
+    levelupnames[bloodSword] = "   Blood Sword";
+    levelupnames[thrownsword] = "Thrown Sword";
+    levelupnames[lightningbolt] = "Lightning Bolt";
+    levelupnames[garlic] = "         Garlic";
+    levelupnames[reinforced] = "     Reinforced";
+    levelupnames[thorns] = "        Thorns";
+    levelupnames[vitality] = "      Vitality";
 
-    levelupnames[bloodSword] = "Melee Attack";
-    levelupnames[thrownsword] = "Throw swords on towards the enemies";
-    levelupnames[lightningbolt] = "Summon a Lightning bolt that target\n  one or more enemies";
-    levelupnames[garlic] = "Damage all t he enemies in a certain area";
-    levelupnames[reinforced] = "Reduce the damage that the player recieves";
-    levelupnames[thorns] = "Return some of the damage sent to the enemy";
-    levelupnames[vitality] = "Increase player's max HP";
+    levelupdescription[bloodSword] = "      Melee Attack";
+    levelupdescription[thrownsword] = "  Throw swords on\n        towards the\n             enemies";
+    levelupdescription[lightningbolt] = "          Summon a \n    Lightning bolt\n that target one or\n      more enemies";
+    levelupdescription[garlic] = "    Damage all the\n       enemies in a\n       certain area";
+    levelupdescription[reinforced] = "  Reduce the damage\n     that the player\n            recieves";
+    levelupdescription[thorns] = "     Return some of\n    the damage sent\n       to the enemy";
+    levelupdescription[vitality] = "   Increase player's\n              max HP";
 }
 Sprite levelupselectionsprite[2];
-string levelupselectionname[2], LevelUpSelectionDescription[2];
+Text levelupselectionname[2], LevelUpSelectionDescription[2];
 void levelupmenuupdate() {
     if(levelupmenuon == false){
         int r1 = rand() % 7 + 1;
@@ -1634,14 +1634,19 @@ void levelupmenuupdate() {
         levelupselectionsprite[0].setTexture(levelupselectionicons[r1]);
         levelupselectionsprite[0].setTextureRect(IntRect(0, 0, levelupselectionicons[r1].getSize().x, levelupselectionicons[r1].getSize().y));
         levelupselectionsprite[0].setOrigin(levelupselectionicons[r1].getSize().x /2, levelupselectionicons[r1].getSize().y / 2);
-        levelupselectionname[0] = levelupnames[r1];
-        LevelUpSelectionDescription[0] = levelupdescription[r1];
+        levelupselectionname[0].setFont(defgamefont);
+        levelupselectionname[0].setString(levelupnames[r1]);
+        LevelUpSelectionDescription[0].setFont(defgamefont);
+        LevelUpSelectionDescription[0].setString(levelupdescription[r1]);
 
         levelupselectionsprite[1].setTexture(levelupselectionicons[r2]);
         levelupselectionsprite[1].setTextureRect(IntRect(0, 0, levelupselectionicons[r2].getSize().x, levelupselectionicons[r2].getSize().y));
         levelupselectionsprite[1].setOrigin(levelupselectionicons[r2].getSize().x /2, levelupselectionicons[r2].getSize().y / 2);
-        levelupselectionname[1] = levelupnames[r2];
-        LevelUpSelectionDescription[1] = levelupdescription[r2];
+        levelupselectionname[1].setFont(defgamefont);
+        levelupselectionname[1].setString(levelupnames[r2]);
+        LevelUpSelectionDescription[1].setFont(defgamefont);
+        LevelUpSelectionDescription[1].setString(levelupdescription[r2]);
+        
 
         levelupmenuon = true;
     }
@@ -3339,12 +3344,25 @@ void Draw()
         levelupMenuSprite[1].setPosition(view.getCenter().x + 200, view.getCenter().y);
         levelupselectionsprite[0].setPosition(view.getCenter().x - 200, view.getCenter().y - 200);
         levelupselectionsprite[1].setPosition(view.getCenter().x + 200, view.getCenter().y - 200);
+        LevelUpSelectionDescription[0].setPosition(view.getCenter().x - 300, view.getCenter().y + 100);
+        LevelUpSelectionDescription[1].setPosition(view.getCenter().x + 100, view.getCenter().y + 100);
+        LevelUpSelectionDescription[0].setOrigin(50,25);
+        LevelUpSelectionDescription[1].setOrigin(50,25);
+        levelupselectionname[0].setOrigin(50,25);
+        levelupselectionname[1].setOrigin(50,25);
+        levelupselectionname[0].setPosition(view.getCenter().x - 270 , view.getCenter().y );
+        levelupselectionname[1].setPosition(view.getCenter().x + 130 , view.getCenter().y );
         window.draw(levelupMenuSprite[0]);
         window.draw(levelupMenuSprite[1]);
         window.draw(levelupselectionsprite[0]);
         window.draw(levelupselectionsprite[1]);
+        window.draw(LevelUpSelectionDescription[0]);
+        window.draw(LevelUpSelectionDescription[1]);
+        window.draw(levelupselectionname[0]);
+        window.draw(levelupselectionname[1]);
     }
 
 
     window.display();
 }
+
