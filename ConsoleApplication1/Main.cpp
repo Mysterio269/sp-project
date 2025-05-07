@@ -531,7 +531,6 @@ struct BEAST :public ENEMY
             {
                 beastAttackTime = 0;
                 shanoa.health -= damage;
-                health -= damage/2.0f;
             }
         }
         else
@@ -649,7 +648,6 @@ struct ZOMBIE :public ENEMY
             {
                 zombieAttackTime = 0;
                 shanoa.health -= damage;
-                health -= damage / 2.0f;
             }
         }
         else
@@ -769,7 +767,6 @@ struct WEREWOLF :public ENEMY
             {
                 werewolfAttackTime = 0;
                 shanoa.health -= damage;
-                health -= damage / 2.0f;
             }
         }
         else
@@ -887,7 +884,6 @@ struct BAT :public ENEMY
             {
                 batAttacktime = 0;
                 shanoa.health -= damage;
-                health -= damage / 2.0f;
             }
         }
         else
