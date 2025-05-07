@@ -80,7 +80,10 @@ enum inventoryitem {
     vitality,
     mathrevivalscroll
 };
-
+enum itemtype {
+    powerup,
+    weapon
+};
 float deltaTime;
 
 Text mathRevivalText;
@@ -167,6 +170,7 @@ float werewolfspawntimer = 0;
 float zombiespawntimer = 0;
 float enemyAttackDelay = 1.0f;
 float HMfactor = 1;
+float swordglobaldamage = 100;
 RectangleShape volumebar[10];
 multimap<float, string> leaderboardEntriesMap; // Key: -score (float), Value: playerName (string)
 
@@ -250,10 +254,6 @@ struct character
             levelupsfx.play();
             gamestate = levelupscreen;
         }
-        if (level >= 2) {
-            canThrowSwords = true;
-        }
-        //cout << xp << ' ' << level <<" "<< "level up sprite : " <<  showLevelUp << '\n';
     }
 
     void update()
@@ -981,7 +981,7 @@ struct sword {
     SoundBuffer damageSound;
     RectangleShape collider;
     Vector2f velocity;
-    float damage = 100;
+    float damage = swordglobaldamage;
     float speed;
     float deletiontimer = 0;
 
@@ -1080,16 +1080,15 @@ struct inventoryitems
 {
     int Level;
     inventoryitem Type;
+    itemtype ItemType;
     Sprite sprite;
     bool isActive = false;
 }inventory[2][4];
 Texture inventorytextures[9],levelupselectionicons[8], inventoryBackground_Texture;
 Sprite inventoryBackground;
 void LoadObstacleTextures() {
-    //obstacleTextures[tree].loadFromFile("Assets\\tree.png");
     obstacleTextures[rock].loadFromFile("Assets\\Rock1.png");
     obstacleTextures[statue].loadFromFile("Assets\\Statue.png");
-    //obstacleTextures[objectwillbeadded].loadFromFile("Assets\\");
     obstacleTextures[wall].loadFromFile("Assets\\FirstObstacle.png");
 }
 
@@ -1581,15 +1580,17 @@ void inventoryinit() {
 
     
     inventory[0][0].isActive = true;
+    inventory[0][1].isActive = false;
+    inventory[0][2].isActive = false;
+    inventory[0][3].isActive = false;
+    inventory[1][0].isActive = false;
+    inventory[1][1].isActive = false;
+    inventory[1][2].isActive = false;
+    inventory[1][3].isActive = false;
     inventory[0][0].Level = 1;
     inventory[0][0].sprite.setTexture(inventorytextures[bloodSword]);
     inventory[0][0].sprite.setOrigin(20,16);
     inventory[0][0].Type = bloodSword;
-    inventory[0][1].isActive = true;
-    inventory[0][1].Level = 1;
-    inventory[0][1].sprite.setTexture(inventorytextures[thrownsword]);
-    inventory[0][1].sprite.setOrigin(16,16);
-    inventory[0][1].Type = thrownsword;
 }
 
 void levelupmenuinit() {
@@ -1627,10 +1628,108 @@ void levelupmenuinit() {
 }
 Sprite levelupselectionsprite[2];
 Text levelupselectionname[2], LevelUpSelectionDescription[2];
+
+void itemactivation(inventoryitem n) {
+    cout << n << endl;
+    if (static_cast<int>(n) <= 4 && static_cast<int>(n) > 0) {
+        for (int i = 0;i < 4;i++) {
+            if (inventory[0][i].isActive && inventory[0][i].ItemType != n) {
+                cout << "case 1";
+                continue;
+            }
+            else if (inventory[0][i].ItemType == n) {
+                cout << "case 2";
+                inventory[0][i].Level++;
+                switch (inventory[0][i].Type)
+                {
+                case bloodSword:
+                    shanoa.MeleeDamage += 20;
+                    cout << "shanoa";
+                    break;
+                case thrownsword:
+                    swordglobaldamage += 20;
+                    if (inventory[0][i].Level % 2 == 0) {
+                        shootingrate -= 0.4;
+                    }
+                    cout << "sword";
+                    break;
+                case lightningbolt:
+                    break;
+                case garlic:
+                    break;
+                }
+            }
+            else if(!inventory[0][i].isActive) {
+                cout << "case 3";
+                inventory[0][i].isActive = true;
+                inventory[0][i].Level = 1;
+                inventory[0][i].Type = n;
+                inventory[0][i].ItemType = weapon;
+                inventory[0][i].sprite.setTexture(inventorytextures[n]);
+                switch (n)
+                {
+                case thrownsword:
+                    shanoa.canThrowSwords = true;
+                    cout << "swordinit";
+                    break;
+                case lightningbolt:
+                    break;
+                case garlic:
+                    break;
+                }
+                break;
+            }
+            
+        }
+    }
+    else if (static_cast<int>(n) > 4) {
+        for (int i = 0;i < 4;i++) {
+            if (inventory[1][i].isActive && inventory[1][i].Type != n) {
+                continue;
+            }
+            else if (inventory[1][i].Type == n) {
+                switch (inventory[1][i].Type)
+                {
+                case reinforced:
+                    break;
+                case thorns:
+                    break;
+                case vitality:
+                    shanoa.health += 100;
+                    shanoa.Maxhp += 100;
+                    cout << "Vitality";
+                    break;
+                }
+            }
+            else if (!inventory[1][i].isActive) {
+                inventory[1][i].isActive = true;
+                inventory[1][i].Level = 1;
+                inventory[1][i].Type = n;
+                inventory[1][i].ItemType = powerup;
+                inventory[1][i].sprite.setTexture(inventorytextures[n]);
+                switch (inventory[1][i].Type)
+                {
+                case reinforced:
+                    break;
+                case thorns:
+                    break;
+                case vitality:
+                    shanoa.health += 100;
+                    shanoa.Maxhp += 100;
+                    cout << "Vitality";
+                    break;
+                }
+            }
+        }
+        cout << "x \n";
+    }
+}
+
+int r1 = 0, r2 = 0;
 void levelupmenuupdate() {
     if(levelupmenuon == false){
-        int r1 = rand() % 7 + 1;
-        int r2 = rand() % 7 + 1;
+        r1 = rand() % 7 + 1;
+        r2 = rand() % 7 + 1;
         levelupselectionsprite[0].setTexture(levelupselectionicons[r1]);
         levelupselectionsprite[0].setTextureRect(IntRect(0, 0, levelupselectionicons[r1].getSize().x, levelupselectionicons[r1].getSize().y));
         levelupselectionsprite[0].setOrigin(levelupselectionicons[r1].getSize().x /2, levelupselectionicons[r1].getSize().y / 2);
@@ -1647,17 +1746,21 @@ void levelupmenuupdate() {
         LevelUpSelectionDescription[1].setFont(defgamefont);
         LevelUpSelectionDescription[1].setString(levelupdescription[r2]);
         
+        cout << r1 << ' ';
+        cout << r2 << '\n';
 
         levelupmenuon = true;
     }
     if (Keyboard::isKeyPressed(Keyboard::Q)) {
         levelupmenuon = false;
         GameloopMusic.play();
+        itemactivation(static_cast<inventoryitem>(r1));
         gamestate = gameloop;
     }
     else if (Keyboard::isKeyPressed(Keyboard::E)) {
         levelupmenuon = false;
         GameloopMusic.play();
+        itemactivation(static_cast<inventoryitem>(r2));
         gamestate = gameloop;
     }
 }
