@@ -188,7 +188,7 @@ multimap<float, string> leaderboardEntriesMap; // Key: -score (float), Value: pl
 
 string levelupnames[8], levelupdescription[8];
 
-int BlueXPcValue = 40, GreenXPcValue = 70, RedXPcValue = 100;
+int BlueXPcValue = 20, GreenXPcValue = 50, RedXPcValue = 70;
 bool HMactive = false;
 bool checklevel = false;
 bool freezeTimeIsOn = false;
@@ -1239,6 +1239,7 @@ struct Ares : public ENEMY
             BossthemeIsPlayed = 0;
             GameloopMusic.play();
             shanoa.level += 1;
+            gamestate = levelupscreen;
             showLevelUp = true;
         }
         if (isDead && hasDroppedXP == false)
@@ -1371,6 +1372,18 @@ const float MaxObstacleRadius = 1200.0f;
 const float DespawnRadius = 1800.0f; // Distance to remove obstacles
 const float ObstacleTimer = 25.0f;   // Time in seconds before respawning when off camera
 Texture obstacleTextures[5];
+
+struct inventoryitems
+{
+    int Level;
+    inventoryitem Type;
+    itemtype ItemType;
+    Sprite sprite;
+    bool isActive = false;
+}inventory[2][4];
+Texture inventorytextures[9], levelupselectionicons[8], inventoryBackground_Texture;
+Sprite inventoryBackground;
+
 void LoadObstacleTextures()
 {
     obstacleTextures[rock].loadFromFile("Assets\\Rock1.png");
@@ -2212,6 +2225,7 @@ void MainmenuInit()
     swordspritesheet.loadFromFile("Assets\\SWORDS.png");
     healthbar_Texture.loadFromFile("Assets\\shanoahealthbar.png");
 }
+
 void xpBarInit()
 {
     xpBarHolder.setSize(Vector2f(180, 30));
@@ -2224,6 +2238,7 @@ void xpBarInit()
     xpBarText.setString("LVL.");
     xpBarText.setOrigin(xpBarText.getLocalBounds().width / 2, xpBarText.getLocalBounds().height / 2);
 }
+
 void xpBarDraw()
 {
     string currentLevel = to_string(shanoa.level);
@@ -2236,6 +2251,7 @@ void xpBarDraw()
     xpBarText.setString("LVl." + currentLevel);
     xpBar.setSize(Vector2f(xpBarWidth * (float(shanoa.xp) / float(shanoa.MaxXp)), 20));
 }
+
 void xpFullReset()
 {
     shanoa.xp = 0;
@@ -2978,31 +2994,7 @@ void freezeTimeFunction()
         }
     }
 }
-void freezeTimeFunction()
-{
-    if (freezeTimeIsOn)
-    {
-        if (!preBossThemeIsPlayed)
-        {
-            GameloopMusic.stop();
-            preBossSpawnSound.setVolume(100);
-            preBossSpawnSound.play();
-            preBossThemeIsPlayed = 1;
-        }
-        if (freezeTimeForBossSpawning >= freezeDuration)
-        {
-            freezeTimeIsOn = 0;
-            preBossThemeIsPlayed = 0;
-            preBossSpawnSound.stop();
-            if (!BossthemeIsPlayed)
-            {
-                BossthemeIsPlayed = 1;
-                BossTheme.setLoop(true);
-                BossTheme.play();
-            }
-        }
-    }
-}
+
 
 void Start()
 {
