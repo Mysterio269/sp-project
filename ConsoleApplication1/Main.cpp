@@ -101,7 +101,7 @@ Text HMtext;
 Text HMindicator;
 bool MathRevivalON;
 bool levelupmenuon = false;
-bool lightningboltisactive = true;
+bool lightningboltisactive = false;
 
 Texture lightningboltspritesheet;
 Texture MainMenuButtons_Texture, MainMenuBackground_Texture, Map_Texture, healthbar_Texture, credits_Texture, credits_background, volume_up_Texture, volume_down_Texture;
@@ -1286,6 +1286,7 @@ struct sword
     SoundBuffer damageSound;
     RectangleShape collider;
     Vector2f velocity;
+    bool isactive = false;
     float damage = swordglobaldamage;
     float speed;
     float deletiontimer = 0;
@@ -1298,7 +1299,8 @@ struct sword
         collider.setSize(Vector2f(32, 32));
         shape.setOrigin(16, 16);
         collider.setOrigin(15, 7.5);
-        deletiontimer += deltaTime;
+        if(isactive)
+            deletiontimer += deltaTime;
     }
 };struct Lightningbolt
 {
@@ -1309,9 +1311,10 @@ struct sword
     int rowindex;
     float animationdelaytimer = 0;
     Vector2f velocity;
-    float damage = swordglobaldamage;
+    float damage = LightningBoltGlobalDamage;
     float speed;
     float deletiontimer = 0;
+    bool isdeleted = false;
 
     void update()
     {
@@ -1329,7 +1332,7 @@ struct sword
         }
     }
 };
-vector<Lightningbolt> LightningBolts;
+vector<Lightningbolt> LightningBolts(10);
 struct Obstacle
 {
     Sprite sprite;
@@ -1677,8 +1680,8 @@ int main()
                     else
                         BossTheme.play();
 
-                    cout << BossthemeIsPlayed;
-                    cout << " " << "done";
+                    /*cout << BossthemeIsPlayed;
+                    cout << " " << "done";*/
 
                     postTransitionCooldown = POST_TRANSITION_DELAY; // Set cooldown
                     selectedMenuButtonIndex = 0;                    // Reset pause menu selection
@@ -1983,18 +1986,18 @@ void itemactivation(inventoryitem n)
     {
         for (int i = 0; i < 4; i++)
         {
-            cout << inventory[0][i].Type << ' ' << n << '\n';
+            //cout << inventory[0][i].Type << ' ' << n << '\n';
             if (inventory[0][i].isActive)
             {
                 if (inventory[0][i].Type == n)
                 {
-                    cout << "case 2\n";
+                    //cout << "case 2\n";
                     inventory[0][i].Level++;
                     switch (inventory[0][i].Type)
                     {
                     case bloodSword:
                         shanoa.MeleeDamage += 20;
-                        cout << "shanon\n";
+                        //cout << "shanon\n";
                         break;
                     case thrownsword:
                         swordglobaldamage += 20;
@@ -2002,10 +2005,13 @@ void itemactivation(inventoryitem n)
                         {
                             shootingrate -= 0.4;
                         }
-                        cout << "sword\n";
+                        //cout << "sword\n";
                         break;
                     case lightningbolt:
                         LightningBoltGlobalDamage += 20;
+                        if (inventory[0][i].Level % 2 == 0) {
+                            boltshootingrate - 0.5;
+                        }
                         break;
                     case garlic:
                         break;
@@ -2014,13 +2020,13 @@ void itemactivation(inventoryitem n)
                 }
                 else
                 {
-                    cout << "step 1 \n";
+                    //cout << "step 1 \n";
                     continue;
                 }
             }
             else if (!inventory[0][i].isActive)
             {
-                cout << "case init\n";
+                //cout << "case init\n";
                 inventory[0][i].isActive = true;
                 inventory[0][i].Level = 1;
                 inventory[0][i].Type = n;
@@ -2031,8 +2037,8 @@ void itemactivation(inventoryitem n)
                 switch (n)
                 {
                 case thrownsword:
-                    shanoa.canThrowSwords = true;
-                    cout << "swordinit";
+                    //shanoa.canThrowSwords = true;
+                    //cout << "swordinit";
                     break;
                 case lightningbolt:
                     lightningboltisactive = true;
@@ -2048,12 +2054,12 @@ void itemactivation(inventoryitem n)
     {
         for (int i = 0; i < 4; i++)
         {
-            cout << inventory[1][i].Type << ' ' << n << '\n';
+            //cout << inventory[1][i].Type << ' ' << n << '\n';
             if (inventory[1][i].isActive)
             {
                 if (inventory[1][i].Type == n)
                 {
-                    cout << "case 2\n";
+                    //cout << "case 2\n";
                     inventory[1][i].Level++;
                     switch (inventory[1][i].Type)
                     {
@@ -2074,13 +2080,13 @@ void itemactivation(inventoryitem n)
                 }
                 else
                 {
-                    cout << "step 1 \n";
+                    //cout << "step 1 \n";
                     continue;
                 }
             }
             else if (!inventory[1][i].isActive)
             {
-                cout << "case init\n";
+                //cout << "case init\n";
                 inventory[1][i].isActive = true;
                 inventory[1][i].Level = 1;
                 inventory[1][i].Type = n;
@@ -2168,7 +2174,7 @@ void shooting()
             newSword.shape.setScale(2, 2);
             newSword.shape.setPosition(shanoa.sprite.getPosition()); // init
             newSword.collider.setSize(Vector2f(30, 15));             // init
-
+            newSword.isactive = true;
             if (shanoa.spriteDirection == toleft)
             {
                 newSword.velocity = Vector2f(-1.f, 0.f) * newSword.speed;
@@ -2205,6 +2211,7 @@ void lightningstrike()
             newBolt.shape.setTexture(lightningboltspritesheet);
             newBolt.shape.setScale(0.25,0.25);
             newBolt.shape.setTextureRect(IntRect(0, 0, 2000, 428.5714285714286));
+            newBolt.damage = LightningBoltGlobalDamage;
             newBolt.shape.setPosition(shanoa.sprite.getPosition()); // init
             newBolt.collider.setSize(Vector2f(30, 15));             // init
 
@@ -2529,11 +2536,6 @@ void EnemyHandler()
         if (enemies[i]->MonsterType == Boss && freezeTimeIsOn)
         {
             view.setCenter(enemies[i]->shape.getPosition());
-        }
-        if (enemies[i]->isDead)
-        {
-            enemies.erase(enemies.begin() + i);
-            continue;
         }
         else
         {
@@ -2973,26 +2975,38 @@ void swordFullCollisionAndDamage()
         bool SwordIsRemoved = false;
         for (int j = 0; j < enemies.size(); j++)
         {
-            if (swords[i].collider.getGlobalBounds().intersects(enemies[j]->collider.getGlobalBounds()))
             {
-                enemies[j]->health -= swords[i].damage;
-                float decreaseRatio = float(enemies[j]->health) / float(enemies[j]->maxHealth);
-                enemies[j]->healthBarOfEnemy.setSize(Vector2f(enemies[j]->healthBarWidth * (decreaseRatio), enemies[j]->healthBarHeight));
-                swords.erase(swords.begin() + i);
-                SwordIsRemoved = true;
-                break;
+                if (!enemies[j]->isDead)
+                    if (swords[i].collider.getGlobalBounds().intersects(enemies[j]->collider.getGlobalBounds()))
+                    {
+                        enemies[j]->health -= LightningBolts[i].damage;
+                        float decreaseRatio = float(enemies[j]->health) / float(enemies[j]->maxHealth);
+                        enemies[j]->healthBarOfEnemy.setSize(Vector2f(enemies[j]->healthBarWidth * (decreaseRatio), enemies[j]->healthBarHeight));
+                        swords.erase(swords.begin() + i);
+                        SwordIsRemoved = true;
+                        break;
+                    }
             }
         }
         if (SwordIsRemoved)
             break;
+    }
+    for (int i = 0; i < LightningBolts.size(); i++) {
         for (int j = 0; j < enemies.size(); j++)
         {
-            if (LightningBolts[i].collider.getGlobalBounds().intersects(enemies[j]->collider.getGlobalBounds()))
-            {
-                enemies[j]->health -= LightningBolts[i].damage;
-                float decreaseRatio = float(enemies[j]->health) / float(enemies[j]->maxHealth);
-                enemies[j]->healthBarOfEnemy.setSize(Vector2f(enemies[j]->healthBarWidth * (decreaseRatio), enemies[j]->healthBarHeight));
-                break;
+            if(!enemies[j]->isDead) {
+                if (LightningBolts[i].rowindex == 6)
+                {
+                    LightningBolts.erase(LightningBolts.begin() + i);
+                    break;
+                }
+                if (LightningBolts[i].collider.getGlobalBounds().intersects(enemies[j]->collider.getGlobalBounds()))
+                {
+                    enemies[j]->health -= LightningBolts[i].damage;
+                    float decreaseRatio = float(enemies[j]->health) / float(enemies[j]->maxHealth);
+                    enemies[j]->healthBarOfEnemy.setSize(Vector2f(enemies[j]->healthBarWidth * (decreaseRatio), enemies[j]->healthBarHeight));
+                    break;
+                }
             }
         }
     }
@@ -3239,11 +3253,6 @@ void Update()
         {
             LightningBolts[i].animationdelaytimer += deltaTime;
             LightningBolts[i].update();
-            lightningboltanimation(LightningBolts[i]);
-            if (LightningBolts[i].rowindex == 6)
-            {
-                LightningBolts.erase(LightningBolts.begin() + i);
-            }
         }
         if (shanoa.isDead)
         {
@@ -3305,6 +3314,13 @@ void Update()
             }
         }
         meleeAttack();
+        for (int i = 0;i < enemies.size();i++) {
+            if (enemies[i]->isDead)
+            {
+                enemies.erase(enemies.begin() + i);
+                continue;
+            }
+        }
         if (!freezeTimeIsOn)
             view.setCenter(shanoa.sprite.getPosition());
         quoteUpdate();
