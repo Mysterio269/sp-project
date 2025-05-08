@@ -144,8 +144,8 @@ const int MAX_OBSTACLES = 25;
 
 
 
-Sound MainMenuMusic, GameOverSound, GameloopMusic, TheLegendaryTutor,levelupsfx;
-SoundBuffer MainMenuMusic_source, GameOverSound_source, GameloopMusic_source, TheLegendaryTutor_voice,levelupsource;
+Sound MainMenuMusic, GameOverSound, GameloopMusic, TheLegendaryTutor, levelupsfx;
+SoundBuffer MainMenuMusic_source, GameOverSound_source, GameloopMusic_source, TheLegendaryTutor_voice, levelupsource;
 bool gameOverSoundPlayed = false;
 
 sf::VideoMode desktopMode = sf::VideoMode::getDesktopMode();
@@ -1084,7 +1084,7 @@ struct inventoryitems
     Sprite sprite;
     bool isActive = false;
 }inventory[2][4];
-Texture inventorytextures[9],levelupselectionicons[8], inventoryBackground_Texture;
+Texture inventorytextures[9], levelupselectionicons[8], inventoryBackground_Texture;
 Sprite inventoryBackground;
 void LoadObstacleTextures() {
     obstacleTextures[rock].loadFromFile("Assets\\Rock1.png");
@@ -1578,7 +1578,7 @@ void inventoryinit() {
     inventorytextures[vitality].loadFromFile("Assets\\vitalityicon.png");
     inventorytextures[mathrevivalscroll].loadFromFile("Assets\\mathrevivalicon.png");
 
-    
+
     inventory[0][0].isActive = true;
     inventory[0][1].isActive = false;
     inventory[0][2].isActive = false;
@@ -1589,7 +1589,7 @@ void inventoryinit() {
     inventory[1][3].isActive = false;
     inventory[0][0].Level = 1;
     inventory[0][0].sprite.setTexture(inventorytextures[bloodSword]);
-    inventory[0][0].sprite.setOrigin(20,16);
+    inventory[0][0].sprite.setOrigin(20, 16);
     inventory[0][0].Type = bloodSword;
 }
 
@@ -1630,42 +1630,47 @@ Sprite levelupselectionsprite[2];
 Text levelupselectionname[2], LevelUpSelectionDescription[2];
 
 void itemactivation(inventoryitem n) {
-    cout << n << endl;
     if (static_cast<int>(n) <= 4 && static_cast<int>(n) > 0) {
-        for (int i = 0;i < 4;i++) {
-            if (inventory[0][i].isActive && inventory[0][i].ItemType != n) {
-                cout << "case 1";
-                continue;
-            }
-            else if (inventory[0][i].ItemType == n) {
-                cout << "case 2";
-                inventory[0][i].Level++;
-                switch (inventory[0][i].Type)
-                {
-                case bloodSword:
-                    shanoa.MeleeDamage += 20;
-                    cout << "shanoa";
-                    break;
-                case thrownsword:
-                    swordglobaldamage += 20;
-                    if (inventory[0][i].Level % 2 == 0) {
-                        shootingrate -= 0.4;
+        for (int i = 0; i < 4; i++) {
+            cout << inventory[0][i].Type << ' ' << n << '\n';
+            if (inventory[0][i].isActive) {
+                if (inventory[0][i].Type == n) {
+                    cout << "case 2\n";
+                    inventory[0][i].Level++;
+                    switch (inventory[0][i].Type)
+                    {
+                    case bloodSword:
+                        shanoa.MeleeDamage += 20;
+                        cout << "shanon\n";
+                        break;
+                    case thrownsword:
+                        swordglobaldamage += 20;
+                        if (inventory[0][i].Level % 2 == 0) {
+                            shootingrate -= 0.4;
+                        }
+                        cout << "sword\n";
+                        break;
+                    case lightningbolt:
+                        break;
+                    case garlic:
+                        break;
                     }
-                    cout << "sword";
-                    break;
-                case lightningbolt:
-                    break;
-                case garlic:
                     break;
                 }
+                else {
+                    cout << "step 1 \n";
+                    continue;
+                }
             }
-            else if(!inventory[0][i].isActive) {
-                cout << "case 3";
+            else if (!inventory[0][i].isActive) {
+                cout << "case init\n";
                 inventory[0][i].isActive = true;
                 inventory[0][i].Level = 1;
                 inventory[0][i].Type = n;
                 inventory[0][i].ItemType = weapon;
                 inventory[0][i].sprite.setTexture(inventorytextures[n]);
+                inventory[0][i].sprite.setOrigin(inventorytextures[n].getSize().x / 2, inventorytextures[n].getSize().y / 2);
+                
                 switch (n)
                 {
                 case thrownsword:
@@ -1679,60 +1684,69 @@ void itemactivation(inventoryitem n) {
                 }
                 break;
             }
-            
+
         }
     }
     else if (static_cast<int>(n) > 4) {
-        for (int i = 0;i < 4;i++) {
-            if (inventory[1][i].isActive && inventory[1][i].Type != n) {
-                continue;
-            }
-            else if (inventory[1][i].Type == n) {
-                switch (inventory[1][i].Type)
-                {
-                case reinforced:
+        for (int i = 0; i < 4; i++) {
+            cout << inventory[1][i].Type << ' ' << n << '\n';
+            if (inventory[1][i].isActive) {
+                if (inventory[1][i].Type == n) {
+                    cout << "case 2\n";
+                    inventory[1][i].Level++;
+                    switch (inventory[1][i].Type)
+                    {
+                    case vitality:
+                        shanoa.Maxhp += 100;
+                        shanoa.health += 100;
+                        break;
+                    case thorns:
+                        break;
+                    case reinforced:
+                        break;
+                    }
                     break;
-                case thorns:
-                    break;
-                case vitality:
-                    shanoa.health += 100;
-                    shanoa.Maxhp += 100;
-                    cout << "Vitality";
-                    break;
+                }
+                else {
+                    cout << "step 1 \n";
+                    continue;
                 }
             }
             else if (!inventory[1][i].isActive) {
+                cout << "case init\n";
                 inventory[1][i].isActive = true;
                 inventory[1][i].Level = 1;
                 inventory[1][i].Type = n;
                 inventory[1][i].ItemType = powerup;
                 inventory[1][i].sprite.setTexture(inventorytextures[n]);
-                switch (inventory[1][i].Type)
+                switch (n)
                 {
-                case reinforced:
+                case vitality:
+                    shanoa.Maxhp += 100;
+                    shanoa.health += 100;
                     break;
                 case thorns:
                     break;
-                case vitality:
-                    shanoa.health += 100;
-                    shanoa.Maxhp += 100;
-                    cout << "Vitality";
+                case reinforced:
                     break;
                 }
+                break;
             }
+
         }
-        cout << "x \n";
     }
+
+
 }
 
 int r1 = 0, r2 = 0;
 void levelupmenuupdate() {
-    if(levelupmenuon == false){
+    if (levelupmenuon == false) {
         r1 = rand() % 7 + 1;
         r2 = rand() % 7 + 1;
         levelupselectionsprite[0].setTexture(levelupselectionicons[r1]);
         levelupselectionsprite[0].setTextureRect(IntRect(0, 0, levelupselectionicons[r1].getSize().x, levelupselectionicons[r1].getSize().y));
-        levelupselectionsprite[0].setOrigin(levelupselectionicons[r1].getSize().x /2, levelupselectionicons[r1].getSize().y / 2);
+        levelupselectionsprite[0].setOrigin(levelupselectionicons[r1].getSize().x / 2, levelupselectionicons[r1].getSize().y / 2);
         levelupselectionname[0].setFont(defgamefont);
         levelupselectionname[0].setString(levelupnames[r1]);
         LevelUpSelectionDescription[0].setFont(defgamefont);
@@ -1740,14 +1754,12 @@ void levelupmenuupdate() {
 
         levelupselectionsprite[1].setTexture(levelupselectionicons[r2]);
         levelupselectionsprite[1].setTextureRect(IntRect(0, 0, levelupselectionicons[r2].getSize().x, levelupselectionicons[r2].getSize().y));
-        levelupselectionsprite[1].setOrigin(levelupselectionicons[r2].getSize().x /2, levelupselectionicons[r2].getSize().y / 2);
+        levelupselectionsprite[1].setOrigin(levelupselectionicons[r2].getSize().x / 2, levelupselectionicons[r2].getSize().y / 2);
         levelupselectionname[1].setFont(defgamefont);
         levelupselectionname[1].setString(levelupnames[r2]);
         LevelUpSelectionDescription[1].setFont(defgamefont);
         LevelUpSelectionDescription[1].setString(levelupdescription[r2]);
-        
-        cout << r1 << ' ';
-        cout << r2 << '\n';
+
 
         levelupmenuon = true;
     }
@@ -2081,7 +2093,7 @@ void EnemySpawn() {
 }
 
 void EnemyHandler() {
-    for (int i = 0;i < enemies.size();i++) {
+    for (int i = 0; i < enemies.size(); i++) {
         if (enemies[i]->isDead) {
             enemies.erase(enemies.begin() + i);
             continue;
@@ -2394,7 +2406,7 @@ void SettingsMenuInit() {
 
 
     {//volume bar init
-        for (int i = 0;i < 10;i++) {
+        for (int i = 0; i < 10; i++) {
             volumebar[i].setSize(Vector2f(15, 30));
             volumebar[i].setFillColor(Color::White);
             volumebar[i].setPosition(690 + (i * 20), 20307);
@@ -3053,7 +3065,7 @@ void Update()
 
     else if (gamestate == levelupscreen) {
         levelupmenuupdate();
-        
+
     }
     else if (gamestate == credits) {
         creditback.setColor(Color(70, 70, 70));
@@ -3202,7 +3214,7 @@ void Draw()
                 window.draw(Crystals[i].sprite);
             }
         }
-        for (int i = 0;i < enemies.size();i++) {
+        for (int i = 0; i < enemies.size(); i++) {
             /* window.draw(enemies[i]->collider);*/
             window.draw(enemies[i]->healthBarHolder);
             window.draw(enemies[i]->healthBarOfEnemy);
@@ -3239,16 +3251,26 @@ void Draw()
             window.draw(HMindicator);
         }
         inventoryBackground.setPosition(view.getCenter().x + 305, view.getCenter().y - 450);
-        inventory[0][0].sprite.setPosition(view.getCenter().x + 335, view.getCenter().y - 410);
-        if(inventoryactive){
+       inventory[0][0].sprite.setPosition(view.getCenter().x + 335, view.getCenter().y - 410);
+        if (inventoryactive) {
             window.draw(inventoryBackground);
-            for (int i = 0;i < 2;i++) {
-                for (int j = 0;j < 4;j++) {
+            for (int i = 0; i < 2; i++) {
+                for (int j = 0; j < 4; j++) {
                     if (inventory[i][j].isActive) {
-                        if (inventory[i][j].Type != bloodSword) {
-                            inventory[i][j].sprite.setPosition(inventory[0][0].sprite.getPosition().x + (j * 36), inventory[0][0].sprite.getPosition().y + (i * 32));
+                        if (i == 0)
+                        {
+                            if (inventory[i][j].Type != bloodSword) {
+                                inventory[i][j].sprite.setPosition(inventory[0][0].sprite.getPosition().x + (j * 36), inventory[0][0].sprite.getPosition().y + (i * 32));
+                            }
+                            inventory[i][j].sprite.setScale(1, 1.25);
                         }
-                        inventory[i][j].sprite.setScale(1, 1.25);
+                        if (i == 1)
+                        {
+                            if (inventory[i][j].Type != bloodSword) {
+                                inventory[i][j].sprite.setPosition(inventory[0][0].sprite.getPosition().x + (j * 36)-14, inventory[0][0].sprite.getPosition().y + (i * 32));
+                            }
+                            inventory[i][j].sprite.setScale(1, 1.25);
+                        }
                         window.draw(inventory[i][j].sprite);
                     }
                 }
@@ -3266,7 +3288,7 @@ void Draw()
         window.draw(volumeText);
         window.draw(HMbutton);
         window.draw(HMtext);
-        for (int i = 0;i < (volumebarcontroller * 10);i++) {
+        for (int i = 0; i < (volumebarcontroller * 10); i++) {
             window.draw(volumebar[i]);
         }
         Vector2f viewCenter = view.getCenter();
@@ -3365,7 +3387,7 @@ void Draw()
 
     }
 
-    if (gamestate == nameinput) 
+    if (gamestate == nameinput)
     {
         sf::Vector2f viewCenter = view.getCenter();
 
@@ -3449,12 +3471,12 @@ void Draw()
         levelupselectionsprite[1].setPosition(view.getCenter().x + 200, view.getCenter().y - 200);
         LevelUpSelectionDescription[0].setPosition(view.getCenter().x - 300, view.getCenter().y + 100);
         LevelUpSelectionDescription[1].setPosition(view.getCenter().x + 100, view.getCenter().y + 100);
-        LevelUpSelectionDescription[0].setOrigin(50,25);
-        LevelUpSelectionDescription[1].setOrigin(50,25);
-        levelupselectionname[0].setOrigin(50,25);
-        levelupselectionname[1].setOrigin(50,25);
-        levelupselectionname[0].setPosition(view.getCenter().x - 270 , view.getCenter().y );
-        levelupselectionname[1].setPosition(view.getCenter().x + 130 , view.getCenter().y );
+        LevelUpSelectionDescription[0].setOrigin(50, 25);
+        LevelUpSelectionDescription[1].setOrigin(50, 25);
+        levelupselectionname[0].setOrigin(50, 25);
+        levelupselectionname[1].setOrigin(50, 25);
+        levelupselectionname[0].setPosition(view.getCenter().x - 270, view.getCenter().y);
+        levelupselectionname[1].setPosition(view.getCenter().x + 130, view.getCenter().y);
         window.draw(levelupMenuSprite[0]);
         window.draw(levelupMenuSprite[1]);
         window.draw(levelupselectionsprite[0]);
