@@ -101,7 +101,9 @@ Text HMtext;
 Text HMindicator;
 bool MathRevivalON;
 bool levelupmenuon = false;
+bool lightningboltisactive = false;
 
+Texture thunderstrikeTexture;
 Texture MainMenuButtons_Texture, MainMenuBackground_Texture, Map_Texture, healthbar_Texture, credits_Texture, credits_background, volume_up_Texture, volume_down_Texture;
 Texture equationSpriteSheet;
 Texture swordspritesheet;
@@ -183,6 +185,8 @@ float HMfactor = 1;
 float DN_timer = 0.0f;
 float DN_duration = 30.0f;
 float swordglobaldamage = 100;
+float LightningBoltGlobalDamage = 50;
+float thornsglobaldivider = 5;
 RectangleShape volumebar[10];
 multimap<float, string> leaderboardEntriesMap; // Key: -score (float), Value: playerName (string)
 
@@ -232,6 +236,7 @@ struct character
     SoundBuffer damageSound;
     float health = 200;
     float Maxhp = 200;
+    float armour = 0;
     int xp = 0, MaxXp = 100;
     float speed = 250;
     float originalSpeed = 250; // this is used to stop speed boost from overlapping speeds if collected more than 1 at a time
@@ -259,11 +264,6 @@ struct character
             level++;
             MaxXp += (level - 1) * 20 + 100;
             xp = excessXP;
-            Maxhp += 10;
-            health += 10;
-            MeleeDamage += 10;
-            speed += 5;
-            originalSpeed += 5;
             showLevelUp = true;
             levelUpDisplayTimer = 0.0f;
             GameloopMusic.pause();
@@ -399,7 +399,7 @@ struct ENEMY
     float healthBarWidth, healthBarHeight;
     int columnindex = 0, rowindex;
     int health, damage, maxHealth;
-    bool isAttacking = false, isDead = false, hasDroppedXP = false;
+    bool isAttacking = false, isDead = false, hasDroppedXP = false,alrStruck = false;
     virtual void start()
     {
         // virtual start to be edited afterwards in the code
@@ -577,7 +577,8 @@ struct BEAST : public ENEMY
             if (beastAttackTime >= enemyAttackDelay)
             {
                 beastAttackTime = 0;
-                shanoa.health -= damage;
+                shanoa.health -= (damage-shanoa.armour);
+                health -= damage / thornsglobaldivider;
             }
         }
         else
@@ -707,7 +708,8 @@ struct ZOMBIE : public ENEMY
             if (zombieAttackTime >= enemyAttackDelay)
             {
                 zombieAttackTime = 0;
-                shanoa.health -= damage;
+                shanoa.health -= (damage - shanoa.armour);
+                health -= damage / thornsglobaldivider;
             }
         }
         else
@@ -839,7 +841,8 @@ struct WEREWOLF : public ENEMY
             if (werewolfAttackTime >= enemyAttackDelay)
             {
                 werewolfAttackTime = 0;
-                shanoa.health -= damage;
+                shanoa.health -= (damage - shanoa.armour);
+                health -= damage / thornsglobaldivider;
             }
         }
         else
@@ -969,7 +972,8 @@ struct BAT : public ENEMY
             if (batAttacktime >= enemyAttackDelay)
             {
                 batAttacktime = 0;
-                shanoa.health -= damage;
+                shanoa.health -= (damage - shanoa.armour);
+                health -= damage / thornsglobaldivider;
             }
         }
         else
@@ -1094,7 +1098,8 @@ struct Ares : public ENEMY
             if (aresAttacktime >= enemyAttackDelay)
             {
                 aresAttacktime = 0;
-                shanoa.health -= damage;
+                shanoa.health -= (damage - shanoa.armour);
+                health -= damage / thornsglobaldivider;
             }
         }
         else
@@ -1383,6 +1388,112 @@ struct inventoryitems
 }inventory[2][4];
 Texture inventorytextures[9], levelupselectionicons[8], inventoryBackground_Texture;
 Sprite inventoryBackground;
+
+struct THUNDERSTRIKE {
+    Sprite sprite;
+    Texture texture;
+    float animationTimer = 0.0f;
+    float animationSpeed = 0.09f; // time per frame
+    int currentFrame = 0;
+    int totalFrames = 7;
+    bool isActive = false;
+    Vector2f targetPosition; // where the thunderstrike hits
+    float damage = 200;
+
+    // Constructor
+    THUNDERSTRIKE() : texture(thunderstrikeTexture) {
+        sprite.setTexture(texture);
+        int frameWidth = texture.getSize().x / totalFrames;
+        sprite.setTextureRect(IntRect(0, 0, frameWidth, texture.getSize().y));
+        sprite.setOrigin(frameWidth / 2.0f, texture.getSize().y / 2.0f);
+        sprite.setScale(0.1f, 0.1f);
+        isActive = false;
+    }
+
+    void activate(const Vector2f& pos, float dmg) {
+        if(lightningboltisactive){
+            targetPosition = pos;
+            sprite.setPosition(targetPosition);
+            damage = dmg;
+            isActive = true;
+            animationTimer = 0.0f;
+            currentFrame = 0;
+            int frameWidth = texture.getSize().x / totalFrames;
+            sprite.setTextureRect(IntRect(0, 0, frameWidth, texture.getSize().y)); // Reset to first frame
+        }
+    }
+
+    void update() {
+        if (!isActive) return;
+
+        if(lightningboltisactive){
+            animationTimer += deltaTime;
+            if (animationTimer >= animationSpeed) {
+                animationTimer = 0.0f;
+                currentFrame++;
+
+                if (currentFrame < totalFrames) {
+                    int framewidth = texture.getSize().x / totalFrames;
+                    sprite.setTextureRect(IntRect(currentFrame * framewidth, 0, framewidth, texture.getSize().y));
+                }
+                else {
+                    // animation finished
+                    isActive = false;
+                }
+            }
+        }
+    }
+};
+THUNDERSTRIKE* thunderstrikes = nullptr; // declare global after struct
+int numThunderstrikeEffects = 0;
+int thunderstrikeArrayCapacity = 0; // To track the allocated size of the dynamic array
+float ultimateTimer = 0.0f;
+float ultimateCooldown = 3.0f;
+
+void addThunderstrike(const Vector2f& pos, float damage) {
+    //if full, double its capacity
+    if(lightningboltisactive){
+        if (numThunderstrikeEffects == thunderstrikeArrayCapacity) {
+            int newCapacity = (thunderstrikeArrayCapacity == 0) ? 1 : thunderstrikeArrayCapacity + 10;
+            THUNDERSTRIKE* newArray = new THUNDERSTRIKE[newCapacity];
+
+            // push past strikes to new arr
+            for (int i = 0; i < numThunderstrikeEffects; ++i) {
+                newArray[i] = thunderstrikes[i];
+            }
+
+            delete[] thunderstrikes;
+            thunderstrikes = newArray;
+            thunderstrikeArrayCapacity = newCapacity;
+        }
+
+        // use placement new to construct the object in the pre-allocated memory
+        new (&thunderstrikes[numThunderstrikeEffects]) THUNDERSTRIKE();
+        thunderstrikes[numThunderstrikeEffects].activate(pos, damage);
+        numThunderstrikeEffects++;
+    }
+}
+
+void removeInactiveStrikes() {
+    int active = 0;
+    // Iterate through the array and move active effects to the beginning
+    for (int i = 0; i < numThunderstrikeEffects; ++i) {
+        if (thunderstrikes[i].isActive) {
+            if (i != active) {
+                // Move the active effect to the current activeCount position
+                thunderstrikes[active] = thunderstrikes[i];
+            }
+            active++;
+        }
+    }
+
+    // Destroy the inactive objects at the end of the array
+    for (int i = active; i < numThunderstrikeEffects; ++i) {
+        thunderstrikes[i].~THUNDERSTRIKE();
+    }
+
+    numThunderstrikeEffects = active;
+}
 
 void LoadObstacleTextures()
 {
@@ -1970,6 +2081,7 @@ void itemactivation(inventoryitem n)
                         cout << "sword\n";
                         break;
                     case lightningbolt:
+                        LightningBoltGlobalDamage += 20;
                         break;
                     case garlic:
                         break;
@@ -1999,6 +2111,7 @@ void itemactivation(inventoryitem n)
                     cout << "swordinit";
                     break;
                 case lightningbolt:
+                    lightningboltisactive = true;
                     break;
                 case garlic:
                     break;
@@ -2025,8 +2138,12 @@ void itemactivation(inventoryitem n)
                         shanoa.health += 100;
                         break;
                     case thorns:
+                        if (thornsglobaldivider > 2) {
+                            thornsglobaldivider--;
+                        }
                         break;
                     case reinforced:
+                        shanoa.armour += 3;
                         break;
                     }
                     break;
@@ -2052,8 +2169,10 @@ void itemactivation(inventoryitem n)
                     shanoa.health += 100;
                     break;
                 case thorns:
+                    thornsglobaldivider--;
                     break;
                 case reinforced:
+                    shanoa.armour += 5;
                     break;
                 }
                 break;
@@ -2069,6 +2188,11 @@ void levelupmenuupdate()
     {
         r1 = rand() % 7 + 1;
         r2 = rand() % 7 + 1;
+        for (int i = 0;i < 20;i++) {
+            if (r1 != r2)
+                break;
+            r1 = rand() % 7 + 1;
+        }
         levelupselectionsprite[0].setTexture(levelupselectionicons[r1]);
         levelupselectionsprite[0].setTextureRect(IntRect(0, 0, levelupselectionicons[r1].getSize().x, levelupselectionicons[r1].getSize().y));
         levelupselectionsprite[0].setOrigin(levelupselectionicons[r1].getSize().x / 2, levelupselectionicons[r1].getSize().y / 2);
@@ -2436,6 +2560,7 @@ void EnemySpawn()
         }
     }
 }
+
 void EnemyHandler()
 {
     for (int i = 0; i < enemies.size(); i++)
@@ -2455,6 +2580,7 @@ void EnemyHandler()
         }
     }
 }
+
 void healthbarhandling()
 {
     healthRatio = shanoa.health / shanoa.Maxhp;
@@ -2606,6 +2732,8 @@ void MainMenuButtonCheck()
         selectedMenuButtonIndex = 4;
         if (Mouse::isButtonPressed(Mouse::Left))
         {
+            delete[] thunderstrikes;
+            thunderstrikes = nullptr;
             window.close();
         }
     }
@@ -2712,6 +2840,8 @@ void MainMenuInput()
             }
             else if (selectedMenuButtonIndex == 4)
             { // exit
+                delete[] thunderstrikes;
+                thunderstrikes = nullptr;
                 window.close();
             }
 
@@ -2969,6 +3099,7 @@ void SpeedBoostFunction()
         }
     }
 }
+
 void freezeTimeFunction()
 {
     if (freezeTimeIsOn)
@@ -2994,7 +3125,6 @@ void freezeTimeFunction()
         }
     }
 }
-
 
 void Start()
 {
@@ -3039,6 +3169,7 @@ void Start()
     DN_timer = 0.0f;
     levelupsource.loadFromFile("Assets\\levelupsound.ogg");
     levelupsfx.setBuffer(levelupsource);
+    thunderstrikeTexture.loadFromFile("Assets\\lightningspritesheet.png");
     levelupmenuinit();
     inventoryinit();
     MapInit();
@@ -3129,6 +3260,72 @@ void Update()
         stringstream ss; // time formatting
         ss << "Time: " << setw(2) << setfill('0') << minutes << ":" << setw(2) << setfill('0') << seconds;
         ScoreText.setString(ss.str());
+
+        ultimateTimer += deltaTime;
+        if (ultimateTimer >= ultimateCooldown) {
+            int enemiesToStrike = shanoa.level * 2;
+
+            int livingCount = 0;
+            for (const auto& enemy : enemies) {
+                if (!enemy->isDead) {
+                    livingCount++;
+                }
+            }
+            for (const auto& enemy : enemies) {
+                enemy->alrStruck = false;
+            }
+
+            if (livingCount > 0) {
+                int struckCount = 0;
+                int attempts = 0;
+                const int MAX_ATTEMPTS_PER_STRIKE = enemies.size() * 2; // Prevent infinite loops
+
+                for (int i = 0; i < enemiesToStrike && struckCount < livingCount; ++i) {
+                    int randomIndex;
+                    float distanceToEnemy;
+                    shared_ptr<ENEMY> targetEnemy = nullptr;
+                    int currentAttempts = 0;
+
+                    // Find a random living enemy that hasn't been struck in this ultimate activation
+                    do {
+                        randomIndex = rand() % enemies.size();
+                        targetEnemy = enemies[randomIndex];
+                        currentAttempts++;
+                        distanceToEnemy = sqrt(pow(shanoa.sprite.getPosition().x - targetEnemy->shape.getPosition().x, 2) +
+                            pow(shanoa.sprite.getPosition().y - targetEnemy->shape.getPosition().y, 2));
+
+                    } while ((targetEnemy->isDead || targetEnemy->alrStruck || distanceToEnemy > 30) && currentAttempts < MAX_ATTEMPTS_PER_STRIKE); // Check if dead or already struck
+
+                    // If a valid target was found within attempts
+                    if (targetEnemy && !targetEnemy->isDead && !targetEnemy->alrStruck)
+                        float distanceToEnemy = sqrt(pow(shanoa.sprite.getPosition().x - targetEnemy->shape.getPosition().x, 2) +
+                            pow(shanoa.sprite.getPosition().y - targetEnemy->shape.getPosition().y, 2));
+                    if (distanceToEnemy <= 30) {
+                        targetEnemy->alrStruck = true;
+                    }
+
+                    addThunderstrike(targetEnemy->shape.getPosition(), shanoa.MeleeDamage * 5);
+
+                    if(lightningboltisactive){
+                        targetEnemy->health -= (LightningBoltGlobalDamage);
+                    }
+
+
+                    float decreaseRatio = float(targetEnemy->health) / float(targetEnemy->maxHealth);
+                    if (decreaseRatio < 0) decreaseRatio = 0;
+                    targetEnemy->healthBarOfEnemy.setSize(Vector2f(targetEnemy->healthBarWidth * (decreaseRatio), 10));
+
+                    struckCount++;
+                }
+            }
+            shanoa.columnIndex = 0;
+            ultimateTimer = 0.0f;
+        }
+        for (int i = 0; i < numThunderstrikeEffects; ++i) {
+            thunderstrikes[i].update();
+        }
+        removeInactiveStrikes();
+
 
         for (int i = 0; i < swords.size(); i++)
         {
@@ -3688,6 +3885,11 @@ void Draw()
                 window.draw(obstacles[i].sprite);
 
                 //  window.draw(obstacles[i].collider);
+            }
+        }
+        for (int i = 0; i < numThunderstrikeEffects; ++i) {
+            if (thunderstrikes[i].isActive) {
+                window.draw(thunderstrikes[i].sprite);
             }
         }
 
