@@ -102,6 +102,7 @@ Text HMindicator;
 bool MathRevivalON;
 bool levelupmenuon = false;
 bool lightningboltisactive = false;
+bool garlicIsActive = false;
 
 Texture lightningboltspritesheet;
 Texture MainMenuButtons_Texture, MainMenuBackground_Texture, Map_Texture, healthbar_Texture, credits_Texture, credits_background, volume_up_Texture, volume_down_Texture;
@@ -176,6 +177,10 @@ const float timeForAttack = 0.4f;
 const float MENU_INPUT_COOLDOWN = 0.5f;   // Time in seconds between allowed inputs
 float postTransitionCooldown = 0.f;       // Make sure this is also declared (it is in your code around source 151)
 const float POST_TRANSITION_DELAY = 0.6f; // Define the delay duration in seconds
+const float FirstLevelRadius = 100.0f;
+const float ValueIncrementedToRadius = 15.0f;
+const float ValueIncrementedToDamage = 2.5f;
+const float DamageDelay = 0.5f;
 float soundcontroller = 100;
 float beastspawntimer = 0;
 float batspawntimer = 0;
@@ -188,7 +193,8 @@ float DN_timer = 0.0f;
 float DN_duration = 30.0f;
 float swordglobaldamage = 100;
 float LightningBoltGlobalDamage = 50;
-float thornsglobaldivider = 5;
+float garlicGlobalDamage = 50;
+float thornsglobaldivider = 3;
 RectangleShape volumebar[10];
 multimap<float, string> leaderboardEntriesMap; // Key: -score (float), Value: playerName (string)
 
@@ -581,6 +587,8 @@ struct BEAST : public ENEMY
                 beastAttackTime = 0;
                 shanoa.health -= (damage-shanoa.armour);
                 health -= damage / thornsglobaldivider;
+                float decreaseRatio = float(health) / float(maxHealth);
+                healthBarOfEnemy.setSize(Vector2f(healthBarWidth * (decreaseRatio), healthBarHeight));
             }
         }
         else
@@ -712,6 +720,8 @@ struct ZOMBIE : public ENEMY
                 zombieAttackTime = 0;
                 shanoa.health -= (damage - shanoa.armour);
                 health -= damage / thornsglobaldivider;
+                float decreaseRatio = float(health) / float(maxHealth);
+                healthBarOfEnemy.setSize(Vector2f(healthBarWidth * (decreaseRatio), healthBarHeight));
             }
         }
         else
@@ -845,6 +855,8 @@ struct WEREWOLF : public ENEMY
                 werewolfAttackTime = 0;
                 shanoa.health -= (damage - shanoa.armour);
                 health -= damage / thornsglobaldivider;
+                float decreaseRatio = float(health) / float(maxHealth);
+                healthBarOfEnemy.setSize(Vector2f(healthBarWidth * (decreaseRatio), healthBarHeight));
             }
         }
         else
@@ -976,6 +988,8 @@ struct BAT : public ENEMY
                 batAttacktime = 0;
                 shanoa.health -= (damage - shanoa.armour);
                 health -= damage / thornsglobaldivider;
+                float decreaseRatio = float(health) / float(maxHealth);
+                healthBarOfEnemy.setSize(Vector2f(healthBarWidth * (decreaseRatio), healthBarHeight));
             }
         }
         else
@@ -1102,6 +1116,8 @@ struct Ares : public ENEMY
                 aresAttacktime = 0;
                 shanoa.health -= (damage - shanoa.armour);
                 health -= damage / thornsglobaldivider;
+                float decreaseRatio = float(health) / float(maxHealth);
+                healthBarOfEnemy.setSize(Vector2f(healthBarWidth * (decreaseRatio), healthBarHeight));
             }
         }
         else
@@ -1302,7 +1318,18 @@ struct sword
         if(isactive)
             deletiontimer += deltaTime;
     }
-};struct Lightningbolt
+};
+struct Garlic 
+{
+    CircleShape innerCircle;
+    CircleShape middleCircle;
+    CircleShape outerCircle;
+    float radius;
+    float damage;
+    float damageTimer = 0.f;
+    bool isDeleted = false;
+}GARLIC;
+struct Lightningbolt
 {
     Sprite shape;
     Sound damageSFX;
@@ -2014,6 +2041,14 @@ void itemactivation(inventoryitem n)
                         }
                         break;
                     case garlic:
+                        GARLIC.damage += ValueIncrementedToDamage;
+                        cout << "damage : " << GARLIC.damage << "\n";
+                        if (inventory[0][i].Level % 2 == 0)
+                        {
+                            GARLIC.radius += ValueIncrementedToRadius;
+                            cout << "radius : " << GARLIC.radius << "\n";
+                        }
+
                         break;
                     }
                     break;
@@ -2037,13 +2072,14 @@ void itemactivation(inventoryitem n)
                 switch (n)
                 {
                 case thrownsword:
-                    //shanoa.canThrowSwords = true;
+                    shanoa.canThrowSwords = true;
                     //cout << "swordinit";
                     break;
                 case lightningbolt:
                     lightningboltisactive = true;
                     break;
                 case garlic:
+                    garlicIsActive = true;
                     break;
                 }
                 break;
@@ -2168,7 +2204,7 @@ void shooting()
             shootingtime = 0;
             float erasuretimer = 0;
             sword newSword;
-            newSword.speed = 10000 * deltaTime;
+            newSword.speed = 20000 * deltaTime;
             newSword.shape.setTexture(swordspritesheet);
             newSword.shape.setTextureRect(IntRect(1 * 32, 2 * 32, 32, 32));
             newSword.shape.setScale(2, 2);
@@ -2190,11 +2226,6 @@ void shooting()
         }
     }
 }
-
-void lightningboltanimation(Lightningbolt& light) {
-    
-}
-
 void lightningstrike()
 {
     if (lightningboltisactive)
@@ -2228,6 +2259,31 @@ void lightningstrike()
         }
     }
 }
+void GarlicInit() {
+    GARLIC.radius = FirstLevelRadius;
+    GARLIC.damage = 5.0f;
+ 
+
+    GARLIC.innerCircle.setRadius(GARLIC.radius * 0.8f);
+    GARLIC.innerCircle.setOrigin(GARLIC.radius * 0.8f,GARLIC.radius * 0.8f);
+    GARLIC.innerCircle.setFillColor(Color::Transparent);
+    GARLIC.innerCircle.setOutlineColor(Color(255, 100, 100, 90));
+    GARLIC.innerCircle.setOutlineThickness(1.25f);
+    GARLIC.innerCircle.setPointCount(350);
+    GARLIC.middleCircle.setRadius(GARLIC.radius * 0.9f);
+    GARLIC.middleCircle.setOrigin(GARLIC.radius * 0.9f, GARLIC.radius * 0.9f);
+    GARLIC.middleCircle.setFillColor(Color::Transparent);
+    GARLIC.middleCircle.setOutlineColor(Color(200, 50, 50, 120));
+    GARLIC.middleCircle.setOutlineThickness(1.25f);
+    GARLIC.middleCircle.setPointCount(350);
+    GARLIC.outerCircle.setRadius(GARLIC.radius);
+    GARLIC.outerCircle.setOrigin(GARLIC.radius, GARLIC.radius);
+    GARLIC.outerCircle.setFillColor(Color::Transparent);
+    GARLIC.outerCircle.setOutlineColor(Color(150, 0, 0, 150));
+    GARLIC.outerCircle.setOutlineThickness(1.25f);
+    GARLIC.outerCircle.setPointCount(350);
+}
+
 
 void MainmenuInit()
 {
@@ -2537,10 +2593,7 @@ void EnemyHandler()
         {
             view.setCenter(enemies[i]->shape.getPosition());
         }
-        else
-        {
-            enemies[i]->update();
-        }
+        enemies[i]->update();
     }
 }
 
@@ -2966,49 +3019,65 @@ void quoteUpdate()
     Quote.setString(quotes[indexForRandomQuote()]);
     Quote.setOrigin(Quote.getLocalBounds().width / 2, Quote.getLocalBounds().height / 2);
 }
+void garlicDamageApply() {
+    Vector2f garlicCenter = GARLIC.outerCircle.getPosition();
+    float damageAmount = GARLIC.damage * DamageDelay;
+    for (int i = 0; i < enemies.size(); i++)
+    {
+        Vector2f enemyPos = enemies[i]->shape.getPosition();
+        float distance = sqrt(pow(enemyPos.x - garlicCenter.x, 2) + pow(enemyPos.y - garlicCenter.y, 2));
+        if (distance <= GARLIC.radius) {
+            enemies[i]->health -= damageAmount;
+            float decreaseRatio = float(enemies[i]->health) / float(enemies[i]->maxHealth);
+            enemies[i]->healthBarOfEnemy.setSize(Vector2f(enemies[i]->healthBarWidth * decreaseRatio, enemies[i]->healthBarHeight));
+        }
+    }
+}
 
-void swordFullCollisionAndDamage()
+void effectsFullCollisionForDamage()
 {
-    /*------------------enemys-----------------*/
+    // Handling Swords
+    GARLIC.damageTimer += deltaTime;
     for (int i = 0; i < swords.size(); i++)
     {
         bool SwordIsRemoved = false;
         for (int j = 0; j < enemies.size(); j++)
         {
+            if (swords[i].collider.getGlobalBounds().intersects(enemies[j]->collider.getGlobalBounds()))
             {
-                if (!enemies[j]->isDead)
-                    if (swords[i].collider.getGlobalBounds().intersects(enemies[j]->collider.getGlobalBounds()))
-                    {
-                        enemies[j]->health -= LightningBolts[i].damage;
-                        float decreaseRatio = float(enemies[j]->health) / float(enemies[j]->maxHealth);
-                        enemies[j]->healthBarOfEnemy.setSize(Vector2f(enemies[j]->healthBarWidth * (decreaseRatio), enemies[j]->healthBarHeight));
-                        swords.erase(swords.begin() + i);
-                        SwordIsRemoved = true;
-                        break;
-                    }
+                
+                enemies[j]->health -= swords[i].damage;
+                float decreaseRatio = float(enemies[j]->health) / float(enemies[j]->maxHealth);
+                enemies[j]->healthBarOfEnemy.setSize(Vector2f(enemies[j]->healthBarWidth * (decreaseRatio), enemies[j]->healthBarHeight));
+                swords.erase(swords.begin() + i);
+                SwordIsRemoved = true;
+                break;
             }
         }
         if (SwordIsRemoved)
             break;
     }
+    // Handling Lightning Bolts
     for (int i = 0; i < LightningBolts.size(); i++) {
         for (int j = 0; j < enemies.size(); j++)
         {
-            if(!enemies[j]->isDead) {
-                if (LightningBolts[i].rowindex == 6)
-                {
-                    LightningBolts.erase(LightningBolts.begin() + i);
-                    break;
-                }
-                if (LightningBolts[i].collider.getGlobalBounds().intersects(enemies[j]->collider.getGlobalBounds()))
-                {
-                    enemies[j]->health -= LightningBolts[i].damage;
-                    float decreaseRatio = float(enemies[j]->health) / float(enemies[j]->maxHealth);
-                    enemies[j]->healthBarOfEnemy.setSize(Vector2f(enemies[j]->healthBarWidth * (decreaseRatio), enemies[j]->healthBarHeight));
-                    break;
-                }
+            if (LightningBolts[i].rowindex == 6)
+            {
+                LightningBolts.erase(LightningBolts.begin() + i);
+                break;
+            }
+            if (LightningBolts[i].collider.getGlobalBounds().intersects(enemies[j]->collider.getGlobalBounds()))
+            {
+                enemies[j]->health -= LightningBolts[i].damage;
+                float decreaseRatio = float(enemies[j]->health) / float(enemies[j]->maxHealth);
+                enemies[j]->healthBarOfEnemy.setSize(Vector2f(enemies[j]->healthBarWidth * (decreaseRatio), enemies[j]->healthBarHeight));
             }
         }
+    }
+    // Handling Garlic 
+    if (GARLIC.damageTimer >= DamageDelay) {
+        garlicDamageApply();
+        GARLIC.damageTimer = 0.0f;
     }
 }
 
@@ -3064,9 +3133,8 @@ void globalCollsion()
             }
         }
     }
-    swordFullCollisionAndDamage();
+    effectsFullCollisionForDamage();
 }
-
 void SpeedBoostFunction()
 {
     if (SpeedBoostEffectActive)
@@ -3160,6 +3228,7 @@ void Start()
     NameInputInit();
     PauseMenuInit();
     CharacterInit();
+    GarlicInit();
     LoadLeaderboard();
     creditsInit();
     SettingsMenuInit();
@@ -3785,6 +3854,21 @@ void Draw()
         }
         window.draw(Map);
         // window.draw(shanoa.collider);
+        if (garlicIsActive)
+        {
+            GARLIC.outerCircle.setPosition(shanoa.sprite.getPosition().x, shanoa.sprite.getPosition().y+5);
+            GARLIC.middleCircle.setPosition(shanoa.sprite.getPosition().x , shanoa.sprite.getPosition().y+5);
+            GARLIC.innerCircle.setPosition(shanoa.sprite.getPosition().x, shanoa.sprite.getPosition().y+5);
+            GARLIC.innerCircle.setRadius(GARLIC.radius * 0.8f);
+            GARLIC.innerCircle.setOrigin(GARLIC.radius * 0.8f, GARLIC.radius * 0.8f);
+            GARLIC.middleCircle.setRadius(GARLIC.radius * 0.9f);
+            GARLIC.middleCircle.setOrigin(GARLIC.radius * 0.9f, GARLIC.radius * 0.9f);
+            GARLIC.outerCircle.setRadius(GARLIC.radius);
+            GARLIC.outerCircle.setOrigin(GARLIC.radius, GARLIC.radius);
+            window.draw(GARLIC.outerCircle);
+            window.draw(GARLIC.middleCircle);
+            window.draw(GARLIC.innerCircle);
+        }
         for (int i = 0; i < swords.size(); i++)
         {
             window.draw(swords[i].shape);
@@ -3818,7 +3902,7 @@ void Draw()
                 //  window.draw(obstacles[i].collider);
             }
         }
-
+       
         // For Day/Night Cycle
         if (!isday)
         {
@@ -3833,7 +3917,6 @@ void Draw()
             DN_overlay.setPosition(view.getCenter());
             window.draw(DN_overlay);
         }
-
         if (showLevelUp)
         {
             levelupsprite.setOrigin(levelupsprite.getLocalBounds().width / 2.0f, levelupsprite.getLocalBounds().height / 2.0f);
