@@ -77,7 +77,7 @@ enum monstertype
 
 enum inventoryitem
 {
-    empty,
+    blank,
     bloodSword,
     thrownsword,
     lightningbolt,
@@ -192,8 +192,7 @@ float HMfactor = 1;
 float DN_timer = 0.0f;
 float DN_duration = 30.0f;
 float swordglobaldamage = 100;
-float LightningBoltGlobalDamage = 50;
-float garlicGlobalDamage = 50;
+float LightningBoltGlobalDamage = 20;
 float thornsglobaldivider = 3;
 RectangleShape volumebar[10];
 multimap<float, string> leaderboardEntriesMap; // Key: -score (float), Value: playerName (string)
@@ -2035,7 +2034,7 @@ void itemactivation(inventoryitem n)
                         //cout << "sword\n";
                         break;
                     case lightningbolt:
-                        LightningBoltGlobalDamage += 20;
+                        LightningBoltGlobalDamage += 10;
                         if (inventory[0][i].Level % 2 == 0) {
                             boltshootingrate - 0.5;
                         }
@@ -2226,6 +2225,7 @@ void shooting()
         }
     }
 }
+
 void lightningstrike()
 {
     if (lightningboltisactive)
@@ -2259,9 +2259,10 @@ void lightningstrike()
         }
     }
 }
+
 void GarlicInit() {
     GARLIC.radius = FirstLevelRadius;
-    GARLIC.damage = 5.0f;
+    GARLIC.damage = 10.0f;
  
 
     GARLIC.innerCircle.setRadius(GARLIC.radius * 0.8f);
@@ -2283,7 +2284,6 @@ void GarlicInit() {
     GARLIC.outerCircle.setOutlineThickness(1.25f);
     GARLIC.outerCircle.setPointCount(350);
 }
-
 
 void MainmenuInit()
 {
@@ -2725,6 +2725,30 @@ void MainMenuButtonCheck()
             swords.clear();
             isday = true;
             DN_timer = 0.0f;
+            for (int i = 0;i < 2;i++) {
+                for (int j = 0;j < 4;j++) {
+                    if (i == 0 && j == 0) {
+                        inventory[i][j].Level = 1;
+                        continue;
+                    }
+                    inventory[i][j].Level = 0;
+                    inventory[i][j].isActive = false;
+                    inventory[i][j].Type = blank;
+                }
+            }
+            swordglobaldamage = 100;
+            LightningBoltGlobalDamage = 20;
+            boltshootingrate = 3;
+            shootingrate = 2;
+            thornsglobaldivider = 3;
+            shanoa.armour = 0;
+            shanoa.canThrowSwords = false;
+            lightningboltisactive = false;
+            garlicIsActive = false;
+            GARLIC.radius = FirstLevelRadius;
+            shanoa.Maxhp = 200;
+            GARLIC.damage = 10.0f;
+            shanoa.MaxXp = 100;
         }
     }
     if (LeaderboardButtonBounds.contains(mouseWorldpos))
@@ -2840,6 +2864,30 @@ void MainMenuInput()
                 swords.clear();
                 isday = true;
                 DN_timer = 0.0f;
+                for (int i = 0;i < 2;i++) {
+                    for (int j = 0;j < 4;j++) {
+                        if (i == 0 && j == 0) {
+                            inventory[i][j].Level = 1;
+                            continue;
+                        }
+                        inventory[i][j].Level = 0;
+                        inventory[i][j].isActive = false;
+                        inventory[i][j].Type = blank;
+                    }
+                }
+                swordglobaldamage = 100;
+                LightningBoltGlobalDamage = 20;
+                boltshootingrate = 3;
+                shootingrate = 2;
+                thornsglobaldivider = 3;
+                shanoa.armour = 0;
+                shanoa.canThrowSwords = false;
+                lightningboltisactive = false;
+                garlicIsActive = false;
+                GARLIC.radius = FirstLevelRadius;
+                shanoa.Maxhp = 200;
+                GARLIC.damage = 10.0f;
+                shanoa.MaxXp = 100;
             }
             else if (selectedMenuButtonIndex == 1)
             { // settings
@@ -3019,6 +3067,7 @@ void quoteUpdate()
     Quote.setString(quotes[indexForRandomQuote()]);
     Quote.setOrigin(Quote.getLocalBounds().width / 2, Quote.getLocalBounds().height / 2);
 }
+
 void garlicDamageApply() {
     Vector2f garlicCenter = GARLIC.outerCircle.getPosition();
     float damageAmount = GARLIC.damage * DamageDelay;
@@ -3135,6 +3184,7 @@ void globalCollsion()
     }
     effectsFullCollisionForDamage();
 }
+
 void SpeedBoostFunction()
 {
     if (SpeedBoostEffectActive)
@@ -3291,6 +3341,7 @@ void Update()
         quoteUpdate();
         totalGameTime = 0;
     }
+
     else if (gamestate == gameloop)
     {
         // gameloop update
@@ -3488,7 +3539,31 @@ void Update()
                     userInput = "";
                     selectedMenuButtonIndex = 0; // Reset main menu selection
                     xpFullReset();
+                    for (int i = 0;i < 2;i++) {
+                        for (int j = 0;j < 4;j++) {
+                            if (i == 0 && j == 0) {
+                                inventory[i][j].Level = 1;
+                                continue;
+                            }
+                            inventory[i][j].Level = 0;
+                            inventory[i][j].isActive = false;
+                            inventory[i][j].Type = blank;
+                        }
+                    }
+                    GARLIC.damage = 10.0f;
+                    swordglobaldamage = 100;
+                    LightningBoltGlobalDamage = 20;
+                    boltshootingrate = 3;
+                    shootingrate = 2;
+                    thornsglobaldivider = 3;
+                    shanoa.armour = 0;
+                    shanoa.canThrowSwords = false;
+                    lightningboltisactive = false;
+                    garlicIsActive = false;
+                    GARLIC.radius = FirstLevelRadius;
+                    shanoa.MaxXp = 100;
                 }
+
                 menuInputDelay = 0;
             }
         }
@@ -3647,6 +3722,7 @@ void Update()
                         enemies.clear();
                         Crystals.clear();
                         shanoa.health = 200; // Or your starting health
+                        shanoa.Maxhp = 200; // Or your starting health
                         shanoa.isDead = false;
                         shanoa.RevivalScrollAcquired = 0;
                         bossHasSpawned = 0;
@@ -3655,6 +3731,29 @@ void Update()
                         xpFullReset();
                         isday = true;
                         DN_timer = 0.0f;
+                        for (int i = 0;i < 2;i++) {
+                            for (int j = 0;j < 4;j++) {
+                                if (i == 0 && j == 0) {
+                                    inventory[i][j].Level = 1;
+                                    continue;
+                                }
+                                inventory[i][j].Level = 0;
+                                inventory[i][j].isActive = false;
+                                inventory[i][j].Type = blank;
+                            }
+                        }
+                        swordglobaldamage = 100;
+                        LightningBoltGlobalDamage = 20;
+                        boltshootingrate = 3;
+                        shootingrate = 2;
+                        thornsglobaldivider = 3;
+                        shanoa.armour = 0;
+                        shanoa.canThrowSwords = false;
+                        lightningboltisactive = false;
+                        garlicIsActive = false;
+                        GARLIC.radius = FirstLevelRadius;
+                        GARLIC.damage = 10.0f;
+                        shanoa.MaxXp = 100;
                     }
                     else if (selectedGameOverOptionIndex == 1 && shanoa.RevivalScrollAcquired) // Math Revival selected
                     {
@@ -3679,6 +3778,7 @@ void Update()
                         // totalGameTime (score) is already stored globally
                         isday = true;
                         DN_timer = 0.0f;
+
                     }
                     // menuInputDelay is reset above for each case
                 }
