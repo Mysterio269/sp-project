@@ -418,9 +418,19 @@ struct ENEMY
 // variables for power ups
 bool SpeedBoostEffectActive = false;
 float SpeedBoostEffectTimer = 0.0f;
+bool thornsisactive = false;
 float EffectDuration = 10.0f;
 float freezeDuration = 4.1f;
 Texture PowerupsTexture[5];
+struct inventoryitems
+{
+    int Level;
+    inventoryitem Type;
+    itemtype ItemType;
+    Sprite sprite;
+    bool isActive = false;
+}inventory[2][4];
+Texture inventorytextures[9], levelupselectionicons[8], inventoryBackground_Texture;
 
 struct XPc
 {
@@ -541,6 +551,18 @@ struct XPc
                 }
                 else if (DropType == mathrevivalactivator)
                 {
+                    if(!shanoa.RevivalScrollAcquired){
+                        for (int i = 0; i < 4; i++) {
+                            if (!inventory[1][i].isActive) {
+                                inventory[1][i].isActive = true;
+                                inventory[1][i].Level = 1;
+                                inventory[1][i].Type = mathrevivalscroll;
+                                inventory[1][i].ItemType = powerup;
+                                inventory[1][i].sprite.setTexture(inventorytextures[mathrevivalscroll]);
+                                break;
+                            }
+                        }
+                    }
                     shanoa.RevivalScrollAcquired = true;
                 }
                 else if (DropType == speedboost)
@@ -585,7 +607,9 @@ struct BEAST : public ENEMY
             {
                 beastAttackTime = 0;
                 shanoa.health -= (damage-shanoa.armour);
-                health -= damage / thornsglobaldivider;
+                if(thornsisactive){
+                    health -= damage / thornsglobaldivider;
+                }
                 float decreaseRatio = float(health) / float(maxHealth);
                 healthBarOfEnemy.setSize(Vector2f(healthBarWidth * (decreaseRatio), healthBarHeight));
             }
@@ -718,7 +742,9 @@ struct ZOMBIE : public ENEMY
             {
                 zombieAttackTime = 0;
                 shanoa.health -= (damage - shanoa.armour);
-                health -= damage / thornsglobaldivider;
+                if (thornsisactive) {
+                    health -= damage / thornsglobaldivider;
+                }
                 float decreaseRatio = float(health) / float(maxHealth);
                 healthBarOfEnemy.setSize(Vector2f(healthBarWidth * (decreaseRatio), healthBarHeight));
             }
@@ -853,7 +879,9 @@ struct WEREWOLF : public ENEMY
             {
                 werewolfAttackTime = 0;
                 shanoa.health -= (damage - shanoa.armour);
-                health -= damage / thornsglobaldivider;
+                if (thornsisactive) {
+                    health -= damage / thornsglobaldivider;
+                }
                 float decreaseRatio = float(health) / float(maxHealth);
                 healthBarOfEnemy.setSize(Vector2f(healthBarWidth * (decreaseRatio), healthBarHeight));
             }
@@ -986,7 +1014,9 @@ struct BAT : public ENEMY
             {
                 batAttacktime = 0;
                 shanoa.health -= (damage - shanoa.armour);
-                health -= damage / thornsglobaldivider;
+                if (thornsisactive) {
+                    health -= damage / thornsglobaldivider;
+                }
                 float decreaseRatio = float(health) / float(maxHealth);
                 healthBarOfEnemy.setSize(Vector2f(healthBarWidth * (decreaseRatio), healthBarHeight));
             }
@@ -1114,7 +1144,9 @@ struct Ares : public ENEMY
             {
                 aresAttacktime = 0;
                 shanoa.health -= (damage - shanoa.armour);
-                health -= damage / thornsglobaldivider;
+                if (thornsisactive) {
+                    health -= damage / thornsglobaldivider;
+                }
                 float decreaseRatio = float(health) / float(maxHealth);
                 healthBarOfEnemy.setSize(Vector2f(healthBarWidth * (decreaseRatio), healthBarHeight));
             }
@@ -1437,15 +1469,6 @@ const float DespawnRadius = 1800.0f; // Distance to remove obstacles
 const float ObstacleTimer = 25.0f;   // Time in seconds before respawning when off camera
 Texture obstacleTextures[5];
 
-struct inventoryitems
-{
-    int Level;
-    inventoryitem Type;
-    itemtype ItemType;
-    Sprite sprite;
-    bool isActive = false;
-}inventory[2][4];
-Texture inventorytextures[9], levelupselectionicons[8], inventoryBackground_Texture;
 Sprite inventoryBackground;
 
 void LoadObstacleTextures()
@@ -2134,7 +2157,7 @@ void itemactivation(inventoryitem n)
                     shanoa.health += 100;
                     break;
                 case thorns:
-                    thornsglobaldivider--;
+                    thornsisactive = true;
                     break;
                 case reinforced:
                     shanoa.armour += 5;
@@ -2749,6 +2772,7 @@ void MainMenuButtonCheck()
             shanoa.Maxhp = 200;
             GARLIC.damage = 10.0f;
             shanoa.MaxXp = 100;
+            thornsisactive = false;
         }
     }
     if (LeaderboardButtonBounds.contains(mouseWorldpos))
@@ -2888,6 +2912,7 @@ void MainMenuInput()
                 shanoa.Maxhp = 200;
                 GARLIC.damage = 10.0f;
                 shanoa.MaxXp = 100;
+                thornsisactive = false;
             }
             else if (selectedMenuButtonIndex == 1)
             { // settings
@@ -3071,14 +3096,16 @@ void quoteUpdate()
 void garlicDamageApply() {
     Vector2f garlicCenter = GARLIC.outerCircle.getPosition();
     float damageAmount = GARLIC.damage * DamageDelay;
-    for (int i = 0; i < enemies.size(); i++)
-    {
-        Vector2f enemyPos = enemies[i]->shape.getPosition();
-        float distance = sqrt(pow(enemyPos.x - garlicCenter.x, 2) + pow(enemyPos.y - garlicCenter.y, 2));
-        if (distance <= GARLIC.radius) {
-            enemies[i]->health -= damageAmount;
-            float decreaseRatio = float(enemies[i]->health) / float(enemies[i]->maxHealth);
-            enemies[i]->healthBarOfEnemy.setSize(Vector2f(enemies[i]->healthBarWidth * decreaseRatio, enemies[i]->healthBarHeight));
+    if(garlicIsActive){
+        for (int i = 0; i < enemies.size(); i++)
+        {
+            Vector2f enemyPos = enemies[i]->shape.getPosition();
+            float distance = sqrt(pow(enemyPos.x - garlicCenter.x, 2) + pow(enemyPos.y - garlicCenter.y, 2));
+            if (distance <= GARLIC.radius) {
+                enemies[i]->health -= damageAmount;
+                float decreaseRatio = float(enemies[i]->health) / float(enemies[i]->maxHealth);
+                enemies[i]->healthBarOfEnemy.setSize(Vector2f(enemies[i]->healthBarWidth * decreaseRatio, enemies[i]->healthBarHeight));
+            }
         }
     }
 }
@@ -3124,9 +3151,11 @@ void effectsFullCollisionForDamage()
         }
     }
     // Handling Garlic 
-    if (GARLIC.damageTimer >= DamageDelay) {
-        garlicDamageApply();
-        GARLIC.damageTimer = 0.0f;
+    if(garlicIsActive){
+        if (GARLIC.damageTimer >= DamageDelay) {
+            garlicDamageApply();
+            GARLIC.damageTimer = 0.0f;
+        }
     }
 }
 
@@ -3555,13 +3584,14 @@ void Update()
                     LightningBoltGlobalDamage = 20;
                     boltshootingrate = 3;
                     shootingrate = 2;
-                    thornsglobaldivider = 3;
+                    thornsglobaldivider = 0;
                     shanoa.armour = 0;
                     shanoa.canThrowSwords = false;
                     lightningboltisactive = false;
                     garlicIsActive = false;
                     GARLIC.radius = FirstLevelRadius;
                     shanoa.MaxXp = 100;
+                    thornsisactive = false;
                 }
 
                 menuInputDelay = 0;
@@ -3754,12 +3784,20 @@ void Update()
                         GARLIC.radius = FirstLevelRadius;
                         GARLIC.damage = 10.0f;
                         shanoa.MaxXp = 100;
+                        thornsisactive = false;
                     }
                     else if (selectedGameOverOptionIndex == 1 && shanoa.RevivalScrollAcquired) // Math Revival selected
                     {
                         MathRevivalON = true; // Activate Math Revival
                         TheLegendaryTutor.play();
                         menuInputDelay = 0.f; // Reset delay
+                        for (int i = 0; i < 4; i++) {
+                            if (inventory[1][i].Type == mathrevivalscroll) {
+                                inventory[1][i].isActive = false;
+                                inventory[1][i].Level = 0;
+                                inventory[1][i].Type = blank;
+                            }
+                        }
                     }
                     else if (selectedGameOverOptionIndex == 2) // Give Up selected
                     {
