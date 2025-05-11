@@ -24,7 +24,8 @@ enum Gamestate
     credits,
     nameinput,
     paused,
-    levelupscreen
+    levelupscreen,
+    storymode
 };
 
 enum CrystalState
@@ -96,9 +97,13 @@ float deltaTime;
 
 Text mathRevivalText;
 Text Quote;
+Font defgamefont; // default game font
+
 Text xpBarText;
 Text HMtext;
 Text HMindicator;
+Text controlsText, movementControl, inventoryControl, choosingUpgradeControl;
+Text returnText;
 bool MathRevivalON;
 bool levelupmenuon = false;
 bool lightningboltisactive = false;
@@ -129,6 +134,8 @@ float inventoryinputdelaytimer = 0.0f;
 Sprite MainMenuButtons, MainMenuBackground, Map, healthbar, creditsbutton, creditback, volume_up, volume_down, settingsBackground;
 Sprite MathRevivalLock;
 Sprite HMbutton;
+Sprite QButton, EButton, TabButton, Bag, arrowsButtons,WButton, AButton, SButton, DButton;
+Texture QButtonTexture, EButtonTexture, TabButtonTexture, BagTexture, arrowsTexture, WButtonTexture, AButtonTexture, SButtonTexture, DButtonTexture;
 
 View view;
 Vector2i mouseScreenpos;
@@ -155,8 +162,8 @@ float volumebarcontroller;
 int randIndex; // equations elements random index
 const int MAX_OBSTACLES = 25;
 
-Sound MainMenuMusic, GameOverSound, GameloopMusic, TheLegendaryTutor, levelupsfx, preBossSpawnSound, BossTheme;
-SoundBuffer MainMenuMusic_source, GameOverSound_source, GameloopMusic_source, TheLegendaryTutor_voice, levelupsource, preBossSpawnSoundBuffer, BossThemeBuffer;
+Sound MainMenuMusic, GameOverSound, GameloopMusic, TheLegendaryTutor, levelupsfx, preBossSpawnSound, BossTheme,lightningBoltSound,storyModeSound;
+SoundBuffer MainMenuMusic_source, GameOverSound_source, GameloopMusic_source, TheLegendaryTutor_voice, levelupsource, preBossSpawnSoundBuffer, BossThemeBuffer, lightningBoltBuffer, storyModeSoundBuffer;
 bool gameOverSoundPlayed = false;
 
 sf::VideoMode desktopMode = sf::VideoMode::getDesktopMode();
@@ -194,6 +201,29 @@ float DN_duration = 30.0f;
 float swordglobaldamage = 100;
 float LightningBoltGlobalDamage = 20;
 float thornsglobaldivider = 3;
+// for Dialoge 
+
+float dialoguetimer = 0, dialoguedelay = 0.05f, nextdialoguedelay = 0;
+Text currentDialogue;
+int currentdialoguecounter = 0, letterindex = 0;
+bool currentdialoguefinished = false;
+bool storyisfinished = false;
+string displayedstring;
+Sprite textbox, dcharacter, enter, space;
+Texture textbox_Texture, dcharacter_texture, enter_Texture, space_Texture;
+Text Skip, Continue;
+int shanoaupdatedebugger = 0;
+
+string dialogues[7] = { "Hello, Warrior.",
+    "Care to hear a story before you go on your way?",
+    "Since the old ages vampires has lived among us,\nWe didn\'t have the means to know their real identities\nlike we do know.",
+    "The thing is since they live around 500 years at least \nthey have reached very far in science and especially \nmathematics but they kept their knowledge in \nsecret scrolls that are under their control.",
+    "With this knowledge they have managaed to create \na time machine and also get the DNA of the great \ngreek warrior \"Ares\" they managed to make a bunch of \nclones of him.",
+    "You must defeat Every Ares clone to get those scrolls \nto be able to stop them and destroy the time machine \nbefore it is too late and they take over the world \nand kill all humans...",
+    "Good luck, Warrior." 
+};
+
+
 RectangleShape volumebar[10];
 multimap<float, string> leaderboardEntriesMap; // Key: -score (float), Value: playerName (string)
 
@@ -638,7 +668,6 @@ struct BEAST : public ENEMY
         healthBarHolder.setFillColor(Color::Black);
         healthBarHolder.setSize(Vector2f(60, 10));
         healthBarHolder.setOrigin(healthBarHolder.getLocalBounds().width / 2, healthBarHolder.getLocalBounds().height / 2);
-        healthBarOfEnemy.setFillColor(Color::Green);
         healthBarOfEnemy.setSize(Vector2f(60, 10));
         healthBarWidth = 60;
         healthBarHeight = 10;
@@ -646,6 +675,14 @@ struct BEAST : public ENEMY
     }
     void update() override
     {
+        if (!HMactive)
+        {
+            healthBarOfEnemy.setFillColor(Color::Green);
+        }
+        else
+        {
+            healthBarOfEnemy.setFillColor(Color::Red);
+        }
         collider.setPosition(shape.getPosition());
         attackBox.setPosition(shape.getPosition().x, shape.getPosition().y - 40);
         healthBarHolder.setPosition(shape.getPosition().x, shape.getPosition().y - 70);
@@ -781,6 +818,14 @@ struct ZOMBIE : public ENEMY
     }
     void update() override
     {
+        if (!HMactive)
+        {
+            healthBarOfEnemy.setFillColor(Color::Green);
+        }
+        else
+        {
+            healthBarOfEnemy.setFillColor(Color::Red);
+        }
         collider.setPosition(shape.getPosition());
         attackBox.setPosition(shape.getPosition().x, shape.getPosition().y - 40);
         healthBarHolder.setPosition(shape.getPosition().x, shape.getPosition().y - 50);
@@ -917,6 +962,14 @@ struct WEREWOLF : public ENEMY
     }
     void update() override
     {
+        if (!HMactive)
+        {
+            healthBarOfEnemy.setFillColor(Color::Green);
+        }
+        else
+        {
+            healthBarOfEnemy.setFillColor(Color::Red);
+        }
         if (!freezeTimeIsOn)
         {
             AttackDetection();
@@ -1053,6 +1106,14 @@ struct BAT : public ENEMY
     }
     void update() override
     {
+        if (!HMactive)
+        {
+            healthBarOfEnemy.setFillColor(Color::Green);
+        }
+        else
+        {
+            healthBarOfEnemy.setFillColor(Color::Red);
+        }
         collider.setPosition(shape.getPosition());
         attackBox.setPosition(shape.getPosition().x, shape.getPosition().y - 40);
         healthBarHolder.setPosition(shape.getPosition().x + 5, shape.getPosition().y - 45);
@@ -1182,6 +1243,14 @@ struct Ares : public ENEMY
     }
     void update() override
     {
+        if (!HMactive)
+        {
+            healthBarOfEnemy.setFillColor(Color::Green);
+        }
+        else
+        {
+            healthBarOfEnemy.setFillColor(Color::Red);
+        }
         collider.setPosition(shape.getPosition().x + 20, shape.getPosition().y + 50);
         attackBox.setPosition(shape.getPosition().x, shape.getPosition().y - 10);
         healthBarHolder.setPosition(shape.getPosition().x, shape.getPosition().y - 90);
@@ -1291,9 +1360,10 @@ struct Ares : public ENEMY
             aresspawntimer = 0;
             BossTheme.stop();
             BossthemeIsPlayed = 0;
-            GameloopMusic.play();
             shanoa.level += 1;
             gamestate = levelupscreen;
+            levelupsfx.play();
+            levelUpDisplayTimer = 0;
             showLevelUp = true;
         }
         if (isDead && hasDroppedXP == false)
@@ -1377,7 +1447,7 @@ struct Lightningbolt
     void update()
     {
         shape.move(velocity * deltaTime);
-        collider.setPosition(shape.getPosition());
+        collider.setPosition(shape.getPosition().x, shape.getPosition().y);
         collider.setSize(Vector2f(300, 112));
         shape.setOrigin(1000, 214.2857142857143);
         collider.setOrigin(Vector2f(150, 56));
@@ -1488,7 +1558,76 @@ void InitObstacles()
         obstacles[i] = Obstacle();
     }
 }
+void dialogue() {
+    if (shanoaupdatedebugger == 0) {
+        shanoaupdatedebugger++;
+        shanoa.update();
+    }
+    dialoguetimer += deltaTime;
+    nextdialoguedelay += deltaTime;
 
+    currentDialogue.setFont(defgamefont);
+    currentDialogue.setFillColor(Color::White);
+    currentDialogue.setOutlineColor(Color::Black);
+    currentDialogue.setOutlineThickness(1);
+
+    currentDialogue.setPosition(view.getCenter().x - 450, view.getCenter().y + 210);
+    textbox.setPosition(view.getCenter().x + 4, view.getCenter().y + 320);
+    textbox.setOrigin(textbox_Texture.getSize().x / 2, textbox_Texture.getSize().y / 2);
+    textbox.setScale(2.49, 4.4);
+
+    dcharacter.setOrigin(dcharacter_texture.getSize().x / 2, dcharacter_texture.getSize().y / 2);
+    dcharacter.setPosition(view.getCenter().x - 310, view.getCenter().y + 90);
+    dcharacter.setScale(1.12, 1.7);
+
+    view.setCenter(shanoa.sprite.getPosition());
+
+    Skip.setString("to skip");
+    Skip.setFont(defgamefont);
+    Skip.setFillColor(Color::White);
+    Skip.setOutlineColor(Color::Black);
+    Skip.setOutlineThickness(1);
+    Skip.setPosition(view.getCenter().x + 300, view.getCenter().y + 400);
+
+    Continue.setString("to continue");
+    Continue.setFont(defgamefont);
+    Continue.setFillColor(Color::White);
+    Continue.setOutlineColor(Color::Black);
+    Continue.setOutlineThickness(1);
+    Continue.setPosition(view.getCenter().x - 250, view.getCenter().y + 400);
+
+    enter.setPosition(view.getCenter().x + 200, view.getCenter().y + 400);
+    space.setPosition(view.getCenter().x - 470, view.getCenter().y + 400);
+
+
+    if (Keyboard::isKeyPressed(Keyboard::Space) && currentdialoguefinished && currentdialoguecounter < 6 && nextdialoguedelay > 1) {
+        displayedstring.clear();
+        currentdialoguefinished = false;
+        currentdialoguecounter++;
+        letterindex = 0;
+        dialoguetimer = 0;
+        nextdialoguedelay = 0;
+    }
+    else if (Keyboard::isKeyPressed(Keyboard::Space) && currentdialoguefinished && currentdialoguecounter >= 6) {
+        storyisfinished = true;
+    }
+    if (dialoguetimer > dialoguedelay && letterindex < dialogues[currentdialoguecounter].size()) {
+        displayedstring += dialogues[currentdialoguecounter][letterindex];
+        currentDialogue.setString(displayedstring);
+        letterindex++;
+        dialoguetimer = 0;
+    }
+    else if (letterindex >= dialogues[currentdialoguecounter].size() && !currentdialoguefinished) {
+        currentdialoguefinished = true;
+    }
+    if (Keyboard::isKeyPressed(Keyboard::Enter) && nextdialoguedelay > 1) {
+        dialoguetimer = 0;
+        letterindex = 0;
+        nextdialoguedelay = 0;
+        currentdialoguecounter = 0;
+        storyisfinished = true;
+    }
+}
 bool IsInCameraView(const Vector2f &position)
 {
     Vector2f viewCenter = view.getCenter();
@@ -1639,7 +1778,6 @@ void UpdateObstacles(float deltaTime)
     }
 }
 
-Font defgamefont; // default game font
 
 Text StartGameText, SettingsText, ExitText, LeaderboardText, CreditsText, volumeText, settingsmenuText;
 Text DEV_T, TEAMNAME, NAMES, prof, teamname;
@@ -2266,19 +2404,19 @@ void lightningstrike()
             newBolt.shape.setScale(0.25,0.25);
             newBolt.shape.setTextureRect(IntRect(0, 0, 2000, 428.5714285714286));
             newBolt.damage = LightningBoltGlobalDamage;
-            newBolt.shape.setPosition(shanoa.sprite.getPosition()); // init
             newBolt.collider.setSize(Vector2f(30, 15));             // init
-
             if (shanoa.spriteDirection == toleft)
             {
                 newBolt.velocity = Vector2f(-1.f, 0.f) * newBolt.speed;
+                newBolt.shape.setPosition(shanoa.sprite.getPosition().x -100 , shanoa.sprite.getPosition().y); // init
             }
             else
             {
                 newBolt.velocity = Vector2f(1.f, 0.f) * newBolt.speed;
+                newBolt.shape.setPosition(shanoa.sprite.getPosition().x + 100, shanoa.sprite.getPosition().y);
             }
             LightningBolts.push_back(newBolt);
-            swordsound.play();
+            lightningBoltSound.play();
         }
     }
 }
@@ -2427,6 +2565,7 @@ void xpFullReset()
 {
     shanoa.xp = 0;
     shanoa.level = 1;
+    levelUpDisplayTimer = 0;
 }
 
 void PauseMenuInit()
@@ -2736,9 +2875,9 @@ void MainMenuButtonCheck()
         selectedMenuButtonIndex = 0;
         if (Mouse::isButtonPressed(Mouse::Left))
         {
-            gamestate = gameloop;
+            gamestate = storymode;
             MainMenuMusic.stop();
-            GameloopMusic.play();
+            storyModeSound.play();
 
             // RESETTING after death for next game
             shanoa.sprite.setPosition(0, 0);
@@ -2874,10 +3013,10 @@ void MainMenuInput()
         {
             if (selectedMenuButtonIndex == 0)
             { // start Game
-                gamestate = gameloop;
+                gamestate = storymode;
                 shanoa.sprite.setPosition(0, 0);
                 MainMenuMusic.stop();
-                GameloopMusic.play();
+                storyModeSound.play();
                 // RESETTING after death for next game
                 bossHasSpawned = 0;
                 BossthemeIsPlayed = 0;
@@ -2964,6 +3103,11 @@ void SettingsMenuInit()
     settingsmenuText.setPosition(680, 20100);
     settingsmenuText.setScale(1.8, 1.8);
 
+    returnText.setFont(defgamefont);
+    returnText.setCharacterSize(24);
+    returnText.setFillColor(Color::White);
+    returnText.setString("Press R to return to Main Menu");
+
     HMbuttonTexture.loadFromFile("Assets\\HMcheckbox.png");
     HMbutton.setTexture(HMbuttonTexture);
     HMbutton.setTextureRect(IntRect(0, 0, 393, 144));
@@ -2990,6 +3134,27 @@ void SettingsMenuInit()
             volumebar[i].setPosition(690 + (i * 20), 20307);
         }
     }
+    // Control Buttons
+    movementControl.setFont(defgamefont);
+    movementControl.setString("Movement :                  /");
+    movementControl.setCharacterSize(20);
+    movementControl.setFillColor(Color::White);
+    movementControl.setOrigin(movementControl.getLocalBounds().width / 2, movementControl.getLocalBounds().height / 2);
+    inventoryControl.setFont(defgamefont);
+    inventoryControl.setString("Inventory : ");
+    inventoryControl.setCharacterSize(20);
+    inventoryControl.setFillColor(Color::White);
+    inventoryControl.setOrigin(inventoryControl.getLocalBounds().width / 2, inventoryControl.getLocalBounds().height / 2);
+    choosingUpgradeControl.setFont(defgamefont);
+    choosingUpgradeControl.setString("Choosing Upgrade :        /");
+    choosingUpgradeControl.setCharacterSize(20);
+    choosingUpgradeControl.setFillColor(Color::White);
+    choosingUpgradeControl.setOrigin(choosingUpgradeControl.getLocalBounds().width / 2, choosingUpgradeControl.getLocalBounds().height / 2);
+    controlsText.setFont(defgamefont);
+    controlsText.setString("Controls : ");
+    controlsText.setCharacterSize(35);
+    controlsText.setFillColor(Color::White);
+    controlsText.setOrigin(choosingUpgradeControl.getLocalBounds().width / 2, choosingUpgradeControl.getLocalBounds().height / 2);
 }
 
 void Horrormode()
@@ -3092,6 +3257,7 @@ void quoteUpdate()
     Quote.setString(quotes[indexForRandomQuote()]);
     Quote.setOrigin(Quote.getLocalBounds().width / 2, Quote.getLocalBounds().height / 2);
 }
+
 
 void garlicDamageApply() {
     Vector2f garlicCenter = GARLIC.outerCircle.getPosition();
@@ -3261,6 +3427,56 @@ void Start()
 
     window.setFramerateLimit(30);
 
+
+    // New Button GUI
+    QButtonTexture.loadFromFile("Assets\\Q.png");
+    EButtonTexture.loadFromFile("Assets\\E.png");
+    TabButtonTexture.loadFromFile("Assets\\tab.png");
+    BagTexture.loadFromFile("Assets\\bag.png");
+    Bag.setTexture(BagTexture);
+    QButton.setTexture(QButtonTexture);
+    EButton.setTexture(EButtonTexture);
+    TabButton.setTexture(TabButtonTexture);
+    QButton.setOrigin(QButton.getLocalBounds().width / 2, QButton.getLocalBounds().height / 2);
+    EButton.setOrigin(EButton.getLocalBounds().width / 2, EButton.getLocalBounds().height / 2);
+    TabButton.setOrigin(TabButton.getLocalBounds().width / 2, TabButton.getLocalBounds().height / 2);
+    Bag.setOrigin(Bag.getLocalBounds().width / 2, Bag.getLocalBounds().height / 2);
+    Bag.setScale(0.5, 0.9);
+    TabButton.setScale(0.6, 0.6);
+    arrowsTexture.loadFromFile("Assets\\Arrows.png");
+    arrowsButtons.setTexture(arrowsTexture);
+    arrowsButtons.setOrigin(arrowsButtons.getLocalBounds().width / 2, arrowsButtons.getLocalBounds().height / 2);
+    arrowsButtons.setScale(0.5, 0.5);
+    WButtonTexture.loadFromFile("Assets\\W.png");
+    AButtonTexture.loadFromFile("Assets\\A.png");
+    SButtonTexture.loadFromFile("Assets\\S.png");
+    DButtonTexture.loadFromFile("Assets\\D.png");
+    WButton.setTexture(WButtonTexture);
+    AButton.setTexture(AButtonTexture);
+    SButton.setTexture(SButtonTexture);
+    DButton.setTexture(DButtonTexture);
+    WButton.setOrigin(WButton.getLocalBounds().width / 2, WButton.getLocalBounds().height / 2);
+    AButton.setOrigin(AButton.getLocalBounds().width / 2, AButton.getLocalBounds().height / 2);
+    SButton.setOrigin(SButton.getLocalBounds().width / 2, SButton.getLocalBounds().height / 2);
+    DButton.setOrigin(DButton.getLocalBounds().width / 2, DButton.getLocalBounds().height / 2);
+    WButton.setScale(0.8, 0.8);
+    AButton.setScale(0.8, 0.8);
+    SButton.setScale(0.8, 0.8);
+    DButton.setScale(0.8, 0.8);
+
+
+    // For Dialoge
+
+    textbox_Texture.loadFromFile("Assets\\textboxsprite.png");
+    textbox.setTexture(textbox_Texture);
+    dcharacter_texture.loadFromFile("Assets\\dialoguecharactersprite.png");
+    dcharacter.setTexture(dcharacter_texture);
+    enter_Texture.loadFromFile("Assets\\enter.png");
+    space_Texture.loadFromFile("Assets\\space.png");
+    enter.setTexture(enter_Texture);
+    space.setTexture(space_Texture);
+
+
     // Game font initialization
     defgamefont.loadFromFile("VampireZone.ttf");
     lock.loadFromFile("Assets\\lock.png");
@@ -3284,8 +3500,14 @@ void Start()
     preBossSpawnSound.setBuffer(preBossSpawnSoundBuffer);
     BossThemeBuffer.loadFromFile("Assets\\bosstheme.ogg");
     BossTheme.setBuffer(BossThemeBuffer);
+    BossTheme.setVolume(20);
     swordsound.setBuffer(swordsound_source);
     swordsound.setVolume(30);
+    lightningBoltBuffer.loadFromFile("Assets\\lightningbolt.ogg");
+    lightningBoltSound.setBuffer(lightningBoltBuffer);
+    lightningBoltSound.setVolume(30);
+    storyModeSoundBuffer.loadFromFile("Assets\\storymodemusic.ogg");
+    storyModeSound.setBuffer(storyModeSoundBuffer);
     levelup.loadFromFile("Assets\\level_up.png");
     levelupsprite.setTexture(levelup);
     levelupsprite.setScale(0.3, 0.5);
@@ -3474,7 +3696,19 @@ void Update()
             view.setCenter(shanoa.sprite.getPosition());
         quoteUpdate();
     }
-
+    else if (gamestate == storymode) 
+    {
+        dialogue();
+        if (storyisfinished) {
+            storyisfinished = false;
+            storyModeSound.stop();
+            gamestate = gameloop;
+            GameloopMusic.play();
+            displayedstring.clear();
+            currentdialoguecounter = 0;
+            letterindex = 0;
+        }
+    }
     else if (gamestate == paused)
     {
         window.setMouseCursorVisible(true);
@@ -3555,6 +3789,7 @@ void Update()
                     MainMenuMusic.play();
                     GameloopMusic.stop();
                     BossthemeIsPlayed = 0;
+                    bossHasSpawned = 0;
                     postTransitionCooldown = POST_TRANSITION_DELAY;
                     enemies.clear();
                     swords.clear();
@@ -3592,9 +3827,9 @@ void Update()
                     GARLIC.radius = FirstLevelRadius;
                     shanoa.MaxXp = 100;
                     thornsisactive = false;
+                    menuInputDelay = 0;
                 }
 
-                menuInputDelay = 0;
             }
         }
 
@@ -4084,6 +4319,8 @@ void Draw()
         }
         inventoryBackground.setPosition(view.getCenter().x + 305, view.getCenter().y - 450);
         inventory[0][0].sprite.setPosition(view.getCenter().x + 335, view.getCenter().y - 410);
+        Bag.setPosition(view.getCenter().x + 425, view.getCenter().y - 400);
+        TabButton.setPosition(view.getCenter().x + 423.8, view.getCenter().y - 350);
         if (inventoryactive)
         {
             window.draw(inventoryBackground);
@@ -4114,6 +4351,11 @@ void Draw()
                 }
             }
         }
+        else
+        {
+            window.draw(Bag);
+            window.draw(TabButton);
+        }
     }
 
     if (gamestate == settings)
@@ -4131,13 +4373,46 @@ void Draw()
             window.draw(volumebar[i]);
         }
         Vector2f viewCenter = view.getCenter();
-        Text returnText;
-        returnText.setFont(defgamefont);
-        returnText.setCharacterSize(24);
-        returnText.setFillColor(Color::White);
-        returnText.setString("Press R to return to Main Menu");
-        returnText.setPosition(viewCenter.x - returnText.getGlobalBounds().width / 2.f, viewCenter.y + 300.f);
+        returnText.setPosition(viewCenter.x - returnText.getGlobalBounds().width / 2.f, viewCenter.y + 425.f);
+        controlsText.setPosition(viewCenter.x - 160, viewCenter.y );
+        movementControl.setPosition(viewCenter.x - 124, viewCenter.y + 100.f);
+        inventoryControl.setPosition(viewCenter.x - 170, viewCenter.y + 150.f);
+        choosingUpgradeControl.setPosition(viewCenter.x - 110, viewCenter.y + 200.f);
+        QButton.setPosition(viewCenter.x - 15, viewCenter.y + 200.f);
+        EButton.setPosition(viewCenter.x + 30, viewCenter.y + 200.f);
+        TabButton.setPosition(viewCenter.x - 85, viewCenter.y + 151.f);
+        arrowsButtons.setPosition(viewCenter.x - 70, viewCenter.y + 95.f);
+        WButton.setPosition(viewCenter.x +30, viewCenter.y + 65.f);
+        AButton.setPosition(viewCenter.x , viewCenter.y + 105.f);
+        SButton.setPosition(viewCenter.x + 30, viewCenter.y + 105.f);
+        DButton.setPosition(viewCenter.x + 60, viewCenter.y + 105.f);
+      
+
         window.draw(returnText);
+        window.draw(controlsText);
+        window.draw(movementControl);
+        window.draw(inventoryControl);
+        window.draw(choosingUpgradeControl);
+        window.draw(QButton);
+        window.draw(EButton);
+        window.draw(TabButton);
+        window.draw(arrowsButtons);
+        window.draw(WButton);
+        window.draw(AButton);
+        window.draw(SButton);
+        window.draw(DButton);
+    }
+    if (gamestate == storymode) {
+        window.draw(Map);
+        window.draw(dcharacter);
+        window.draw(textbox);
+        window.draw(currentDialogue);
+        window.draw(enter);
+        window.draw(Skip);
+        if (currentdialoguefinished) {
+            window.draw(space);
+            window.draw(Continue);
+        }
     }
 
     if (gamestate == gameover)
@@ -4299,7 +4574,9 @@ void Draw()
     if (gamestate == levelupscreen)
     {
         levelupMenuSprite[0].setPosition(view.getCenter().x - 200, view.getCenter().y);
+        QButton.setPosition(view.getCenter().x - 200, view.getCenter().y + 275);
         levelupMenuSprite[1].setPosition(view.getCenter().x + 200, view.getCenter().y);
+        EButton.setPosition(view.getCenter().x + 200, view.getCenter().y + 275);
         levelupselectionsprite[0].setPosition(view.getCenter().x - 200, view.getCenter().y - 200);
         levelupselectionsprite[1].setPosition(view.getCenter().x + 200, view.getCenter().y - 200);
         LevelUpSelectionDescription[0].setPosition(view.getCenter().x - 300, view.getCenter().y + 100);
@@ -4311,7 +4588,9 @@ void Draw()
         levelupselectionname[0].setPosition(view.getCenter().x - 270, view.getCenter().y);
         levelupselectionname[1].setPosition(view.getCenter().x + 130, view.getCenter().y);
         window.draw(levelupMenuSprite[0]);
+        window.draw(QButton);
         window.draw(levelupMenuSprite[1]);
+        window.draw(EButton);
         window.draw(levelupselectionsprite[0]);
         window.draw(levelupselectionsprite[1]);
         window.draw(LevelUpSelectionDescription[0]);
