@@ -143,7 +143,7 @@ Vector2f mouseWorldpos;
 int selectedGameOverOptionIndex = 0;
 RectangleShape StartButton(Vector2f(490, 110)), SettingsButton(Vector2f(490, 110)), LeaderboardButton(Vector2f(490, 110)),
     ExitButton(Vector2f(490, 110)), creditsButton(Vector2f(490, 110)), MathRevivalButton(Vector2f(250, 50)), restartButton(Vector2f(250, 50));
-RectangleShape GiveUpButton(Vector2f(250, 50)); // *** Add shape for the Give Up button ***
+RectangleShape GiveUpButton(Vector2f(250, 50));
 RectangleShape equationAnsCellBox;
 RectangleShape gameOverOverlay, LeaderboardOverlay; // red color in gameover background
 RectangleShape xpBarHolder;
@@ -154,7 +154,7 @@ FloatRect StartButtonBounds, SettingsButtonBounds, LeaderboardButtonBounds, Exit
     volumeDownBounds;
 FloatRect HMbuttonbounds;
 RectangleShape menuCursor;
-FloatRect MathRevivlaButtonBounds, RestartButtonBounds, GiveUpButtonBounds; // *** Add bounds for Give Up button ***
+FloatRect MathRevivlaButtonBounds, RestartButtonBounds, GiveUpButtonBounds; 
 Text nametext;
 Listener GameVolume;
 int selectedMenuButtonIndex = 0; // 0 for Start, 1 for Settings, 2 for Leaderboard, 3 for Exit
@@ -168,7 +168,6 @@ bool gameOverSoundPlayed = false;
 
 sf::VideoMode desktopMode = sf::VideoMode::getDesktopMode();
 RenderWindow window(desktopMode, "Vampire Survivors :The path to the legendary formula", sf::Style::Fullscreen);
-// fullscreen fix
 float healthRatio;
 float freezeTimeForBossSpawning = 0.f;
 float shootingtime = 0.f;
@@ -182,7 +181,7 @@ float HorrorModeDelay = 0.4f;
 float HorrorModeTimerDelay = 0.f;
 const float timeForAttack = 0.4f;
 const float MENU_INPUT_COOLDOWN = 0.5f;   // Time in seconds between allowed inputs
-float postTransitionCooldown = 0.f;       // Make sure this is also declared (it is in your code around source 151)
+float postTransitionCooldown = 0.f;       
 const float POST_TRANSITION_DELAY = 0.6f; // Define the delay duration in seconds
 const float FirstLevelRadius = 100.0f;
 const float ValueIncrementedToRadius = 15.0f;
@@ -201,8 +200,8 @@ float DN_duration = 30.0f;
 float swordglobaldamage = 100;
 float LightningBoltGlobalDamage = 20;
 float thornsglobaldivider = 3;
-// for Dialoge 
 
+//for Dialoge 
 float dialoguetimer = 0, dialoguedelay = 0.05f, nextdialoguedelay = 0;
 Text currentDialogue;
 int currentdialoguecounter = 0, letterindex = 0;
@@ -216,8 +215,8 @@ int shanoaupdatedebugger = 0;
 
 string dialogues[7] = { "Hello, Warrior.",
     "Care to hear a story before you go on your way?",
-    "Since the old ages vampires has lived among us,\nWe didn\'t have the means to know their real identities\nlike we do know.",
-    "The thing is since they live around 500 years at least \nthey have reached very far in science and especially \nmathematics but they kept their knowledge in \nsecret scrolls that are under their control.",
+    "Since the old ages vampires have lived among us,\nWe didn\'t have the means to know their real identities\nlike we do now.",
+    "The thing is since they live around 500 years at least \nthey have reached great heights in science and especially \nmathematics but they kept their knowledge in \nsecret scrolls that are under their control.",
     "With this knowledge they have managaed to create \na time machine and also get the DNA of the great \ngreek warrior \"Ares\" they managed to make a bunch of \nclones of him.",
     "You must defeat Every Ares clone to get those scrolls \nto be able to stop them and destroy the time machine \nbefore it is too late and they take over the world \nand kill all humans...",
     "Good luck, Warrior." 
@@ -225,7 +224,7 @@ string dialogues[7] = { "Hello, Warrior.",
 
 
 RectangleShape volumebar[10];
-multimap<float, string> leaderboardEntriesMap; // Key: -score (float), Value: playerName (string)
+multimap<float, string> leaderboardEntriesMap;
 
 string levelupnames[8], levelupdescription[8];
 
@@ -238,7 +237,7 @@ Vector2f unitVector(Vector2f vector)
     float magnitude = sqrt(vector.x * vector.x + vector.y * vector.y);
     if (magnitude == 0)
     {
-        return Vector2f(0, 0); // Or handle as needed, perhaps return the zero vector
+        return Vector2f(0, 0);
     }
     Vector2f unit = Vector2f(vector.x / magnitude, vector.y / magnitude);
     return unit;
@@ -290,7 +289,6 @@ struct character
     int animationdelaytimer = 0;
     float AutoAttackTimer = 0;
     bool startattack = false;
-    // *** Add members for revival tracking and score calculation ***
     bool hasRevived = false;
     float timeAtFirstDeath = 0.f; // totalGameTime when the player first died
     void updatelevel()
@@ -311,7 +309,6 @@ struct character
 
     void update()
     {
-        // spriteDirection = toright;
         if (!isAttacking)
         {
             AnimationState = idle;
@@ -437,10 +434,7 @@ struct ENEMY
     int columnindex = 0, rowindex;
     int health, damage, maxHealth;
     bool isAttacking = false, isDead = false, hasDroppedXP = false,alrStruck = false;
-    virtual void start()
-    {
-        // virtual start to be edited afterwards in the code
-    }
+    virtual void start(){}
     virtual void update() {}
     virtual ~ENEMY() {}
 };
@@ -488,7 +482,6 @@ struct XPc
         sprite.setPosition(x, y);
         DropType = drop;
         sprite.setScale(0.2f, 0.4f);
-        // Center the origin for proper positioning
         sprite.setOrigin(tex.getSize().x / 2.0f, tex.getSize().y / 2.0f);
         sprite.setTextureRect(IntRect(0, 0, tex.getSize().x, tex.getSize().y));
         xpValue = xp;
@@ -498,7 +491,6 @@ struct XPc
 
     void update(float deltaTime, const Vector2f &playerPosition)
     {
-        // Update lifetime regardless of state
         lifetime -= deltaTime;
         if (lifetime <= 0.0f)
         {
@@ -528,7 +520,7 @@ struct XPc
             normalizedToOriginal.y /= distToOriginal;
         }
 
-        // Animation state machine
+        // Animations
         switch (state)
         {
         case IDLE:
@@ -636,7 +628,9 @@ struct BEAST : public ENEMY
             if (beastAttackTime >= enemyAttackDelay)
             {
                 beastAttackTime = 0;
-                shanoa.health -= (damage-shanoa.armour);
+                if (damage > shanoa.armour)
+                    shanoa.health -= (damage - shanoa.armour);
+                //if shanoa armour is stronger than the enemies attack she shouldn't take any damage
                 if(thornsisactive){
                     health -= damage / thornsglobaldivider;
                 }
@@ -728,8 +722,6 @@ struct BEAST : public ENEMY
         if (isDead && hasDroppedXP == false)
         {
             Vector2f position = shape.getPosition();
-
-            // Randomly decide: 5% chance for Red crystal
             int randValue = (rand() + 1) % 100;
             if (randValue < 20)
                 Crystals.push_back(XPc(position.x, position.y, RedXP, RedXPcValue, xpc));
@@ -761,6 +753,7 @@ struct BEAST : public ENEMY
         }
     }
 };
+
 struct ZOMBIE : public ENEMY
 {
     float zombieAttackTime = 0;
@@ -778,7 +771,9 @@ struct ZOMBIE : public ENEMY
             if (zombieAttackTime >= enemyAttackDelay)
             {
                 zombieAttackTime = 0;
-                shanoa.health -= (damage - shanoa.armour);
+                if (damage > shanoa.armour)
+                    shanoa.health -= (damage - shanoa.armour);
+                //if shanoa armour is stronger than the enemies attack she shouldn't take any damage
                 if (thornsisactive) {
                     health -= damage / thornsglobaldivider;
                 }
@@ -872,8 +867,6 @@ struct ZOMBIE : public ENEMY
         if (isDead && hasDroppedXP == false)
         {
             Vector2f position = shape.getPosition();
-
-            // Randomly decide: 5% chance for Red crystal
             int randValue = (rand() + 1) % 100;
             if (randValue < 5)
                 Crystals.push_back(XPc(position.x, position.y, RedXP, RedXPcValue, xpc));
@@ -923,7 +916,9 @@ struct WEREWOLF : public ENEMY
             if (werewolfAttackTime >= enemyAttackDelay)
             {
                 werewolfAttackTime = 0;
-                shanoa.health -= (damage - shanoa.armour);
+                if (damage > shanoa.armour)
+                    shanoa.health -= (damage - shanoa.armour);
+                //if shanoa armour is stronger than the enemies attack she shouldn't take any damage
                 if (thornsisactive) {
                     health -= damage / thornsglobaldivider;
                 }
@@ -1015,8 +1010,6 @@ struct WEREWOLF : public ENEMY
         if (isDead && hasDroppedXP == false)
         {
             Vector2f position = shape.getPosition();
-
-            // Randomly decide: 5% chance for Red crystal
             int randValue = (rand() + 1) % 100;
             if (randValue < 10)
                 Crystals.push_back(XPc(position.x, position.y, RedXP, RedXPcValue, xpc));
@@ -1066,7 +1059,9 @@ struct BAT : public ENEMY
             if (batAttacktime >= enemyAttackDelay)
             {
                 batAttacktime = 0;
-                shanoa.health -= (damage - shanoa.armour);
+                if (damage > shanoa.armour)
+                    shanoa.health -= (damage - shanoa.armour);
+                //if shanoa armour is stronger than the enemies attack she shouldn't take any damage
                 if (thornsisactive) {
                     health -= damage / thornsglobaldivider;
                 }
@@ -1160,8 +1155,6 @@ struct BAT : public ENEMY
         if (isDead && hasDroppedXP == false)
         {
             Vector2f position = shape.getPosition();
-
-            // Randomly decide: 5% chance for Red crystal
             int randValue = (rand() + 1) % 100;
             if (randValue == 1)
                 Crystals.push_back(XPc(position.x, position.y, RedXP, RedXPcValue, xpc));
@@ -1187,6 +1180,7 @@ struct BAT : public ENEMY
         }
     }
 };
+
 struct Ares : public ENEMY
 {
     float aresAttacktime = 0;
@@ -1204,7 +1198,9 @@ struct Ares : public ENEMY
             if (aresAttacktime >= enemyAttackDelay)
             {
                 aresAttacktime = 0;
-                shanoa.health -= (damage - shanoa.armour);
+                if (damage > shanoa.armour)
+                    shanoa.health -= (damage - shanoa.armour);
+                //if shanoa armour is stronger than the enemies attack she shouldn't take any damage
                 if (thornsisactive) {
                     health -= damage / thornsglobaldivider;
                 }
@@ -1369,8 +1365,6 @@ struct Ares : public ENEMY
         if (isDead && hasDroppedXP == false)
         {
             Vector2f position = shape.getPosition();
-
-            // Randomly decide: 5% chance for Red crystal
             int randValue = (rand() + 1) % 100;
             if (randValue == 1)
                 Crystals.push_back(XPc(position.x, position.y, RedXP, RedXPcValue, xpc));
@@ -1396,6 +1390,7 @@ struct Ares : public ENEMY
         }
     }
 };
+
 struct sword
 {
     Sprite shape;
@@ -1678,7 +1673,7 @@ bool IsValidPosition(const Vector2f &position, float radius)
             float distToObstacle = sqrt(pow(obstacles[i].sprite.getPosition().x - position.x, 2) +
                                         pow(position.y - obstacles[i].sprite.getPosition().y, 2));
 
-            if (distToObstacle < radius * 18)
+            if (distToObstacle < radius)
                 return false;
         }
     }
@@ -1690,14 +1685,12 @@ ObstacleType GetRandomObstacleType()
 {
     int randValue = (rand() % 100) + 1;
 
-    // if (randValue < 35)      return tree;
     if (randValue >= 60)
         return rock;
 
     else if (randValue < 60 && randValue >= 10)
         return wall;
 
-    // else if (randValue < 95) return objectwillbeadded;
     else
         return statue;
 }
@@ -1716,7 +1709,7 @@ void SpawnObstacle()
             while (validPosition == false && attempts < 20)
             {
                 position = GetRandomObstaclePosition();
-                validPosition = IsValidPosition(position, 65.0f); // The radius between obstacles
+                validPosition = IsValidPosition(position, 1170); // The radius between obstacles
                 attempts++;
             }
 
@@ -1731,7 +1724,6 @@ void SpawnObstacle()
     }
 }
 
-// Check for despawn and spawn new ones
 // Check for despawn and spawn new ones
 void UpdateObstacles(float deltaTime)
 {
@@ -1784,9 +1776,9 @@ Text DEV_T, TEAMNAME, NAMES, prof, teamname;
 Text GameOverText, ScoreText, RestartText;
 Text nameInputPromptText;   // For the next screen
 Text playerNameDisplayText; // For the next screen
-Text GiveUpText;            // *** Add text for the Give Up option ***
+Text GiveUpText;            
 
-// *** Pause Menu Elements ***
+//Pause Menu Elements
 Text PauseText;
 Text ContinueText;
 Text PauseReturnToMenuText;
@@ -1907,16 +1899,15 @@ int main()
                                     GameloopMusic.play();
                                 else
                                     BossTheme.play();
-                                shanoa.sprite.setPosition(0, 0);
+                                shanoa.sprite.setPosition(shanoa.sprite.getPosition().x + 250, shanoa.sprite.getPosition().y);
                                 gameOverSoundPlayed = false;
                                 shanoa.RevivalScrollAcquired = 0;
                                 MathRevivalON = false;
                                 userInput = ""; // Clear input
-                                // *** Reset player state for revival ***
+                                //Reset player for revival
                                 shanoa.health = shanoa.Maxhp / 2.f; // Restore half health (example)
                                 shanoa.isDead = false;              // Player is no longer dead
                                 shanoa.hasRevived = true;           // Mark that revival occurred
-                                // You might need to adjust player position away from enemies
                             }
                             else
                             {
@@ -1925,19 +1916,16 @@ int main()
                                 stopSounds();
                                 postTransitionCooldown = POST_TRANSITION_DELAY; // Set cooldown
                                 TheLegendaryTutor.stop();
-                                MathRevivalON = false; // Turn off Math Revival puzzle
+                                MathRevivalON = false; // Turn off Math Revival
                                 bossHasSpawned = 0;
                                 shanoa.RevivalScrollAcquired = 0;
                                 userInput = ""; // Clear input
-                                // Game over screen is skipped, so score won't be saved from here.
-                                // If you want to save score on Math Revival fail,
-                                // transition back to gameover options instead of mainmenu.
                             }
                         }
                     }
                     SurvivalEquation.userAnsText.setString(userInput); // Update Math Revival text display
                 }
-                // *** Add Name Input handling ***
+                //Add Name Input handling
                 else if (gamestate == nameinput) // Name input
                 {
                     handleNameInput(event);
@@ -1945,10 +1933,6 @@ int main()
             }
 
         } // End of while (window.pollEvent(event))
-
-        // --- Handle Keyboard::isKeyPressed checks (for continuous actions like Backspace/Enter on name input) ---
-        // These checks run every frame, outside the event polling loop.
-
         Update();
         Draw();
     }
@@ -1987,7 +1971,7 @@ void handleNameInput(Event &event)
         {
             if (!playerName.empty()) // Only save if name is not empty
             {
-                // *** Calculate Final Score ***
+                //Calculate Final Score
                 float finalScore = 0.f;
                 if (shanoa.hasRevived)
                 {
@@ -2000,7 +1984,7 @@ void handleNameInput(Event &event)
                     finalScore = totalGameTime * 2.0f;
                 }
 
-                // *** Create and add new leaderboard entry (using vector) ***
+                //Create and add new leaderboard entry
                 leaderboardEntriesMap.insert({-finalScore, playerName});
 
                 const int MAX_LEADERBOARD_SIZE = 10;
@@ -2158,7 +2142,7 @@ void levelupmenuinit()
 
     levelupdescription[bloodSword] = "      Melee Attack";
     levelupdescription[thrownsword] = "  Throw swords on\n        towards the\n             enemies";
-    levelupdescription[lightningbolt] = "          Summon a \n    Lightning bolt\n that target one or\n      more enemies";
+    levelupdescription[lightningbolt] = "          Summon a \n    Lightning bolt\n       that pierces \n    through one or \n      more enemies";
     levelupdescription[garlic] = "    Damage all the\n       enemies in a\n       certain area";
     levelupdescription[reinforced] = "  Reduce the damage\n     that the player\n            recieves";
     levelupdescription[thorns] = "     Return some of\n    the damage sent\n       to the enemy";
@@ -2855,7 +2839,6 @@ void GameOverInit()
     MathRevivalButton.setSize(Vector2f(250, 50));
 
     gameOverOverlay.setSize(view.getSize()); // Set size based on the view's size
-    // Set its origin to the center, so position(view.getCenter()) works correctly
     gameOverOverlay.setOrigin(view.getSize().x / 2.f, view.getSize().y / 2.f);
 
     gameOverOverlay.setFillColor(Color(100, 0, 0, 120));
@@ -3986,8 +3969,8 @@ void Update()
                         selectedMenuButtonIndex = 0;
                         enemies.clear();
                         Crystals.clear();
-                        shanoa.health = 200; // Or your starting health
-                        shanoa.Maxhp = 200; // Or your starting health
+                        shanoa.health = 200;
+                        shanoa.Maxhp = 200; 
                         shanoa.isDead = false;
                         shanoa.RevivalScrollAcquired = 0;
                         bossHasSpawned = 0;
@@ -4037,7 +4020,7 @@ void Update()
                     else if (selectedGameOverOptionIndex == 2) // Give Up selected
                     {
                         GameOverSound.stop();
-                        GameOverSound.play();
+                        MainMenuMusic.play();
                         enemies.clear();
                         bossHasSpawned = 0;
                         BossthemeIsPlayed = 0;
@@ -4058,7 +4041,7 @@ void Update()
             }
             menuInputDelay += deltaTime; // Increment delay for gameover screen
 
-            // *** Update menuCursor position based on selectedGameOverOptionIndex ***
+            //Update menuCursor position based on selectedGameOverOptionIndex 
             Vector2f selectedOptionPosition;
             Vector2f selectedOptionSize;
             float cursorAdjust = 3.f; // Adjust this value for cursor offset
@@ -4104,7 +4087,7 @@ void Update()
     {
         menuInputDelay += deltaTime; // Increment delay for nameinput state
 
-        // *** Ensure background color is reset ***
+        //Ensure background color is reset
         if (creditback.getTexture() != nullptr) // Check if texture is loaded
         {
             creditback.setColor(Color::White); // Reset to default color (assuming white texture)
@@ -4373,7 +4356,7 @@ void Draw()
             window.draw(volumebar[i]);
         }
         Vector2f viewCenter = view.getCenter();
-        returnText.setPosition(viewCenter.x - returnText.getGlobalBounds().width / 2.f, viewCenter.y + 425.f);
+        returnText.setPosition(view.getCenter().x - 190, view.getCenter().y + 430);
         controlsText.setPosition(viewCenter.x - 160, viewCenter.y );
         movementControl.setPosition(viewCenter.x - 124, viewCenter.y + 100.f);
         inventoryControl.setPosition(viewCenter.x - 170, viewCenter.y + 150.f);
@@ -4402,6 +4385,7 @@ void Draw()
         window.draw(SButton);
         window.draw(DButton);
     }
+
     if (gamestate == storymode) {
         window.draw(Map);
         window.draw(dcharacter);
@@ -4483,7 +4467,6 @@ void Draw()
         window.draw(DEV_T);
         window.draw(TEAMNAME);
         window.draw(teamname);
-
         for (int i = 0; i < 11; ++i)
         {
             Text nameText;
@@ -4495,22 +4478,22 @@ void Draw()
 
             window.draw(nameText);
         }
+        returnText.setPosition(view.getCenter().x - 190, view.getCenter().y + 430);
+        window.draw(returnText);
     }
 
     if (gamestate == nameinput)
     {
-        sf::Vector2f viewCenter = view.getCenter();
 
         window.draw(creditback);
 
-        nameInputPromptText.setPosition(viewCenter.x - nameInputPromptText.getGlobalBounds().width / 2.f, viewCenter.y - 100.f);
+        nameInputPromptText.setPosition(view.getCenter().x - nameInputPromptText.getGlobalBounds().width / 2.f, view.getCenter().y - 100.f);
         window.draw(nameInputPromptText);
 
-        equationAnsCellBox.setPosition(viewCenter.x - equationAnsCellBox.getGlobalBounds().width / 2.f, viewCenter.y - 20.f);
+        equationAnsCellBox.setPosition(view.getCenter().x - equationAnsCellBox.getGlobalBounds().width / 2.f, view.getCenter().y - 20.f);
         window.draw(equationAnsCellBox);
 
         // Position and draw the player name text (inside the box)
-        // Adjust +5.f padding as needed
         playerNameDisplayText.setPosition(equationAnsCellBox.getPosition().x + 5.f, equationAnsCellBox.getPosition().y + (equationAnsCellBox.getSize().y - playerNameDisplayText.getLocalBounds().height) / 2.f - 5.f);
         window.draw(playerNameDisplayText);
     }
@@ -4562,12 +4545,7 @@ void Draw()
             window.draw(entryText);
             rank++;
         }
-        Text returnText;
-        returnText.setFont(defgamefont);
-        returnText.setCharacterSize(24);
-        returnText.setFillColor(Color::White);
-        returnText.setString("Press R to return to Main Menu");
-        returnText.setPosition(viewCenter.x - returnText.getGlobalBounds().width / 2.f, viewCenter.y + 350.f);
+        returnText.setPosition(view.getCenter().x - 190, view.getCenter().y + 350);
         window.draw(returnText);
     }
 
